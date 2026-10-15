@@ -63,19 +63,22 @@ def admin_accounts():
         out = []
         for a in STORE.get_accounts():
             e = a["email"]; u, _, d = e.partition("@")
-            masked = (u[:2] + "*" * max(3, len(u)-4) + u[-2:]) + "@" + d if len(u)>4 else u[:1] + "*"*(len(u)-1) + "@" + d
-            tok = a.get("token","") or ""
+            masked = (u[:2] + "*" * max(3, len(u)-4) + u[-2:]) + "@" + d if len(u) > 4 else u[:1] + "*" * (len(u)-1) + "@" + d
+            tok = a.get("token", "") or ""
             try:
                 added_ts = time.mktime(time.strptime(a["added_at"][:19], "%Y-%m-%dT%H:%M:%S")) if isinstance(a.get("added_at"), str) else a.get("added_at", time.time())
                 updated_ts = time.mktime(time.strptime(a["token_updated_at"][:19], "%Y-%m-%dT%H:%M:%S")) if isinstance(a.get("token_updated_at"), str) else a.get("token_updated_at", time.time())
             except Exception:
                 added_ts = updated_ts = time.time()
             age = time.time() - updated_ts
-            if age > 7*24*3600: cls, txt = "token-bad", "expired"
-            elif age > 6*24*3600: cls, txt = "token-warn", "expiring soon"
-            else: cls, txt = "token-ok", f"valid · {int((7*24*3600-age)/3600)}h left"
+            if age > 7 * 24 * 3600:
+                cls, txt = "token-bad", "expired"
+            elif age > 6 * 24 * 3600:
+                cls, txt = "token-warn", "expiring soon"
+            else:
+                cls, txt = "token-ok", f"valid · {int((7*24*3600-age)/3600)}h left"
             out.append({
-                "email": e, "display": masked, "label": a.get("label",""),
+                "email": e, "display": masked, "label": a.get("label", ""),
                 "token_prefix": tok[:16],
                 "added_ago": f"{int((time.time()-added_ts)/3600)}h ago",
                 "status_class": cls, "status_text": txt,
@@ -99,7 +102,7 @@ def admin_accounts():
         return jsonify(ok=True)
     if request.method == "DELETE":
         b = request.get_json(silent=True) or {}
-        email = b.get("email","")
+        email = b.get("email", "")
         ok = STORE.remove_account(email)
         clear_batch_cache()
         return jsonify(ok=ok)
@@ -110,7 +113,7 @@ def admin_accounts():
 def admin_test():
     results = []
     for acct in STORE.get_accounts():
-        s = ApnaSession(acct["email"], acct.get("token",""))
+        s = ApnaSession(acct["email"], acct.get("token", ""))
         ok, detail = s.verify()
         results.append({"email": acct["email"], "ok": ok, "error": None if ok else detail})
     return jsonify(results=results)
