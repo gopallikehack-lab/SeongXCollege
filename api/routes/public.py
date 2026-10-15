@@ -1,15 +1,10 @@
 """Public routes."""
-import base64
-import hashlib
-import hmac
-import json
-
-from flask import Blueprint, jsonify, make_response, render_template_string, request
+from flask import Blueprint, jsonify, render_template_string
 
 from ..apna import (
     ApnaSession, get_batches_cached, find_session_for,
 )
-from ..config import UPI_ID, QR_IMAGE, SECRET_KEY, ENROLL_COOKIE, ENROLL_TTL
+from ..config import UPI_ID, QR_IMAGE
 from ..pages import MAIN_PAGE
 from ..store import STORE
 
@@ -17,43 +12,6 @@ from ..store import STORE
 public_bp = Blueprint("public", __name__)
 
 
-# ---------- enrolled cookie helpers ----------
-def _sign(value: str) -> str:
-    """HMAC-SHA256 signature (hex) of the value."""
-    return hmac.new(SECRET_KEY.encode(), value.encode(), hashlib.sha256).hexdigest()
-
-
-def _encode_enrolled(ids: list[str]) -> str:
-    """Pack the list into 'b64.signature' string."""
-    raw = ",".join(ids).encode()
-    b64 = base64.urlsafe_b64encode(raw).decode().rstrip("=")
-    return f"{b64}.{_sign(b64)[:32]}"
-
-
-def _decode_enrolled(cookie_val: str) -> list[str]:
-    """Verify and unpack. Returns [] if invalid."""
-    if not cookie_val or "." not in cookie_val:
-        return []
-    try:
-        b64, sig = cookie_val.rsplit(".", 1)
-        expected = _sign(b64)[:32]
-        if not hmac.compare_digest(sig, expected):
-            return []
-        # add padding
-        pad = "=" * (-len(b64) % 4)
-        raw = base64.urlsafe_b64decode(b64 + pad).decode()
-        if not raw:
-            return []
-        return [x for x in raw.split(",") if x]
-    except Exception:
-        return []
-
-
-def _current_enrolled() -> list[str]:
-    return _decode_enrolled(request.cookies.get(ENROLL_COOKIE, ""))
-
-
-# ---------- pages ----------
 @public_bp.route("/")
 def index():
     html = (MAIN_PAGE
@@ -62,7 +20,6 @@ def index():
     return render_template_string(html)
 
 
-# ---------- batches ----------
 @public_bp.route("/api/batches")
 def api_batches():
     seen = {}
@@ -78,37 +35,6 @@ def api_batches():
     return jsonify(batches=list(seen.values()))
 
 
-# ---------- enroll ----------
-@public_bp.route("/api/enroll", methods=["GET", "POST", "DELETE"])
-def api_enroll():
-    enrolled = _current_enrolled()
-    if request.method == "GET":
-        return jsonify(enrolled=enrolled)
-
-    body = request.get_json(silent=True) or {}
-    title_id = (body.get("titleId") or "").strip()
-    if not title_id:
-        return jsonify(error="titleId required"), 400
-
-    if request.method == "POST":
-        if title_id not in enrolled:
-            enrolled.append(title_id)
-    elif request.method == "DELETE":
-        enrolled = [x for x in enrolled if x != title_id]
-
-    cookie_val = _encode_enrolled(enrolled)
-    resp = make_response(jsonify(ok=True, enrolled=enrolled))
-    resp.set_cookie(
-        ENROLL_COOKIE, cookie_val,
-        max_age=ENROLL_TTL,
-        httponly=False,   # JS needs to read this to update the UI
-        samesite="Lax",
-        secure=request.is_secure,
-    )
-    return resp
-
-
-# ---------- sections / video / pdf ----------
 @public_bp.route("/api/sections/<titleId>")
 def api_sections(titleId):
     s = find_session_for(titleId)
