@@ -64,9 +64,9 @@ class SupabaseStore:
                 headers=self._headers(), timeout=10)
             if r.status_code == 200:
                 return r.json()
-            print(f"[!] supabase get_accounts status {r.status_code}: {r.text[:200]}")
+            print(f"[!] supabase get status {r.status_code}: {r.text[:200]}")
         except Exception as e:
-            print(f"[!] supabase get_accounts: {e}")
+            print(f"[!] supabase get: {e}")
         return []
 
     def add_account(self, email, token, label=""):
@@ -323,7 +323,7 @@ def require_admin(f):
 
 
 # ================= MAIN PAGE =================
-MAIN_PAGE = """<!DOCTYPE html>
+MAIN_PAGE = r"""<!DOCTYPE html>
 <html lang="en" data-theme="default">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -352,26 +352,21 @@ a{color:var(--accent);text-decoration:none}
 .tabs::-webkit-scrollbar{display:none}
 .tabs-loading{color:var(--muted);font-size:12px;padding:8px 4px}
 .tab{padding:10px 16px;background:transparent;border:1px solid var(--line);color:var(--muted);border-radius:10px;font:inherit;font-weight:600;font-size:12.5px;cursor:pointer;white-space:nowrap;flex-shrink:0;min-height:40px}
-.tab:hover{color:var(--txt);border-color:var(--accent)}
 .tab.active{color:#fff;background:linear-gradient(90deg,var(--accent),var(--accent2));border-color:transparent}
-.tab .badge{font-size:10.5px;background:rgba(0,0,0,.25);padding:2px 7px;border-radius:10px;font-weight:600;margin-left:6px}
 .body{flex:1;display:flex;overflow:hidden;min-height:0;position:relative}
 .sidebar{width:360px;min-width:360px;background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column;transition:transform .22s ease}
 .search{padding:12px 14px;border-bottom:1px solid var(--line);flex-shrink:0}
-.search input{width:100%;padding:12px 14px;background:var(--bg);border:1px solid var(--line);color:var(--txt);font:inherit;border-radius:10px;min-height:var(--tap);font-size:14px}
+.search input{width:100%;padding:12px 14px;background:var(--bg);border:1px solid var(--line);color:var(--txt);font:inherit;border-radius:10px;min-height:44px;font-size:14px}
 .toc{flex:1;overflow-y:auto;padding-bottom:40px}
 .sec{border-bottom:1px solid var(--line)}
-.sec-head{padding:14px 16px;cursor:pointer;display:flex;justify-content:space-between;gap:10px;align-items:center;font-weight:600;font-size:13px;color:#c8d0dd;min-height:var(--tap)}
+.sec-head{padding:14px 16px;cursor:pointer;display:flex;justify-content:space-between;gap:10px;align-items:center;font-weight:600;font-size:13px;color:#c8d0dd;min-height:44px}
 .sec-head.open{background:var(--panel2);color:var(--accent)}
 .sec-head .left{flex:1;display:flex;gap:10px;align-items:center;overflow:hidden}
 .sec-head .t{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sec-head .cnt{color:var(--muted);font-size:11px;background:var(--panel2);padding:2px 8px;border-radius:10px}
-.copy-btn{background:transparent;border:1px solid var(--line);color:var(--muted);border-radius:6px;padding:5px 8px;font-size:11px;cursor:pointer;min-width:32px;min-height:32px;display:inline-flex;align-items:center;justify-content:center}
-.copy-btn.copied{border-color:var(--good);color:var(--good)}
 .sec-body{display:none;background:rgba(0,0,0,.15)}
 .sec-body.open{display:block}
-.unit{padding:12px 16px 12px 26px;cursor:pointer;font-size:13px;color:#a8b3c2;border-left:3px solid transparent;display:flex;justify-content:space-between;gap:10px;align-items:center;min-height:var(--tap)}
-.unit:hover{background:var(--panel2);color:var(--txt)}
+.unit{padding:12px 16px 12px 26px;cursor:pointer;font-size:13px;color:#a8b3c2;border-left:3px solid transparent;display:flex;justify-content:space-between;gap:10px;align-items:center;min-height:44px}
 .unit.active{background:linear-gradient(90deg,rgba(92,141,255,.12),transparent);color:var(--accent);border-left-color:var(--accent)}
 .unit .u-left{flex:1;display:flex;gap:8px;align-items:center;overflow:hidden}
 .unit .u-left .t{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -389,12 +384,12 @@ a{color:var(--accent);text-decoration:none}
 .player-wrap video{width:100%;height:100%;background:#000;object-fit:contain}
 .controls{background:var(--panel);border-top:1px solid var(--line);padding:12px 16px;flex-shrink:0}
 .ctr-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.controls button{background:var(--panel2);border:1px solid var(--line);color:var(--txt);border-radius:9px;padding:8px;cursor:pointer;min-height:var(--tap);min-width:var(--tap);font-size:15px;display:inline-flex;align-items:center;justify-content:center}
+.controls button{background:var(--panel2);border:1px solid var(--line);color:var(--txt);border-radius:9px;padding:8px;cursor:pointer;min-height:44px;min-width:44px;font-size:15px;display:inline-flex;align-items:center;justify-content:center}
 .controls .time{font-size:12px;color:var(--muted);min-width:104px;text-align:center}
 .seekbar{flex:1;height:8px;background:var(--panel2);border-radius:4px;position:relative;cursor:pointer;min-width:100px}
 .seekbar .filled{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--accent),var(--accent2));width:0%}
 .seekbar .knob{position:absolute;top:50%;left:0;width:16px;height:16px;border-radius:50%;background:#fff;transform:translate(-50%,-50%)}
-.controls select{background:var(--panel2);border:1px solid var(--line);color:var(--txt);border-radius:9px;padding:8px 10px;font:inherit;font-size:13px;min-height:var(--tap)}
+.controls select{background:var(--panel2);border:1px solid var(--line);color:var(--txt);border-radius:9px;padding:8px 10px;font:inherit;font-size:13px;min-height:44px}
 .bottombar{padding:10px 18px;background:var(--panel);border-top:1px solid var(--line);flex-shrink:0;font-size:11.5px;color:var(--muted)}
 .status{padding:4px 11px;background:var(--panel2);border-radius:12px;color:var(--accent);border:1px solid rgba(92,141,255,.2);font-size:11.5px;font-weight:600}
 .status.ok{color:var(--good)}
@@ -433,7 +428,7 @@ a{color:var(--accent);text-decoration:none}
       <a href="/admin" class="btn-nav">Admin</a>
     </div>
   </header>
-  <div class="tabs" id="tabs"><div class="tabs-loading">loading batches…</div></div>
+  <div class="tabs" id="tabs"><div class="tabs-loading">loading…</div></div>
   <div class="body">
     <aside class="sidebar" id="sidebar">
       <div class="search"><input id="search" placeholder="search units…"></div>
@@ -470,135 +465,457 @@ a{color:var(--accent);text-decoration:none}
 <div class="modal" id="modal-link"><div class="box"><button class="close" onclick="closeModal('modal-link')">×</button><h2>Direct m3u8 links</h2><div class="sub">Paste into VLC, mpv, yt-dlp</div><input id="link-master" readonly onclick="this.select()"><button onclick="copyField('link-master',this)" style="padding:12px 18px;background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;border:0;border-radius:10px;font:inherit;font-weight:600;cursor:pointer;margin-bottom:16px;width:100%">copy master</button><div class="variants" id="link-variants"></div></div></div>
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1"></script>
 <script>
-console.log('[SE] main script loaded');
-let BATCHES=[],ACTIVE=null,FLAT=[],CURRENT=null,CURRENT_INFO=null,HLS=null,VIDEO=null,CURRENT_VARIANTS={};
-const THEMES=["default","rose","green","amber","crimson","cyber","mono","sunset"];
-let curTheme=localStorage.getItem("theme")||"default";
+(function(){
+'use strict';
+console.log('[SE] script start');
+var BATCHES=[],ACTIVE=null,FLAT=[],CURRENT=null,CURRENT_INFO=null,HLS=null,VIDEO=null,CURRENT_VARIANTS={};
+var THEMES=["default","rose","green","amber","crimson","cyber","mono","sunset"];
+var curTheme=localStorage.getItem("theme")||"default";
 document.documentElement.setAttribute("data-theme",curTheme);
-function cycleTheme(){let i=THEMES.indexOf(curTheme);i=(i+1)%THEMES.length;curTheme=THEMES[i];document.documentElement.setAttribute("data-theme",curTheme);localStorage.setItem("theme",curTheme);}
-function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
-async function loadAll(){
-  console.log('[SE] loadAll start');
-  const tabs=document.getElementById('tabs');
-  tabs.innerHTML='<div class="tabs-loading">loading batches…</div>';
-  try{
-    const r=await fetch('/api/batches');
-    console.log('[SE] /api/batches status:', r.status);
-    const j=await r.json();
-    console.log('[SE] /api/batches response:', j);
-    BATCHES=j.batches||[];
-    console.log('[SE] batches count:', BATCHES.length);
-    if(!BATCHES.length){
-      tabs.innerHTML='<div class="tabs-loading">no batches — add accounts in /admin</div>';
-      document.getElementById('toc').innerHTML='<div style="padding:24px;color:var(--muted);text-align:center">No batches. Add tokens in /admin.</div>';
-      return;
-    }
-    renderTabs();
-    console.log('[SE] tabs rendered, selecting first batch:', BATCHES[0].titleId);
-    selectBatch(BATCHES[0].titleId);
-  }catch(e){
-    console.error('[SE] loadAll error:', e);
-    tabs.innerHTML=`<div class="tabs-loading" style="color:#ff7a7a">error: ${esc(e.message||String(e))}</div>`;
-  }
+
+window.cycleTheme=function(){var i=THEMES.indexOf(curTheme);i=(i+1)%THEMES.length;curTheme=THEMES[i];document.documentElement.setAttribute("data-theme",curTheme);localStorage.setItem("theme",curTheme);};
+
+function esc(s){
+  return String(s==null?'':s).replace(/[&<>"]/g,function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];
+  });
 }
+
+function loadAll(){
+  console.log('[SE] loadAll start');
+  var tabs=document.getElementById('tabs');
+  tabs.innerHTML='<div class="tabs-loading">loading batches…</div>';
+  fetch('/api/batches')
+    .then(function(r){console.log('[SE] /api/batches status', r.status); return r.json();})
+    .then(function(j){
+      console.log('[SE] batches response', j);
+      BATCHES=(j&&j.batches)||[];
+      console.log('[SE] batches count', BATCHES.length);
+      if(!BATCHES.length){
+        tabs.innerHTML='<div class="tabs-loading">no batches — add accounts in /admin</div>';
+        document.getElementById('toc').innerHTML='<div style="padding:24px;color:var(--muted);text-align:center">No batches. Add tokens in /admin.</div>';
+        return;
+      }
+      renderTabs();
+      console.log('[SE] selecting first batch', BATCHES[0].titleId);
+      selectBatch(BATCHES[0].titleId);
+    })
+    .catch(function(e){
+      console.error('[SE] loadAll error', e);
+      tabs.innerHTML='<div class="tabs-loading" style="color:#ff7a7a">error: '+esc(e.message||e)+'</div>';
+    });
+}
+
 function renderTabs(){
-  const tabs=document.getElementById('tabs');
+  var tabs=document.getElementById('tabs');
   tabs.innerHTML='';
-  for(const b of BATCHES){
-    const t=document.createElement('button');
+  for(var i=0;i<BATCHES.length;i++){
+    var b=BATCHES[i];
+    var t=document.createElement('button');
     t.className='tab'+(ACTIVE===b.titleId?' active':'');
     t.textContent=b.label;
-    t.onclick=()=>selectBatch(b.titleId);
+    (function(id){t.onclick=function(){selectBatch(id);};})(b.titleId);
     tabs.appendChild(t);
   }
 }
-async function selectBatch(titleId){
-  console.log('[SE] selectBatch:', titleId);
+
+function selectBatch(titleId){
+  console.log('[SE] selectBatch', titleId);
   ACTIVE=titleId;renderTabs();
   document.getElementById('search').value='';
-  document.getElementById('toc').innerHTML='<div style="padding:24px;color:var(--muted)">loading…</div>';
-  try{
-    const r=await fetch(`/api/sections/${titleId}`);
-    const j=await r.json();
-    console.log('[SE] sections response:', j);
-    if(!j.sections){
-      document.getElementById('toc').innerHTML=`<div style="padding:24px;color:#ff7a7a">${esc(j.error||'failed')}</div>`;
-      return;
-    }
-    window._sections=j.sections;
-    renderTOC();
-  }catch(e){
-    console.error('[SE] selectBatch error:', e);
-    document.getElementById('toc').innerHTML=`<div style="padding:24px;color:#ff7a7a">error: ${esc(e.message||String(e))}</div>`;
-  }
+  document.getElementById('toc').innerHTML='<div style="padding:24px;color:var(--muted)">loading sections…</div>';
+  fetch('/api/sections/'+encodeURIComponent(titleId))
+    .then(function(r){return r.json();})
+    .then(function(j){
+      console.log('[SE] sections response', j);
+      if(!j||!j.sections){
+        document.getElementById('toc').innerHTML='<div style="padding:24px;color:#ff7a7a">'+esc((j&&j.error)||'failed')+'</div>';
+        return;
+      }
+      window._sections=j.sections;
+      renderTOC();
+    })
+    .catch(function(e){
+      console.error('[SE] selectBatch error', e);
+      document.getElementById('toc').innerHTML='<div style="padding:24px;color:#ff7a7a">error: '+esc(e.message||e)+'</div>';
+    });
 }
+
 function renderTOC(){
-  const toc=document.getElementById('toc');toc.innerHTML='';FLAT=[];
-  const q=document.getElementById('search').value.toLowerCase();
-  for(const sec of (window._sections||[])){
-    const units=sec.units.filter(u=>!q||(u.title||'').toLowerCase().includes(q));
-    if(q&&units.length===0)continue;
-    const secDiv=document.createElement('div');secDiv.className='sec';
-    const head=document.createElement('div');head.className='sec-head'+(q?' open':'');
-    const st=esc(sec.title).replace(/'/g,"\\'");
-    head.innerHTML=`<div class="left"><span class="t">${esc(sec.title)}</span></div><span class="cnt">${sec.units.length}</span><button class="copy-btn" onclick="event.stopPropagation();copyTitle(this,'${st}')">📋</button>`;
-    head.onclick=()=>{head.classList.toggle('open');body.classList.toggle('open');};
-    const body=document.createElement('div');body.className='sec-body'+(q?' open':'');
-    for(const u of units){
-      const idx=FLAT.length;FLAT.push({unit:u,sectionTitle:sec.title});
-      const uDiv=document.createElement('div');uDiv.className='unit';uDiv.dataset.idx=idx;
-      const st2=esc(u.title||u.id).replace(/'/g,"\\'");
-      uDiv.innerHTML=`<div class="u-left"><span class="t">${esc(u.title||u.id)}</span></div><span class="right"><span class="type ${u.type}">${u.type}</span><button class="copy-btn" onclick="event.stopPropagation();copyTitle(this,'${st2}')">📋</button></span>`;
-      uDiv.onclick=()=>playUnit(idx);body.appendChild(uDiv);
+  var toc=document.getElementById('toc');
+  toc.innerHTML='';
+  FLAT=[];
+  var q=(document.getElementById('search').value||'').toLowerCase();
+  var sections=window._sections||[];
+  for(var si=0;si<sections.length;si++){
+    var sec=sections[si];
+    var units=sec.units.filter(function(u){
+      return !q || ((u.title||'').toLowerCase().indexOf(q)!==-1);
+    });
+    if(q && units.length===0) continue;
+    var secDiv=document.createElement('div');
+    secDiv.className='sec';
+    var head=document.createElement('div');
+    head.className='sec-head'+(q?' open':'');
+    head.innerHTML='<div class="left"><span class="t">'+esc(sec.title)+'</span></div><span class="cnt">'+sec.units.length+'</span>';
+    var body=document.createElement('div');
+    body.className='sec-body'+(q?' open':'');
+    head.onclick=(function(h,bb){
+      return function(){h.classList.toggle('open');bb.classList.toggle('open');};
+    })(head,body);
+    for(var ui=0;ui<units.length;ui++){
+      var u=units[ui];
+      var idx=FLAT.length;
+      FLAT.push({unit:u,sectionTitle:sec.title});
+      var uDiv=document.createElement('div');
+      uDiv.className='unit';
+      uDiv.dataset.idx=idx;
+      uDiv.innerHTML='<div class="u-left"><span class="t">'+esc(u.title||u.id)+'</span></div><span class="right"><span class="type '+esc(u.type||'')+'">'+esc(u.type||'')+'</span></span>';
+      (function(i){uDiv.onclick=function(){playUnit(i);};})(idx);
+      body.appendChild(uDiv);
     }
-    secDiv.appendChild(head);secDiv.appendChild(body);toc.appendChild(secDiv);
+    secDiv.appendChild(head);
+    secDiv.appendChild(body);
+    toc.appendChild(secDiv);
   }
-  console.log('[SE] TOC rendered, total units:', FLAT.length);
+  console.log('[SE] TOC rendered, total units', FLAT.length);
 }
-function copyTitle(btn,title){navigator.clipboard.writeText(title).then(()=>{const o=btn.textContent;btn.textContent='✓';btn.classList.add('copied');setTimeout(()=>{btn.textContent=o;btn.classList.remove('copied');},1000);});}
-async function playUnit(idx){
-  if(idx<0||idx>=FLAT.length)return;CURRENT=idx;
-  const item=FLAT[idx];const u=item.unit;
-  document.querySelectorAll('.unit.active').forEach(el=>el.classList.remove('active'));
-  const el=document.querySelector(`.unit[data-idx="${idx}"]`);
+
+function playUnit(idx){
+  if(idx<0||idx>=FLAT.length) return;
+  CURRENT=idx;
+  var item=FLAT[idx];
+  var u=item.unit;
+  var units=document.querySelectorAll('.unit.active');
+  for(var i=0;i<units.length;i++) units[i].classList.remove('active');
+  var el=document.querySelector('.unit[data-idx="'+idx+'"]');
   if(el){el.classList.add('active');el.scrollIntoView({block:'nearest',behavior:'smooth'});}
-  document.getElementById('unit-title').textContent=u.title;
-  document.getElementById('status').textContent='loading…';document.getElementById('status').className='status';
-  document.getElementById('controls').style.display='none';destroyPlayer();
-  const r=await fetch(`/api/video/${ACTIVE}/${u.id}`);const j=await r.json();CURRENT_INFO=j;
-  if(j.error){document.getElementById('player-wrap').innerHTML=`<div class="player-empty"><p>error: ${esc(j.error)}</p></div>`;document.getElementById('status').textContent='error';document.getElementById('status').className='status err';return;}
-  if(j.type==='wistia'&&j.sourceid)await playWistia(j.sourceid);
-  else if(j.type==='pdf')await playPdf(ACTIVE,u.id);
-  else document.getElementById('player-wrap').innerHTML=`<div class="player-empty"><p>unsupported: ${esc(j.type||'?')}</p></div>`;
-  if(window.innerWidth<=900)document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('unit-title').textContent=u.title||'';
+  document.getElementById('status').textContent='loading…';
+  document.getElementById('status').className='status';
+  document.getElementById('controls').style.display='none';
+  destroyPlayer();
+  fetch('/api/video/'+encodeURIComponent(ACTIVE)+'/'+encodeURIComponent(u.id))
+    .then(function(r){return r.json();})
+    .then(function(j){
+      CURRENT_INFO=j;
+      if(j.error){
+        document.getElementById('player-wrap').innerHTML='<div class="player-empty"><p>error: '+esc(j.error)+'</p></div>';
+        document.getElementById('status').textContent='error';
+        document.getElementById('status').className='status err';
+        return;
+      }
+      if(j.type==='wistia'&&j.sourceid){playWistia(j.sourceid);}
+      else if(j.type==='pdf'){playPdf(ACTIVE,u.id);}
+      else{
+        document.getElementById('player-wrap').innerHTML='<div class="player-empty"><p>unsupported: '+esc(j.type||'?')+'</p></div>';
+      }
+      if(window.innerWidth<=900) document.getElementById('sidebar').classList.remove('open');
+    })
+    .catch(function(e){
+      console.error('[SE] playUnit error', e);
+      document.getElementById('player-wrap').innerHTML='<div class="player-empty"><p>error: '+esc(e.message||e)+'</p></div>';
+    });
 }
-function destroyPlayer(){if(HLS){try{HLS.destroy();}catch(e){}HLS=null;}if(VIDEO){try{VIDEO.pause();}catch(e){}VIDEO=null;}}
-async function playWistia(sourceid){const master=`https://fast.wistia.com/embed/medias/${sourceid}.m3u8`;document.getElementById('player-wrap').innerHTML='<video id="v" playsinline preload="metadata"></video>';VIDEO=document.getElementById('v');document.getElementById('controls').style.display='block';try{const r=await fetch(`/api/variants/${sourceid}`);const j=await r.json();CURRENT_VARIANTS=j.variants||{};}catch(e){CURRENT_VARIANTS={};}if(window.Hls&&Hls.isSupported()){HLS=new Hls({capLevelToPlayerSize:false,startLevel:-1,autoStartLoad:true,maxBufferLength:60});HLS.loadSource(master);HLS.attachMedia(VIDEO);HLS.on(Hls.Events.MANIFEST_PARSED,(e,data)=>{const sel=document.getElementById('quality');sel.innerHTML='<option value="auto">auto</option>';data.levels.forEach((lvl,i)=>{const o=document.createElement('option');o.value=i;o.textContent=lvl.height?`${lvl.height}p`:`L${i}`;sel.appendChild(o);});VIDEO.play().catch(()=>{});});HLS.on(Hls.Events.LEVEL_SWITCHED,(e,data)=>{const lvl=HLS.levels[data.level];if(lvl){document.getElementById('status').textContent=`playing · ${lvl.height||'?'}p`;document.getElementById('status').className='status ok';}});}else if(VIDEO.canPlayType('application/vnd.apple.mpegurl')){VIDEO.src=master;VIDEO.play().catch(()=>{});}VIDEO.addEventListener('timeupdate',updateTime);VIDEO.addEventListener('loadedmetadata',updateTime);VIDEO.addEventListener('play',()=>document.getElementById('btn-play').textContent='❚❚');VIDEO.addEventListener('pause',()=>document.getElementById('btn-play').textContent='▶');VIDEO.addEventListener('click',togglePlay);document.getElementById('status').textContent='playing';}
-async function playPdf(titleId,unitId){document.getElementById('player-wrap').innerHTML='<div class="player-empty">loading PDF…</div>';let info;try{const r=await fetch(`/api/pdf/${titleId}/${unitId}`);info=await r.json();}catch(e){return;}if(info.error){document.getElementById('player-wrap').innerHTML=`<div class="player-empty"><p>PDF error: ${esc(info.error)}</p></div>`;return;}window._pdfInfo=info;document.getElementById('player-wrap').innerHTML=`<div class="pdf-viewer"><div class="pdf-toolbar"><span class="name">📄 ${esc(info.display||info.filename)}</span><div class="pdf-actions"><a href="${esc(info.redirectUrl)}" download="${esc(info.filename)}" target="_blank" class="primary">⬇ download</a><button onclick="pdfCopyUrl(this)">🔗 copy</button><button onclick="pdfNewTab()">↗ new tab</button></div></div><iframe class="pdf-frame" src="${esc(info.redirectUrl)}"></iframe></div>`;document.getElementById('status').textContent='pdf';document.getElementById('status').className='status ok';}
-function pdfNewTab(){if(window._pdfInfo&&window._pdfInfo.redirectUrl)window.open(window._pdfInfo.redirectUrl,'_blank');}
-async function pdfCopyUrl(btn){const item=FLAT[CURRENT];try{const r=await fetch(`/api/pdf/${ACTIVE}/${item.unit.id}`);const info=await r.json();if(info.redirectUrl){await navigator.clipboard.writeText(info.redirectUrl);const o=btn.textContent;btn.textContent='✓';setTimeout(()=>btn.textContent=o,1200);}}catch(e){}}
-function updateTime(){if(!VIDEO)return;const cur=VIDEO.currentTime||0,dur=VIDEO.duration||0;document.getElementById('time').textContent=fmt(cur)+' / '+fmt(dur);const pct=dur?(cur/dur)*100:0;document.getElementById('seek-filled').style.width=pct+'%';document.getElementById('seek-knob').style.left=pct+'%';}
-function fmt(s){s=Math.floor(s||0);const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),r=s%60;return h?`${h}:${String(m).padStart(2,'0')}:${String(r).padStart(2,'0')}`:`${m}:${String(r).padStart(2,'0')}`;}
-function togglePlay(){if(VIDEO)VIDEO.paused?VIDEO.play():VIDEO.pause();}
-function skip(n){if(VIDEO)VIDEO.currentTime+=n;}
-function seekClick(e){if(!VIDEO)return;const r=e.currentTarget.getBoundingClientRect();VIDEO.currentTime=((e.clientX-r.left)/r.width)*(VIDEO.duration||0);}
-function setSpeed(v){if(VIDEO)VIDEO.playbackRate=parseFloat(v);}
-function onQualityChange(v){if(HLS)HLS.currentLevel=(v==='auto')?-1:parseInt(v,10);}
-function toggleFS(){const w=document.getElementById('player-wrap');if(!document.fullscreenElement)w.requestFullscreen();else document.exitFullscreen();}
-function playNext(){if(CURRENT!=null&&CURRENT<FLAT.length-1)playUnit(CURRENT+1);}
-function playPrev(){if(CURRENT!=null&&CURRENT>0)playUnit(CURRENT-1);}
-function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');}
-function openDownload(){if(!CURRENT_INFO)return;if(CURRENT_INFO.type==='pdf'){const a=document.querySelector('.pdf-actions a.primary');if(a)a.click();return;}const box=document.getElementById('dl-variants');box.innerHTML='';const items=Object.entries(CURRENT_VARIANTS).sort((a,b)=>parseInt(b[0])-parseInt(a[0]));if(!items.length){box.innerHTML='<p style="color:var(--muted)">no variants</p>';document.getElementById('modal-dl').classList.add('open');return;}const best=document.createElement('div');best.className='variant';best.style.borderColor='var(--accent)';best.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><span class="name">Best available</span><button onclick="browserHlsDownload('${esc(items[0][1])}','${esc((CURRENT_INFO.title||'video').replace(/'/g,''))}','${esc(items[0][0])}')" style="background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;border-color:transparent">download</button></div>`;box.appendChild(best);for(const [q,url] of items){const el=document.createElement('div');el.className='variant';el.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><span class="name">${esc(q)}</span><button onclick="browserHlsDownload('${esc(url)}','${esc((CURRENT_INFO.title||'video').replace(/'/g,''))}','${esc(q)}')">download</button></div>`;box.appendChild(el);}document.getElementById('modal-dl').classList.add('open');}
-async function browserHlsDownload(masterUrl,title,quality){closeModal('modal-dl');const status=document.getElementById('status');status.textContent='download starting…';try{const m=await fetch(masterUrl).then(r=>r.text());const lines=m.split(/\r?\n/);const base=masterUrl.substring(0,masterUrl.lastIndexOf('/')+1);const segs=[];for(const line of lines){const t=line.trim();if(!t||t.startsWith('#'))continue;let abs=t;if(!t.startsWith('http')){abs=t.startsWith('/')?(new URL(masterUrl)).origin+t:base+t;}segs.push(abs);}if(!segs.length)throw new Error('no segments');const buffers=[];let done=0,cursor=0;async function worker(){while(true){const i=cursor++;if(i>=segs.length)return;try{buffers[i]=await fetch(segs[i]).then(r=>r.arrayBuffer());}catch(e){buffers[i]=new Uint8Array(0);}done++;status.textContent=`fetching ${done}/${segs.length}`;}}await Promise.all(Array.from({length:6},worker));status.textContent='assembling…';const total=buffers.reduce((a,b)=>a+b.byteLength,0);const out=new Uint8Array(total);let off=0;for(const b of buffers){out.set(new Uint8Array(b),off);off+=b.byteLength;}const blob=new Blob([out],{type:'video/mp2t'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`${title.replace(/[\\/:*?"<>|]/g,'_').slice(0,80)}_${quality}.ts`;document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(()=>URL.revokeObjectURL(url),60000);status.textContent='✓ downloaded';status.className='status ok';}catch(e){status.textContent='error: '+e.message;status.className='status err';}}
-async function openLink(){if(!CURRENT_INFO||!CURRENT_INFO.sourceid){alert('no video loaded');return;}const master=`https://fast.wistia.com/embed/medias/${CURRENT_INFO.sourceid}.m3u8`;document.getElementById('link-master').value=master;const box=document.getElementById('link-variants');box.innerHTML='<p style="color:var(--muted);font-size:12px">loading…</p>';if(!Object.keys(CURRENT_VARIANTS).length){try{const r=await fetch(`/api/variants/${CURRENT_INFO.sourceid}`);const j=await r.json();CURRENT_VARIANTS=j.variants||{};}catch(e){}}const items=Object.entries(CURRENT_VARIANTS).sort((a,b)=>parseInt(b[0])-parseInt(a[0]));if(!items.length){box.innerHTML='<p style="color:var(--muted);font-size:12px">no variants</p>';}else{box.innerHTML='';for(const [q,url] of items){const el=document.createElement('div');el.className='variant';el.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px"><span class="name">${esc(q)}</span><button onclick="copyText('${esc(url)}',this)">copy</button></div><input value="${esc(url)}" readonly onclick="this.select()" style="font:11px monospace">`;box.appendChild(el);}}document.getElementById('modal-link').classList.add('open');}
-function copyText(t,btn){navigator.clipboard.writeText(t).then(()=>{const o=btn.textContent;btn.textContent='✓';setTimeout(()=>btn.textContent=o,1200);}).catch(()=>{const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);const o=btn.textContent;btn.textContent='✓';setTimeout(()=>btn.textContent=o,1200);});}
-function closeModal(id){document.getElementById(id).classList.remove('open');}
-function copyField(id,btn){const el=document.getElementById(id);el.select();el.setSelectionRange(0,99999);navigator.clipboard.writeText(el.value).then(()=>{const o=btn.textContent;btn.textContent='copied!';setTimeout(()=>btn.textContent=o,1200);});}
-document.querySelectorAll('.modal').forEach(m=>{m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');});});
-document.addEventListener('keydown',e=>{if(e.target.tagName==='INPUT'||e.target.tagName==='SELECT')return;const k=e.key;if(k==='/'){e.preventDefault();document.getElementById('search').focus();return;}if(!VIDEO)return;if(k===' '){e.preventDefault();togglePlay();}else if(k==='ArrowRight')VIDEO.currentTime+=5;else if(k==='ArrowLeft')VIDEO.currentTime-=5;else if(k==='f'||k==='F')toggleFS();});
+
+function destroyPlayer(){
+  if(HLS){try{HLS.destroy();}catch(e){}HLS=null;}
+  if(VIDEO){try{VIDEO.pause();}catch(e){}VIDEO=null;}
+}
+
+function playWistia(sourceid){
+  var master='https://fast.wistia.com/embed/medias/'+sourceid+'.m3u8';
+  document.getElementById('player-wrap').innerHTML='<video id="v" playsinline preload="metadata"></video>';
+  VIDEO=document.getElementById('v');
+  document.getElementById('controls').style.display='block';
+  fetch('/api/variants/'+encodeURIComponent(sourceid))
+    .then(function(r){return r.json();})
+    .then(function(j){CURRENT_VARIANTS=(j&&j.variants)||{};})
+    .catch(function(){CURRENT_VARIANTS={};});
+  if(window.Hls&&Hls.isSupported()){
+    HLS=new Hls({capLevelToPlayerSize:false,startLevel:-1,autoStartLoad:true,maxBufferLength:60});
+    HLS.loadSource(master);
+    HLS.attachMedia(VIDEO);
+    HLS.on(Hls.Events.MANIFEST_PARSED,function(e,data){
+      var sel=document.getElementById('quality');
+      sel.innerHTML='<option value="auto">auto</option>';
+      for(var i=0;i<data.levels.length;i++){
+        var lvl=data.levels[i];
+        var o=document.createElement('option');
+        o.value=i;
+        o.textContent=lvl.height?(lvl.height+'p'):('L'+i);
+        sel.appendChild(o);
+      }
+      VIDEO.play().catch(function(){});
+    });
+    HLS.on(Hls.Events.LEVEL_SWITCHED,function(e,data){
+      var lvl=HLS.levels[data.level];
+      if(lvl){
+        document.getElementById('status').textContent='playing · '+(lvl.height||'?')+'p';
+        document.getElementById('status').className='status ok';
+      }
+    });
+  } else if(VIDEO.canPlayType('application/vnd.apple.mpegurl')){
+    VIDEO.src=master;VIDEO.play().catch(function(){});
+  }
+  VIDEO.addEventListener('timeupdate',updateTime);
+  VIDEO.addEventListener('loadedmetadata',updateTime);
+  VIDEO.addEventListener('play',function(){document.getElementById('btn-play').textContent='❚❚';});
+  VIDEO.addEventListener('pause',function(){document.getElementById('btn-play').textContent='▶';});
+  VIDEO.addEventListener('click',togglePlay);
+  document.getElementById('status').textContent='playing';
+}
+
+function playPdf(titleId,unitId){
+  document.getElementById('player-wrap').innerHTML='<div class="player-empty">loading PDF…</div>';
+  fetch('/api/pdf/'+encodeURIComponent(titleId)+'/'+encodeURIComponent(unitId))
+    .then(function(r){return r.json();})
+    .then(function(info){
+      if(info.error){
+        document.getElementById('player-wrap').innerHTML='<div class="player-empty"><p>PDF error: '+esc(info.error)+'</p></div>';
+        return;
+      }
+      window._pdfInfo=info;
+      document.getElementById('player-wrap').innerHTML='<div class="pdf-viewer"><div class="pdf-toolbar"><span class="name">📄 '+esc(info.display||info.filename)+'</span><div class="pdf-actions"><a href="'+esc(info.redirectUrl)+'" download="'+esc(info.filename)+'" target="_blank" class="primary">⬇ download</a><button onclick="pdfCopyUrl(this)">🔗 copy</button><button onclick="pdfNewTab()">↗ new tab</button></div></div><iframe class="pdf-frame" src="'+esc(info.redirectUrl)+'"></iframe></div>';
+      document.getElementById('status').textContent='pdf';
+      document.getElementById('status').className='status ok';
+    })
+    .catch(function(e){
+      document.getElementById('player-wrap').innerHTML='<div class="player-empty"><p>PDF error: '+esc(e.message||e)+'</p></div>';
+    });
+}
+
+window.pdfNewTab=function(){
+  if(window._pdfInfo&&window._pdfInfo.redirectUrl) window.open(window._pdfInfo.redirectUrl,'_blank');
+};
+window.pdfCopyUrl=function(btn){
+  var item=FLAT[CURRENT];
+  fetch('/api/pdf/'+encodeURIComponent(ACTIVE)+'/'+encodeURIComponent(item.unit.id))
+    .then(function(r){return r.json();})
+    .then(function(info){
+      if(info.redirectUrl){
+        navigator.clipboard.writeText(info.redirectUrl);
+        var o=btn.textContent;
+        btn.textContent='✓';
+        setTimeout(function(){btn.textContent=o;},1200);
+      }
+    });
+};
+
+function updateTime(){
+  if(!VIDEO) return;
+  var cur=VIDEO.currentTime||0;
+  var dur=VIDEO.duration||0;
+  document.getElementById('time').textContent=fmt(cur)+' / '+fmt(dur);
+  var pct=dur?(cur/dur)*100:0;
+  document.getElementById('seek-filled').style.width=pct+'%';
+  document.getElementById('seek-knob').style.left=pct+'%';
+}
+function fmt(s){
+  s=Math.floor(s||0);
+  var h=Math.floor(s/3600),m=Math.floor((s%3600)/60),r=s%60;
+  if(h) return h+':'+(m<10?'0':'')+m+':'+(r<10?'0':'')+r;
+  return m+':'+(r<10?'0':'')+r;
+}
+window.togglePlay=function(){if(VIDEO){VIDEO.paused?VIDEO.play():VIDEO.pause();}};
+window.skip=function(n){if(VIDEO)VIDEO.currentTime+=n;};
+window.seekClick=function(e){
+  if(!VIDEO) return;
+  var r=e.currentTarget.getBoundingClientRect();
+  VIDEO.currentTime=((e.clientX-r.left)/r.width)*(VIDEO.duration||0);
+};
+window.setSpeed=function(v){if(VIDEO)VIDEO.playbackRate=parseFloat(v);};
+window.onQualityChange=function(v){if(HLS)HLS.currentLevel=(v==='auto')?-1:parseInt(v,10);};
+window.toggleFS=function(){
+  var w=document.getElementById('player-wrap');
+  if(!document.fullscreenElement) w.requestFullscreen();
+  else document.exitFullscreen();
+};
+window.playNext=function(){if(CURRENT!=null&&CURRENT<FLAT.length-1)playUnit(CURRENT+1);};
+window.playPrev=function(){if(CURRENT!=null&&CURRENT>0)playUnit(CURRENT-1);};
+window.toggleSidebar=function(){document.getElementById('sidebar').classList.toggle('open');};
+
+window.openDownload=function(){
+  if(!CURRENT_INFO) return;
+  if(CURRENT_INFO.type==='pdf'){
+    var a=document.querySelector('.pdf-actions a.primary');
+    if(a) a.click();
+    return;
+  }
+  var box=document.getElementById('dl-variants');
+  box.innerHTML='';
+  var items=Object.entries(CURRENT_VARIANTS).sort(function(a,b){return parseInt(b[0])-parseInt(a[0]);});
+  if(!items.length){
+    box.innerHTML='<p style="color:var(--muted)">no variants</p>';
+    document.getElementById('modal-dl').classList.add('open');
+    return;
+  }
+  for(var i=0;i<items.length;i++){
+    var q=items[i][0],url=items[i][1];
+    var el=document.createElement('div');
+    el.className='variant';
+    el.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><span class="name">'+esc(q)+'</span><button data-url="'+esc(url)+'" data-q="'+esc(q)+'" class="dlbtn">download</button></div>';
+    box.appendChild(el);
+  }
+  var btns=box.querySelectorAll('.dlbtn');
+  for(var j=0;j<btns.length;j++){
+    (function(b){
+      b.onclick=function(){
+        browserHlsDownload(b.dataset.url, (CURRENT_INFO.title||'video'), b.dataset.q);
+      };
+    })(btns[j]);
+  }
+  document.getElementById('modal-dl').classList.add('open');
+};
+
+function browserHlsDownload(masterUrl,title,quality){
+  closeModal('modal-dl');
+  var status=document.getElementById('status');
+  status.textContent='download starting…';
+  fetch(masterUrl).then(function(r){return r.text();}).then(function(m){
+    var lines=m.split(/\r?\n/);
+    var base=masterUrl.substring(0,masterUrl.lastIndexOf('/')+1);
+    var segs=[];
+    for(var i=0;i<lines.length;i++){
+      var t=lines[i].trim();
+      if(!t||t.charAt(0)==='#') continue;
+      var abs=t;
+      if(t.indexOf('http')!==0){
+        if(t.charAt(0)==='/') abs=(new URL(masterUrl)).origin+t;
+        else abs=base+t;
+      }
+      segs.push(abs);
+    }
+    if(!segs.length) throw new Error('no segments');
+    var buffers=[];
+    var done=0;
+    var cursor=0;
+    function worker(){
+      var i=cursor++;
+      if(i>=segs.length) return Promise.resolve();
+      return fetch(segs[i])
+        .then(function(r){return r.arrayBuffer();})
+        .then(function(buf){buffers[i]=buf;})
+        .catch(function(){buffers[i]=new Uint8Array(0);})
+        .then(function(){
+          done++;
+          status.textContent='fetching '+done+'/'+segs.length;
+          return worker();
+        });
+    }
+    var workers=[];
+    for(var w=0;w<6;w++) workers.push(worker());
+    return Promise.all(workers).then(function(){
+      status.textContent='assembling…';
+      var total=0;
+      for(var i=0;i<buffers.length;i++) total+=buffers[i].byteLength;
+      var out=new Uint8Array(total);
+      var off=0;
+      for(var i=0;i<buffers.length;i++){
+        out.set(new Uint8Array(buffers[i]),off);
+        off+=buffers[i].byteLength;
+      }
+      var blob=new Blob([out],{type:'video/mp2t'});
+      var url=URL.createObjectURL(blob);
+      var a=document.createElement('a');
+      a.href=url;
+      a.download=(title.replace(/[\\/:*?"<>|]/g,'_').slice(0,80))+'_'+quality+'.ts';
+      document.body.appendChild(a);a.click();document.body.removeChild(a);
+      setTimeout(function(){URL.revokeObjectURL(url);},60000);
+      status.textContent='✓ downloaded';
+      status.className='status ok';
+    });
+  }).catch(function(e){
+    status.textContent='error: '+e.message;
+    status.className='status err';
+  });
+}
+
+window.openLink=function(){
+  if(!CURRENT_INFO||!CURRENT_INFO.sourceid){alert('no video loaded');return;}
+  var master='https://fast.wistia.com/embed/medias/'+CURRENT_INFO.sourceid+'.m3u8';
+  document.getElementById('link-master').value=master;
+  var box=document.getElementById('link-variants');
+  box.innerHTML='<p style="color:var(--muted);font-size:12px">loading…</p>';
+  fetch('/api/variants/'+encodeURIComponent(CURRENT_INFO.sourceid))
+    .then(function(r){return r.json();})
+    .then(function(j){
+      CURRENT_VARIANTS=(j&&j.variants)||{};
+      var items=Object.entries(CURRENT_VARIANTS).sort(function(a,b){return parseInt(b[0])-parseInt(a[0]);});
+      if(!items.length){
+        box.innerHTML='<p style="color:var(--muted);font-size:12px">no variants</p>';
+      } else {
+        box.innerHTML='';
+        for(var i=0;i<items.length;i++){
+          var q=items[i][0],url=items[i][1];
+          var el=document.createElement('div');
+          el.className='variant';
+          el.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px"><span class="name">'+esc(q)+'</span><button data-url="'+esc(url)+'" class="copybtn">copy</button></div><input value="'+esc(url)+'" readonly onclick="this.select()" style="font:11px monospace">';
+          box.appendChild(el);
+        }
+        var btns=box.querySelectorAll('.copybtn');
+        for(var j=0;j<btns.length;j++){
+          (function(b){
+            b.onclick=function(){copyText(b.dataset.url,b);};
+          })(btns[j]);
+        }
+      }
+      document.getElementById('modal-link').classList.add('open');
+    });
+};
+
+function copyText(t,btn){
+  navigator.clipboard.writeText(t).then(function(){
+    var o=btn.textContent;
+    btn.textContent='✓';
+    setTimeout(function(){btn.textContent=o;},1200);
+  }).catch(function(){
+    var ta=document.createElement('textarea');
+    ta.value=t;document.body.appendChild(ta);ta.select();
+    document.execCommand('copy');document.body.removeChild(ta);
+    var o=btn.textContent;
+    btn.textContent='✓';
+    setTimeout(function(){btn.textContent=o;},1200);
+  });
+}
+
+window.closeModal=function(id){document.getElementById(id).classList.remove('open');};
+window.copyField=function(id,btn){
+  var el=document.getElementById(id);
+  el.select();el.setSelectionRange(0,99999);
+  navigator.clipboard.writeText(el.value).then(function(){
+    var o=btn.textContent;
+    btn.textContent='copied!';
+    setTimeout(function(){btn.textContent=o;},1200);
+  });
+};
+
+var modals=document.querySelectorAll('.modal');
+for(var mi=0;mi<modals.length;mi++){
+  (function(m){
+    m.addEventListener('click',function(e){if(e.target===m)m.classList.remove('open');});
+  })(modals[mi]);
+}
+
+document.addEventListener('keydown',function(e){
+  if(e.target.tagName==='INPUT'||e.target.tagName==='SELECT') return;
+  var k=e.key;
+  if(k==='/'){e.preventDefault();document.getElementById('search').focus();return;}
+  if(!VIDEO) return;
+  if(k===' '){e.preventDefault();togglePlay();}
+  else if(k==='ArrowRight')VIDEO.currentTime+=5;
+  else if(k==='ArrowLeft')VIDEO.currentTime-=5;
+  else if(k==='f'||k==='F')toggleFS();
+});
+
 document.getElementById('search').addEventListener('input',renderTOC);
-window.addEventListener('DOMContentLoaded',()=>{console.log('[SE] DOMContentLoaded, calling loadAll');loadAll();});
-if(document.readyState!=='loading'){console.log('[SE] DOM already ready, calling loadAll now');loadAll();}
+
+if(document.readyState==='loading'){
+  document.addEventListener('DOMContentLoaded',loadAll);
+} else {
+  loadAll();
+}
+})();
 </script></body></html>"""
 
 
