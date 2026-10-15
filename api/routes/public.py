@@ -1,5 +1,5 @@
 """Public routes."""
-from flask import Blueprint, jsonify, render_template_string
+from flask import Blueprint, jsonify, render_template_string, request
 
 from ..apna import (
     ApnaSession, get_batches_cached, find_session_for,
@@ -50,7 +50,7 @@ def api_sections(titleId):
             "id": sid,
             "title": sec.get("title", sid),
             "units": [
-                {"id": u.get("id"), "title": u.get("unitTitle",""), "type": u.get("type","")}
+                {"id": u.get("id"), "title": u.get("unitTitle", ""), "type": u.get("type", "")}
                 for u in sec.get("learningPath", [])
             ],
         })
@@ -77,6 +77,42 @@ def api_pdf(titleId, unit_id):
 def api_variants(sourceid):
     accts = STORE.get_accounts()
     if accts:
-        s = ApnaSession(accts[0]["email"], accts[0].get("token",""))
+        s = ApnaSession(accts[0]["email"], accts[0].get("token", ""))
         return jsonify(variants=s.wistia_variants(sourceid))
     return jsonify(variants={})
+
+
+# ---------- assessment ----------
+
+@public_bp.route("/api/assessment/<titleId>/<unit_id>")
+def api_assessment_state(titleId, unit_id):
+    s = find_session_for(titleId)
+    if not s:
+        return jsonify(error="no account has access"), 404
+    return jsonify(s.fetch_assessment_state(titleId, unit_id))
+
+
+@public_bp.route("/api/assessment/save/<titleId>/<unit_id>", methods=["POST"])
+def api_assessment_save(titleId, unit_id):
+    s = find_session_for(titleId)
+    if not s:
+        return jsonify(error="no account has access"), 404
+    body = request.get_json(silent=True) or {}
+    sub_id = body.get("submission_id")
+    answers = body.get("answers") or []
+    if not sub_id:
+        return jsonify(error="submission_id required")
+    return jsonify(s.save_assessment(sub_id, titleId, unit_id, answers, status="begun"))
+
+
+@public_bp.route("/api/assessment/submit/<titleId>/<unit_id>", methods=["POST"])
+def api_assessment_submit(titleId, unit_id):
+    s = find_session_for(titleId)
+    if not s:
+        return jsonify(error="no account has access"), 404
+    body = request.get_json(silent=True) or {}
+    sub_id = body.get("submission_id")
+    answers = body.get("answers") or []
+    if not sub_id:
+        return jsonify(error="submission_id required")
+    return jsonify(s.submit_assessment(sub_id, titleId, unit_id, answers))
