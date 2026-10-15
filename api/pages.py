@@ -159,6 +159,57 @@ a{color:var(--accent);text-decoration:none}
 .yt-menu .mi.sel{color:var(--accent);font-weight:700}
 /* ===== end player ===== */
 
+/* ===== assessment UI ===== */
+.as-wrap{position:absolute;inset:0;background:var(--bg);overflow-y:auto;color:var(--txt);font-family:-apple-system,"Segoe UI",Roboto,sans-serif}
+.as-inner{max-width:820px;margin:0 auto;padding:24px 18px 96px}
+.as-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-bottom:22px;padding-bottom:18px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.as-head h1{margin:0 0 6px;font-size:22px;font-weight:800;line-height:1.3}
+.as-head .as-sub{color:var(--muted);font-size:12.5px}
+.as-progress{margin-top:14px;width:100%;height:6px;background:var(--panel2);border-radius:3px;overflow:hidden}
+.as-progress > div{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));width:0;transition:width .3s ease}
+.as-timer{padding:6px 12px;background:var(--panel2);border:1px solid var(--line);border-radius:8px;font-weight:700;font-size:13px;font-variant-numeric:tabular-nums}
+.as-q{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px;margin-bottom:18px;animation:as-q-in .3s cubic-bezier(.22,.9,.28,1)}
+@keyframes as-q-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.as-q .as-q-num{color:var(--muted);font-size:11.5px;text-transform:uppercase;letter-spacing:.7px;font-weight:700;margin-bottom:10px}
+.as-q .as-q-text{font-size:15.5px;line-height:1.75;color:#dfe6f0;margin-bottom:18px}
+.as-q .as-q-text p{margin:0 0 12px}
+.as-q .as-q-text p:last-child{margin-bottom:0}
+.as-q .as-q-text sup{font-size:.7em;vertical-align:super}
+.as-opts{display:flex;flex-direction:column;gap:10px}
+.as-opt{display:flex;align-items:flex-start;gap:12px;padding:14px 16px;background:var(--panel2);border:1px solid var(--line);border-radius:11px;cursor:pointer;transition:all .15s ease;min-height:52px}
+.as-opt:hover{border-color:var(--accent);background:rgba(92,141,255,.06)}
+.as-opt.sel{border-color:var(--accent);background:linear-gradient(90deg,rgba(92,141,255,.14),rgba(124,92,255,.05));box-shadow:0 0 0 1px rgba(92,141,255,.35) inset}
+.as-opt .as-radio{width:22px;height:22px;border-radius:50%;border:2px solid var(--muted);flex-shrink:0;display:flex;align-items:center;justify-content:center;margin-top:1px;transition:all .15s ease}
+.as-opt.sel .as-radio{border-color:var(--accent);background:var(--accent)}
+.as-opt.sel .as-radio::after{content:"";width:8px;height:8px;background:#fff;border-radius:50%}
+.as-opt .as-opt-body{flex:1;line-height:1.6;font-size:14.5px}
+.as-opt .as-opt-body p{margin:0}
+.as-opt input[type=text]{width:100%;margin-top:10px;padding:10px 12px;background:var(--bg);border:1px solid var(--line);color:var(--txt);border-radius:8px;font:inherit;font-size:14px}
+.as-actions{position:sticky;bottom:0;display:flex;justify-content:space-between;gap:10px;padding:14px 18px;background:linear-gradient(0deg,var(--bg) 60%,transparent);margin:0 -18px;flex-wrap:wrap}
+.as-btn{padding:13px 22px;border-radius:10px;font:inherit;font-weight:700;font-size:14px;cursor:pointer;border:1px solid var(--line);background:var(--panel2);color:var(--txt);min-height:48px;transition:all .15s ease}
+.as-btn:hover:not(:disabled){border-color:var(--accent);transform:translateY(-1px)}
+.as-btn:disabled{opacity:.4;cursor:not-allowed}
+.as-btn.primary{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;border:0}
+.as-btn.primary:hover:not(:disabled){filter:brightness(1.1)}
+.as-btn.danger{background:linear-gradient(90deg,#ff5c5c,#b35cff);color:#fff;border:0}
+.as-review{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px;margin-bottom:16px}
+.as-review .as-q-text{font-size:14.5px;line-height:1.7;color:#dfe6f0;margin-bottom:14px}
+.as-review .as-opt{cursor:default}
+.as-review .as-opt.correct{border-color:var(--good);background:rgba(46,204,113,.08)}
+.as-review .as-opt.correct .as-radio{border-color:var(--good);background:var(--good)}
+.as-review .as-opt.wrong{border-color:#ff5c5c;background:rgba(255,92,92,.08)}
+.as-review .as-opt.wrong .as-radio{border-color:#ff5c5c;background:#ff5c5c}
+.as-review .as-tag{padding:3px 9px;border-radius:8px;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;align-self:flex-start;margin-left:auto}
+.as-review .as-tag.ok{background:rgba(46,204,113,.15);color:var(--good)}
+.as-review .as-tag.no{background:rgba(255,92,92,.15);color:#ff5c5c}
+.as-score-card{background:linear-gradient(135deg,rgba(92,141,255,.14),rgba(124,92,255,.05) 60%,transparent);border:1px solid var(--line);border-radius:14px;padding:22px;margin-bottom:20px;text-align:center}
+.as-score-card .num{font-size:44px;font-weight:800;line-height:1;background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.as-score-card .lbl{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.8px;margin-top:8px;font-weight:700}
+.as-loading{display:flex;align-items:center;justify-content:center;height:100%;color:var(--muted);flex-direction:column;gap:16px}
+.as-loading .sp{width:40px;height:40px;border:3px solid var(--panel2);border-top-color:var(--accent);border-radius:50%;animation:ytspin .85s linear infinite}
+.as-err{color:#ff7a7a;text-align:center;padding:32px}
+/* ===== end assessment ===== */
+
 .sections-overlay{position:fixed;top:0;left:0;bottom:0;width:340px;max-width:85vw;background:var(--panel);border-right:1px solid var(--line);z-index:250;transform:translateX(-100%);transition:transform .28s cubic-bezier(.22,.9,.28,1);display:flex;flex-direction:column;box-shadow:16px 0 40px rgba(0,0,0,.5)}
 .sections-overlay.open{transform:translateX(0)}
 .sections-overlay .sections-head{padding:14px 16px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;flex-shrink:0;gap:10px}
@@ -185,6 +236,7 @@ a{color:var(--accent);text-decoration:none}
 .unit .u-left{flex:1;display:flex;gap:8px;align-items:center;overflow:hidden}
 .unit .u-left .t{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .unit .type{padding:2px 8px;border-radius:8px;font-size:10px;background:var(--panel2);color:var(--muted);font-weight:600;text-transform:uppercase;flex-shrink:0}
+.unit .type.assessmentV2{background:rgba(92,141,255,.15);color:var(--accent)}
 .pdf-viewer{width:100%;height:100%;display:flex;flex-direction:column;background:#0a0a0a}
 .pdf-toolbar{padding:10px 14px;background:var(--panel2);border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap}
 .pdf-toolbar .name{color:#dfe6f0;font-weight:600;font-size:12.5px;flex:1;min-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -403,7 +455,6 @@ a{color:var(--accent);text-decoration:none}
 (function(){
 'use strict';
 var BATCHES=[],ACTIVE=null,FLAT=[],CURRENT=null,CURRENT_INFO=null,HLS=null,VIDEO=null,CURRENT_VARIANTS={};
-/* player state */
 var UI_T=null,LP_T=null,TAP_T=null,seekReset=null,seekSide=null,seekAcc=0,ripT=null,lastTapT=0,lastTapSide=null,lastPtr='mouse';
 var CUR_SPEED=1,VOL=1,MUTED=false,QSEL=-1,QPREF=0,MENU_VIEW=null,SCRUB=false,HOLDING=false;
 var DT_STEP=10;
@@ -513,6 +564,7 @@ function playUnit(idx){
     if(j.error){document.getElementById('player-wrap').innerHTML='<div class="player-empty"><p>error: '+esc(j.error)+'</p></div>';document.getElementById('status').textContent='error';document.getElementById('status').className='status err';return;}
     if(j.type==='wistia'&&j.sourceid){playWistia(j.sourceid);}
     else if(j.type==='pdf'){playPdf(ACTIVE,u.id);}
+    else if(j.type==='assessment'){playAssessment(ACTIVE,u.id,j);}
     else{document.getElementById('player-wrap').innerHTML='<div class="player-empty"><p>unsupported: '+esc(j.type||'?')+'</p></div>';}
     if(window.innerWidth<=900)document.getElementById('sections-overlay').classList.remove('open');
   }).catch(function(e){document.getElementById('player-wrap').innerHTML='<div class="player-empty"><p>error: '+esc(e.message||e)+'</p></div>';});
@@ -522,8 +574,8 @@ function destroyPlayer(){
   seekSide=null;seekAcc=0;MENU_VIEW=null;SCRUB=false;HOLDING=false;
   if(HLS){try{HLS.destroy();}catch(e){}HLS=null;}
   if(VIDEO){try{VIDEO.pause();}catch(e){}VIDEO=null;}
+  if(window._asTimer){clearInterval(window._asTimer);window._asTimer=null;}
 }
-
 /* ================= YouTube-style player ================= */
 var IC={
   play:'M8 5v14l11-7z',
@@ -658,8 +710,6 @@ function syncVol(){
   var p=Math.round(eff*100);
   s.style.background='linear-gradient(90deg,#fff '+p+'%,rgba(255,255,255,.3) '+p+'%)';
 }
-
-/* controls auto-hide */
 function showUI(){
   var y=g('yt');if(!y)return;
   y.classList.add('show');
@@ -676,8 +726,6 @@ function toggleUI(){
   if(y.classList.contains('show')){y.classList.remove('show');clearTimeout(UI_T);}
   else showUI();
 }
-
-/* progress bar */
 function dur(){var d=VIDEO&&VIDEO.duration;return (d&&isFinite(d))?d:0;}
 function setProg(pct){var f=g('yt-fill'),k=g('yt-knob');if(!f)return;f.style.width=pct+'%';k.style.left=pct+'%';}
 function updateTime(){
@@ -731,7 +779,6 @@ function bindProgress(){
   pb.addEventListener('pointerleave',function(){if(!SCRUB)tip.style.opacity='0';});
 }
 
-/* settings menu */
 function qualityLabel(){
   if(!HLS||!HLS.levels||!HLS.levels.length)return 'Auto';
   if(QSEL===-1){var l=HLS.levels[HLS.currentLevel];return 'Auto'+(l&&l.height?' ('+l.height+'p)':'');}
@@ -771,7 +818,6 @@ function setQuality(v){
 window.onQualityChange=function(v){setQuality(v);};
 window.setSpeed=function(v){CUR_SPEED=parseFloat(v)||1;if(VIDEO&&!HOLDING)VIDEO.playbackRate=CUR_SPEED;};
 
-/* gestures — separated for touch vs mouse */
 function bindGestures(){
   var gl=g('yt-gl'),down=false,holding=false,moved=false,sx=0,sy=0;
   var isTouch=false;
@@ -916,6 +962,264 @@ function attachAutoNext(){
   });
 }
 
+/* ================= assessment player ================= */
+var AS = { state:null, titleId:null, unitId:null, submissionId:null,
+           answers:{}, order:[], blockMap:{}, curIdx:0, total:0, submitted:false,
+           submissionsById:{} };
+
+function asWidgetHtml(widgets){
+  if(!widgets)return '';
+  var parts=[];
+  for(var i=0;i<widgets.length;i++){
+    var w=widgets[i];
+    if(!w)continue;
+    if(w.type==='text'&&w.properties&&w.properties.html){parts.push(w.properties.html);}
+    else if(w.type==='spacer'){parts.push('<div style="height:'+((w.properties&&w.properties.height)||12)+'px"></div>');}
+    else if(w.type==='image'&&w.properties&&w.properties.url){parts.push('<img src="'+esc(w.properties.url)+'" style="max-width:100%;border-radius:8px">');}
+    else if(w.type==='button'&&w.properties&&w.properties.buttonLabel){parts.push('<button class="as-btn">'+w.properties.buttonLabel+'</button>');}
+  }
+  return parts.join('');
+}
+
+function playAssessment(titleId,unitId,info){
+  AS.state=null;AS.titleId=titleId;AS.unitId=unitId;AS.answers={};
+  AS.order=[];AS.blockMap={};AS.curIdx=0;AS.total=0;AS.submitted=false;
+  g('player-wrap').innerHTML='<div class="as-loading"><div class="sp"></div><div>loading assessment…</div></div>';
+  setStatus('assessment','status');
+  fetch('/api/assessment/'+encodeURIComponent(titleId)+'/'+encodeURIComponent(unitId))
+    .then(function(r){return r.json();})
+    .then(function(j){
+      if(j.error){g('player-wrap').innerHTML='<div class="as-err">'+esc(j.error)+'</div>';setStatus('error','status err');return;}
+      AS.state=j;
+      var a=j.assessment||{};
+      var sub=j.latestSubmission||{};
+      AS.submissionId=sub.id||null;
+      // pre-fill answers from latestSubmission
+      var pre=(sub.answers||[]);
+      for(var i=0;i<pre.length;i++){
+        var e=pre[i];
+        var id=e.answer&&e.answer.id;
+        if(id)AS.answers[e.blockId]=id;
+      }
+      var secs=a.sections||[];
+      for(var si=0;si<secs.length;si++){
+        var blocks=secs[si].blocks||[];
+        for(var bi=0;bi<blocks.length;bi++){
+          var b=blocks[bi];
+          AS.blockMap[b.id]=b;
+          AS.order.push(b.id);
+        }
+      }
+      AS.total=AS.order.length;
+      if(sub.status==='submitted'){AS.submitted=true;renderAssessmentReview();}
+      else{renderAssessment();}
+    })
+    .catch(function(e){g('player-wrap').innerHTML='<div class="as-err">'+esc(e.message||e)+'</div>';});
+}
+
+function asAnsweredCount(){var n=0;for(var k in AS.answers)if(AS.answers[k])n++;return n;}
+
+function renderAssessment(){
+  var a=AS.state.assessment||{};
+  var title=a.title||'Assessment';
+  var curIdx=AS.curIdx;
+  var blockId=AS.order[curIdx];
+  var block=AS.blockMap[blockId];
+  if(!block){renderAssessmentReview();return;}
+  var bd=block.blockData||{};
+  var qHtml=asWidgetHtml(bd.description&&bd.description.widgets);
+  var opts=bd.options||[];
+  var optsHtml='';
+  var curAns=AS.answers[blockId];
+  for(var i=0;i<opts.length;i++){
+    var o=opts[i];
+    var oHtml=asWidgetHtml(o.description&&o.description.widgets);
+    var sel=curAns===o.id?' sel':'';
+    optsHtml+='<div class="as-opt'+sel+'" data-opt="'+esc(o.id)+'"><div class="as-radio"></div><div class="as-opt-body">'+oHtml+'</div></div>';
+  }
+  if(bd.hasOptionOther){
+    var otherSel=curAns&&curAns.indexOf('other:')===0?' sel':'';
+    optsHtml+='<div class="as-opt'+otherSel+'" data-opt="other"><div class="as-radio"></div><div class="as-opt-body"><span>Other</span><input type="text" placeholder="your answer…" id="as-other-input" value="'+(otherSel?esc(curAns.slice(6)):'')+'"></div></div>';
+  }
+  var answered=asAnsweredCount();
+  var pct=AS.total?Math.round(answered/AS.total*100):0;
+  var html=
+    '<div class="as-wrap"><div class="as-inner">'+
+      '<div class="as-head">'+
+        '<div><h1>'+esc(title)+'</h1>'+
+          '<div class="as-sub">Question '+(curIdx+1)+' of '+AS.total+' · '+answered+' answered</div>'+
+          '<div class="as-progress"><div style="width:'+pct+'%"></div></div>'+
+        '</div>'+
+      '</div>'+
+      '<div class="as-q">'+
+        '<div class="as-q-num">Question '+(curIdx+1)+' / '+AS.total+'</div>'+
+        '<div class="as-q-text">'+qHtml+'</div>'+
+        '<div class="as-opts">'+optsHtml+'</div>'+
+      '</div>'+
+      '<div class="as-actions">'+
+        '<button class="as-btn" id="as-prev" '+(curIdx===0?'disabled':'')+'>← Prev</button>'+
+        '<div style="display:flex;gap:10px">'+
+          '<button class="as-btn primary" id="as-save">Save</button>'+
+          (curIdx<AS.total-1
+            ? '<button class="as-btn primary" id="as-next">Next →</button>'
+            : '<button class="as-btn danger" id="as-submit">Submit</button>')+
+        '</div>'+
+      '</div>'+
+    '</div></div>';
+  g('player-wrap').innerHTML=html;
+  setStatus('assessment · Q'+(curIdx+1),'status ok');
+  // bind option clicks
+  var optEls=g('player-wrap').querySelectorAll('.as-opt');
+  for(var k=0;k<optEls.length;k++){
+    (function(el){
+      el.addEventListener('click',function(e){
+        if(e.target&&e.target.tagName==='INPUT')return;
+        var val=el.dataset.opt;
+        if(val==='other'){
+          var inp=g('as-other-input');
+          AS.answers[blockId]='other:'+(inp?inp.value:'');
+        }else{
+          AS.answers[blockId]=val;
+        }
+        // rerender this question only — cheaper than full re-render? full is simpler
+        renderAssessment();
+      });
+    })(optEls[k]);
+  }
+  // other input
+  var oi=g('as-other-input');
+  if(oi){
+    oi.addEventListener('input',function(){AS.answers[blockId]='other:'+this.value;});
+    oi.addEventListener('click',function(e){e.stopPropagation();});
+  }
+  on('as-prev',function(){AS.curIdx=Math.max(0,AS.curIdx-1);renderAssessment();});
+  var nx=g('as-next');if(nx)nx.addEventListener('click',function(){autosave();AS.curIdx=Math.min(AS.total-1,AS.curIdx+1);renderAssessment();});
+  var sv=g('as-save');if(sv)sv.addEventListener('click',function(){autosave();});
+  var sb=g('as-submit');if(sb)sb.addEventListener('click',submitAssessment);
+}
+
+function asAnswersArray(){
+  var arr=[];
+  for(var bid in AS.answers){
+    var v=AS.answers[bid];
+    if(!v)continue;
+    if(v.indexOf('other:')===0){
+      arr.push({blockId:bid, answer:{text:v.slice(6)}});
+    }else{
+      arr.push({blockId:bid, answer:{id:v}});
+    }
+  }
+  return arr;
+}
+
+function autosave(){
+  if(!AS.submissionId||AS.submitted)return;
+  var body={submission_id:AS.submissionId, answers:asAnswersArray()};
+  fetch('/api/assessment/save/'+encodeURIComponent(AS.titleId)+'/'+encodeURIComponent(AS.unitId),
+    {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
+    .then(function(r){return r.json();})
+    .then(function(j){if(j.success||j.updated)setStatus('saved ✓','status ok');})
+    .catch(function(){});
+}
+
+function submitAssessment(){
+  if(!AS.submissionId)return;
+  var unanswered=AS.total-asAnsweredCount();
+  if(unanswered>0){
+    if(!confirm('You have '+unanswered+' unanswered question'+(unanswered>1?'s':'')+'. Submit anyway?'))return;
+  }
+  setStatus('submitting…','status');
+  var body={submission_id:AS.submissionId, answers:asAnswersArray()};
+  fetch('/api/assessment/submit/'+encodeURIComponent(AS.titleId)+'/'+encodeURIComponent(AS.unitId),
+    {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
+    .then(function(r){return r.json();})
+    .then(function(j){
+      if(j.error){setStatus('submit failed: '+j.error,'status err');return;}
+      AS.submitted=true;
+      // stash submission for review
+      if(j.submission){AS.lastSubmission=j.submission;}
+      // refetch state so feedback populates
+      return fetch('/api/assessment/'+encodeURIComponent(AS.titleId)+'/'+encodeURIComponent(AS.unitId))
+        .then(function(r){return r.json();})
+        .then(function(fresh){
+          AS.state=fresh;
+          renderAssessmentReview();
+        });
+    })
+    .catch(function(e){setStatus('submit error','status err');});
+}
+
+function renderAssessmentReview(){
+  var a=AS.state.assessment||{};
+  var sub=AS.state.latestSubmission||{};
+  var feedback=AS.state.feedback||[];
+  var title=a.title||'Assessment';
+  // build blockId -> correctness map from submission.answers
+  var grades={};
+  var correctCount=0, gradedCount=0;
+  var subAnswers=sub.answers||[];
+  for(var i=0;i<subAnswers.length;i++){
+    var e=subAnswers[i];
+    grades[e.blockId]=e;
+    if(e.graded){gradedCount++; if(e.correct)correctCount++;}
+  }
+  // build blockId -> feedback block (contains correct answer highlight info)
+  var fbMap={};
+  for(var fi=0;fi<feedback.length;fi++){
+    var fsec=feedback[fi];
+    var fblocks=fsec.blocks||[];
+    for(var fbi=0;fbi<fblocks.length;fbi++){
+      var fb=fblocks[fbi];
+      fbMap[fb.id]=fb;
+    }
+  }
+  var html='<div class="as-wrap"><div class="as-inner">';
+  html+='<div class="as-head"><div><h1>'+esc(title)+'</h1><div class="as-sub">✓ Submitted · reviewed</div></div></div>';
+  if(gradedCount>0){
+    var pct=Math.round(correctCount/gradedCount*100);
+    html+='<div class="as-score-card"><div class="num">'+correctCount+' / '+gradedCount+'</div><div class="lbl">'+pct+'% correct</div></div>';
+  }else{
+    html+='<div class="as-score-card"><div class="num">✓</div><div class="lbl">Submitted</div></div>';
+  }
+  for(var qi=0;qi<AS.order.length;qi++){
+    var bid=AS.order[qi];
+    var block=AS.blockMap[bid];
+    if(!block)continue;
+    var bd=block.blockData||{};
+    var qHtml=asWidgetHtml(bd.description&&bd.description.widgets);
+    var opts=bd.options||[];
+    var userAns=AS.answers[bid];
+    var grade=grades[bid];
+    var fb=fbMap[bid];
+    // try to find correct option id from feedback if present
+    var correctOptId=null;
+    if(fb&&fb.correctAnswer&&fb.correctAnswer.id)correctOptId=fb.correctAnswer.id;
+    else if(fb&&fb.answer&&fb.answer.id&&grade&&grade.correct)correctOptId=fb.answer.id;
+    var optsHtml='';
+    for(var oi=0;oi<opts.length;oi++){
+      var o=opts[oi];
+      var oHtml=asWidgetHtml(o.description&&o.description.widgets);
+      var cls='as-opt';
+      var tag='';
+      if(userAns===o.id){
+        if(grade&&grade.correct){cls+=' correct';tag='<span class="as-tag ok">✓ correct</span>';}
+        else if(grade&&!grade.correct){cls+=' wrong';tag='<span class="as-tag no">✗ wrong</span>';}
+      }else if(correctOptId&&o.id===correctOptId){
+        cls+=' correct';tag='<span class="as-tag ok">✓ answer</span>';
+      }
+      optsHtml+='<div class="'+cls+'"><div class="as-radio"></div><div class="as-opt-body">'+oHtml+'</div>'+tag+'</div>';
+    }
+    html+='<div class="as-review"><div class="as-q-num">Question '+(qi+1)+' / '+AS.total+'</div><div class="as-q-text">'+qHtml+'</div><div class="as-opts">'+optsHtml+'</div></div>';
+  }
+  html+='<div class="as-actions"><button class="as-btn" id="as-back">← Back</button><button class="as-btn primary" id="as-retake">Retake</button></div>';
+  html+='</div></div>';
+  g('player-wrap').innerHTML=html;
+  setStatus('assessment · submitted','status ok');
+  on('as-back',function(){toggleSections();});
+  on('as-retake',function(){playAssessment(AS.titleId,AS.unitId);});
+}
+/* ================= end assessment ================= */
+
 function playPdf(titleId,unitId){
   document.getElementById('player-wrap').innerHTML='<div class="player-empty">loading PDF…</div>';
   fetch('/api/pdf/'+encodeURIComponent(titleId)+'/'+encodeURIComponent(unitId)).then(function(r){return r.json();}).then(function(info){
@@ -973,6 +1277,7 @@ document.addEventListener('webkitfullscreenchange',onFsChange);
 window.openDownload=function(){
   if(!CURRENT_INFO)return;
   if(CURRENT_INFO.type==='pdf'){var a=document.querySelector('.pdf-actions a.primary');if(a)a.click();return;}
+  if(CURRENT_INFO.type==='assessment'){alert('assessment has no download');return;}
   var box=document.getElementById('dl-variants');box.innerHTML='';
   var items=Object.entries(CURRENT_VARIANTS).sort(function(a,b){return parseInt(b[0])-parseInt(a[0]);});
   if(!items.length){box.innerHTML='<p style="color:var(--muted)">no variants</p>';document.getElementById('modal-dl').classList.add('open');return;}
@@ -1029,7 +1334,7 @@ window.copyField=function(id,btn){var el=document.getElementById(id);el.select()
 window.copyUpi=function(btn){var id=document.getElementById('upi-id').textContent.trim();navigator.clipboard.writeText(id).then(function(){var o=btn.textContent;btn.textContent='✓ copied';setTimeout(function(){btn.textContent=o;},1200);});};
 var modals=document.querySelectorAll('.modal');for(var mi=0;mi<modals.length;mi++){(function(m){m.addEventListener('click',function(e){if(e.target===m)m.classList.remove('open');});})(modals[mi]);}
 document.addEventListener('keydown',function(e){
-  if(e.target.tagName==='INPUT'||e.target.tagName==='SELECT')return;
+  if(e.target.tagName==='INPUT'||e.target.tagName==='SELECT'||e.target.tagName==='TEXTAREA')return;
   var k=e.key;
   if(k==='/'){e.preventDefault();if(document.getElementById('page-viewer').classList.contains('active'))document.getElementById('search').focus();else document.getElementById('batch-search').focus();return;}
   if(!VIDEO)return;
@@ -1216,3 +1521,4 @@ async function logout(){await fetch('/logout',{method:'POST'});location.href='/'
 document.getElementById('add-form').addEventListener('submit',addAcct);
 reload();
 </script></body></html>"""
+
