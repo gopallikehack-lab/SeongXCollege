@@ -7,7 +7,7 @@ MAIN_PAGE = r"""<!DOCTYPE html>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>SeongEra_Study 📚✏</title>
 <style>
-:root{--bg:#07090c;--panel:#0e1218;--panel2:#141a22;--line:#1e2630;--txt:#e6e9ee;--muted:#7c8697;--accent:#5c8dff;--accent2:#7c5cff;--good:#2ecc71;--tap:44px}
+:root{--bg:#07090c;--panel:#0e1218;--panel2:#141a22;--line:#1e2630;--txt:#e6e9ee;--muted:#7c8697;--accent:#5c8dff;--accent2:#7c5cff;--good:#2ecc71;--warn:#f6b73c;--tap:44px}
 [data-theme="rose"]{--accent:#ff5c8d;--accent2:#c45cff;--bg:#0c070b;--panel:#160d13;--panel2:#221420}
 [data-theme="green"]{--accent:#2ecc71;--accent2:#13b6a3;--bg:#060d09;--panel:#0d1a12;--panel2:#152622}
 [data-theme="amber"]{--accent:#f6b73c;--accent2:#ff8a4c;--bg:#0d0a06;--panel:#1a140a;--panel2:#2a2010}
@@ -61,7 +61,7 @@ a{color:var(--accent);text-decoration:none}
 .viewer-head .back{padding:8px 12px;background:var(--panel2);border:1px solid var(--line);color:var(--txt);border-radius:8px;cursor:pointer;font-size:14px;min-height:40px;min-width:40px}
 .viewer-head .title{font-size:14px;font-weight:600;color:#dfe6f0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .player-main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0;position:relative}
-.player-wrap{flex:1;background:#000;display:flex;align-items:center;justify-content:center;position:relative;min-height:0;overflow:hidden}
+.player-wrap{flex:1;background:#000;display:flex;align-items:center;justify-content:center;position:relative;min-height:0;overflow:hidden;cursor:pointer}
 .player-empty{color:var(--muted);text-align:center;padding:32px;max-width:560px;line-height:1.8}
 .player-empty h2{font-size:26px;margin:0 0 16px;font-weight:800}
 .player-wrap video{width:100%;height:100%;background:#000;object-fit:contain}
@@ -69,6 +69,7 @@ a{color:var(--accent);text-decoration:none}
 .controls{background:var(--panel);border-top:1px solid var(--line);padding:10px 14px;flex-shrink:0}
 .ctr-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .controls button{background:var(--panel2);border:1px solid var(--line);color:var(--txt);border-radius:9px;padding:8px;cursor:pointer;min-height:44px;min-width:44px;font-size:15px;display:inline-flex;align-items:center;justify-content:center}
+.controls button:hover{border-color:var(--accent);color:var(--accent)}
 .controls .time{font-size:12px;color:var(--muted);min-width:100px;text-align:center}
 .seekbar{flex:1;height:8px;background:var(--panel2);border-radius:4px;position:relative;cursor:pointer;min-width:100px}
 .seekbar .filled{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--accent),var(--accent2));width:0%}
@@ -109,6 +110,7 @@ a{color:var(--accent);text-decoration:none}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px;margin-bottom:14px}
 .card h2{margin:0 0 12px;font-size:16px;font-weight:700;color:#dfe6f0}
 .card p{color:#c8d0dd;line-height:1.7;margin:8px 0;font-size:13.5px}
+.card p b{color:#dfe6f0}
 .card .btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
 .btn-link{display:inline-flex;align-items:center;gap:8px;padding:11px 18px;background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;border-radius:10px;font-weight:600;font-size:13px;text-decoration:none;min-height:46px}
 .btn-ghost{display:inline-flex;align-items:center;gap:8px;padding:11px 18px;background:var(--panel2);color:var(--txt);border:1px solid var(--line);border-radius:10px;font-weight:600;font-size:13px;text-decoration:none;min-height:46px}
@@ -116,6 +118,10 @@ a{color:var(--accent);text-decoration:none}
 .upi-box{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:14px;display:flex;justify-content:space-between;gap:10px;align-items:center;margin-top:14px;flex-wrap:wrap}
 .upi-box .id{font:13px monospace;color:var(--accent);word-break:break-all;flex:1;min-width:120px}
 .upi-box button{padding:10px 16px;background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;border:0;border-radius:9px;font:inherit;font-weight:600;font-size:12.5px;cursor:pointer;min-height:40px}
+.dev-hero{text-align:center;padding:20px;background:linear-gradient(180deg,rgba(92,141,255,.1),transparent);border-radius:14px;margin-bottom:14px}
+.dev-hero .avatar{width:96px;height:96px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:inline-flex;align-items:center;justify-content:center;font-size:42px;font-weight:800;color:#fff;margin-bottom:14px}
+.dev-hero h2{margin:0 0 6px;font-size:20px}
+.dev-hero .tag{color:var(--muted);font-size:12.5px}
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;z-index:999;padding:16px}
 .modal.open{display:flex}
 .modal .box{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:22px;max-width:600px;width:100%;max-height:90vh;overflow-y:auto}
@@ -153,6 +159,7 @@ a{color:var(--accent);text-decoration:none}
     <a class="drawer-item" href="https://t.me/SeongEraStudy" target="_blank"><span class="ico">💬</span><span>Join Telegram</span></a>
     <div class="drawer-item" data-page="contact" onclick="goPage('contact')"><span class="ico">📩</span><span>Contact Us</span></div>
     <div class="drawer-item" data-page="donate" onclick="goPage('donate')"><span class="ico">❤️</span><span>Donate</span></div>
+    <div class="drawer-item" data-page="developer" onclick="goPage('developer')"><span class="ico">👨‍💻</span><span>Developer Info</span></div>
     <div class="drawer-foot">Made By @Seong_Era<br>Support: t.me/Seong_Era</div>
   </div>
 
@@ -170,25 +177,31 @@ a{color:var(--accent);text-decoration:none}
       <div class="viewer">
         <div class="viewer-head">
           <button class="back" onclick="closeBatch()">←</button>
-          <button class="back" onclick="toggleSections()" title="sections">☰</button>
+          <button class="back" onclick="toggleSections()" title="playlist">☰</button>
           <div class="title" id="viewer-title">Batch</div>
         </div>
         <div class="player-main">
           <div class="player-wrap" id="player-wrap">
             <div class="player-empty">
               <h2 class="brand-gradient">Pick a lecture</h2>
-              <p>Open the sections panel with ☰ to browse lectures.</p>
+              <p>Open the playlist panel with ☰ to browse lectures.</p>
             </div>
           </div>
           <div class="controls" id="controls" style="display:none">
             <div class="ctr-row">
-              <button id="btn-play" onclick="togglePlay()">▶</button>
+              <button onclick="playPrev()" title="previous lecture">⏮</button>
+              <button id="btn-play" onclick="togglePlay()" title="play/pause">▶</button>
+              <button onclick="playNext()" title="next lecture">⏭</button>
               <span class="time" id="time">0:00 / 0:00</span>
               <div class="seekbar" id="seek" onclick="seekClick(event)"><div class="filled" id="seek-filled"></div><div class="knob" id="seek-knob"></div></div>
-              <button onclick="skip(-10)">⟲</button><button onclick="skip(10)">⟳</button>
+              <button onclick="skip(-10)" title="back 10s">⟲</button>
+              <button onclick="skip(10)" title="forward 10s">⟳</button>
               <select id="speed" onchange="setSpeed(this.value)"><option value="0.5">0.5×</option><option value="0.75">0.75×</option><option value="1" selected>1×</option><option value="1.25">1.25×</option><option value="1.5">1.5×</option><option value="2">2×</option></select>
               <select id="quality" onchange="onQualityChange(this.value)"><option value="auto">auto</option></select>
-              <button onclick="openDownload()">⬇</button><button onclick="openLink()">🔗</button><button onclick="toggleFS()">⛶</button>
+              <button onclick="toggleSections()" title="playlist">☰</button>
+              <button onclick="openDownload()" title="download">⬇</button>
+              <button onclick="openLink()" title="get m3u8 link">🔗</button>
+              <button onclick="toggleFS()" title="fullscreen">⛶</button>
             </div>
           </div>
           <div class="bottombar">
@@ -238,12 +251,41 @@ a{color:var(--accent);text-decoration:none}
           <span class="id" id="upi-id">__UPI_ID__</span>
           <button onclick="copyUpi(this)">📋 copy UPI ID</button>
         </div>
+        <p style="margin-top:16px;color:#f6b73c;font-weight:600">📸 After donation, kindly send the payment screenshot to the owner on Telegram — this helps confirm your support and keeps the records clean.</p>
+        <div class="btn-row">
+          <a class="btn-link" href="https://t.me/SeongEra" target="_blank">💬 Send Screenshot to @SeongEra</a>
+        </div>
       </div>
       <div class="card">
         <h2>Where it goes</h2>
         <p>• Server + domain costs</p>
         <p>• New batches, more lectures</p>
         <p>• Keeping it free for everyone</p>
+      </div>
+    </div>
+
+    <div class="page" id="page-developer">
+      <div class="dev-hero">
+        <div class="avatar">GP</div>
+        <h2 class="brand-gradient">Gopal Parmar</h2>
+        <div class="tag">Reverse Engineer · Developer · Bug Bounty Hunter</div>
+      </div>
+      <div class="card">
+        <h2>👨‍💻 Developer Info</h2>
+        <p><b>Name:</b> Gopal Parmar</p>
+        <p><b>Skills:</b> Reverse Engineering · Coding · Exploiting · Bug Bounty</p>
+        <p><b>Age:</b> Why?? you want to know 🥹🥸🥲</p>
+        <p><b>State:</b> Rajasthan 🫶❤️‍🩹</p>
+        <p><b>Telegram:</b> <a href="https://t.me/SeongEra" target="_blank" style="color:var(--accent)">@SeongEra</a></p>
+        <div class="btn-row">
+          <a class="btn-link" href="https://t.me/SeongEra" target="_blank">💬 Message @SeongEra</a>
+          <a class="btn-ghost" href="https://t.me/SeongEraStudy" target="_blank">📢 Study Channel</a>
+        </div>
+      </div>
+      <div class="card">
+        <h2>About the project</h2>
+        <p>SeongEra_Study is a free study platform built for students. No ads, no paywall, no signup. Just pick a batch and start learning.</p>
+        <p style="color:var(--muted);font-size:12px;margin-top:14px">Made with care in Rajasthan.</p>
       </div>
     </div>
   </div>
@@ -313,7 +355,7 @@ window.openBatch=function(titleId,label){
   document.getElementById('sections-title').textContent=label;
   document.getElementById('search').value='';
   document.getElementById('toc').innerHTML='<div style="padding:20px;color:var(--muted)">loading sections…</div>';
-  document.getElementById('player-wrap').innerHTML='<div class="player-empty"><h2 class="brand-gradient">Pick a lecture</h2><p>Open sections panel with ☰</p></div>';
+  document.getElementById('player-wrap').innerHTML='<div class="player-empty"><h2 class="brand-gradient">Pick a lecture</h2><p>Open playlist panel with ☰</p></div>';
   document.getElementById('controls').style.display='none';
   document.getElementById('nowplaying').textContent='';
   destroyPlayer();
@@ -322,7 +364,6 @@ window.openBatch=function(titleId,label){
     if(!j||!j.sections){document.getElementById('toc').innerHTML='<div style="padding:20px;color:#ff7a7a">'+esc((j&&j.error)||'failed')+'</div>';return;}
     window._sections=j.sections;
     renderTOC();
-    // auto-open sections panel on desktop
     if(window.innerWidth>900)document.getElementById('sections-overlay').classList.add('open');
   }).catch(function(e){document.getElementById('toc').innerHTML='<div style="padding:20px;color:#ff7a7a">error: '+esc(e.message||e)+'</div>';});
 };
@@ -360,7 +401,7 @@ function playUnit(idx){
   var units=document.querySelectorAll('.unit.active');
   for(var i=0;i<units.length;i++)units[i].classList.remove('active');
   var el=document.querySelector('.unit[data-idx="'+idx+'"]');
-  if(el)el.classList.add('active');
+  if(el){el.classList.add('active');el.scrollIntoView({block:'nearest',behavior:'smooth'});}
   document.getElementById('nowplaying').textContent=u.title||'';
   document.getElementById('status').textContent='loading…';
   document.getElementById('status').className='status';
@@ -399,6 +440,62 @@ function playWistia(sourceid){
   VIDEO.addEventListener('pause',function(){document.getElementById('btn-play').textContent='▶';});
   VIDEO.addEventListener('click',togglePlay);
   document.getElementById('status').textContent='playing';
+  attachAutoNext();
+  attachDoubleTap();
+}
+
+function attachAutoNext(){
+  if(!VIDEO) return;
+  VIDEO.addEventListener('ended', function(){
+    if(CURRENT != null && CURRENT < FLAT.length - 1){
+      document.getElementById('status').textContent='auto-playing next…';
+      playUnit(CURRENT + 1);
+    }
+  });
+}
+
+function attachDoubleTap(){
+  if(!VIDEO) return;
+  var lastTap=0, lastSide=null;
+  var wrap=document.getElementById('player-wrap');
+  var hintEl=null, hintTimer=null;
+  VIDEO.addEventListener('touchstart', handle, {passive:true});
+  VIDEO.addEventListener('click', handle, false);
+
+  function handle(e){
+    var clientX = e.changedTouches ? e.changedTouches[0].clientX : e.clientX;
+    var rect = VIDEO.getBoundingClientRect();
+    var clickX = clientX - rect.left;
+    var side = clickX < rect.width/2 ? 'left' : 'right';
+    var now = Date.now();
+    if(now - lastTap < 350 && lastSide === side){
+      e.preventDefault();
+      e.stopPropagation();
+      var delta = side === 'left' ? -30 : 30;
+      if(VIDEO){
+        VIDEO.currentTime = Math.max(0, Math.min(VIDEO.duration||0, (VIDEO.currentTime||0)+delta));
+      }
+      showHint(side === 'left' ? '⏪ -30s' : '+30s ⏩', side);
+      lastTap = 0;
+    } else {
+      lastTap = now;
+      lastSide = side;
+    }
+  }
+
+  function showHint(text, side){
+    if(!hintEl){
+      hintEl = document.createElement('div');
+      hintEl.style.cssText = 'position:absolute;top:50%;transform:translateY(-50%);background:rgba(0,0,0,.75);color:#fff;padding:20px 24px;border-radius:50%;font-size:20px;font-weight:700;pointer-events:none;transition:opacity .25s;z-index:10;';
+      wrap.appendChild(hintEl);
+    }
+    hintEl.textContent = text;
+    hintEl.style.left = side === 'left' ? '15%' : 'auto';
+    hintEl.style.right = side === 'right' ? '15%' : 'auto';
+    hintEl.style.opacity = '1';
+    if(hintTimer) clearTimeout(hintTimer);
+    hintTimer = setTimeout(function(){ if(hintEl) hintEl.style.opacity = '0'; }, 700);
+  }
 }
 
 function playPdf(titleId,unitId){
@@ -420,7 +517,22 @@ window.skip=function(n){if(VIDEO)VIDEO.currentTime+=n;};
 window.seekClick=function(e){if(!VIDEO)return;var r=e.currentTarget.getBoundingClientRect();VIDEO.currentTime=((e.clientX-r.left)/r.width)*(VIDEO.duration||0);};
 window.setSpeed=function(v){if(VIDEO)VIDEO.playbackRate=parseFloat(v);};
 window.onQualityChange=function(v){if(HLS)HLS.currentLevel=(v==='auto')?-1:parseInt(v,10);};
-window.toggleFS=function(){var w=document.getElementById('player-wrap');if(!document.fullscreenElement)w.requestFullscreen();else document.exitFullscreen();};
+window.playNext=function(){if(CURRENT!=null&&CURRENT<FLAT.length-1)playUnit(CURRENT+1);};
+window.playPrev=function(){if(CURRENT!=null&&CURRENT>0)playUnit(CURRENT-1);};
+
+window.toggleFS=function(){
+  var w=document.getElementById('player-wrap');
+  if(!document.fullscreenElement){
+    if(w.requestFullscreen) w.requestFullscreen();
+    else if(w.webkitRequestFullscreen) w.webkitRequestFullscreen();
+    else if(w.msRequestFullscreen) w.msRequestFullscreen();
+  } else {
+    if(document.exitFullscreen) document.exitFullscreen();
+    else if(document.webkitExitFullscreen) document.webkitExitFullscreen();
+    else if(document.msExitFullscreen) document.msExitFullscreen();
+  }
+};
+
 window.openDownload=function(){
   if(!CURRENT_INFO)return;
   if(CURRENT_INFO.type==='pdf'){var a=document.querySelector('.pdf-actions a.primary');if(a)a.click();return;}
@@ -479,7 +591,20 @@ window.closeModal=function(id){document.getElementById(id).classList.remove('ope
 window.copyField=function(id,btn){var el=document.getElementById(id);el.select();el.setSelectionRange(0,99999);navigator.clipboard.writeText(el.value).then(function(){var o=btn.textContent;btn.textContent='copied!';setTimeout(function(){btn.textContent=o;},1200);});};
 window.copyUpi=function(btn){var id=document.getElementById('upi-id').textContent.trim();navigator.clipboard.writeText(id).then(function(){var o=btn.textContent;btn.textContent='✓ copied';setTimeout(function(){btn.textContent=o;},1200);});};
 var modals=document.querySelectorAll('.modal');for(var mi=0;mi<modals.length;mi++){(function(m){m.addEventListener('click',function(e){if(e.target===m)m.classList.remove('open');});})(modals[mi]);}
-document.addEventListener('keydown',function(e){if(e.target.tagName==='INPUT'||e.target.tagName==='SELECT')return;var k=e.key;if(k==='/'){e.preventDefault();if(document.getElementById('page-viewer').classList.contains('active'))document.getElementById('search').focus();else document.getElementById('batch-search').focus();return;}if(!VIDEO)return;if(k===' '){e.preventDefault();togglePlay();}else if(k==='ArrowRight')VIDEO.currentTime+=5;else if(k==='ArrowLeft')VIDEO.currentTime-=5;else if(k==='f'||k==='F')toggleFS();});
+document.addEventListener('keydown',function(e){
+  if(e.target.tagName==='INPUT'||e.target.tagName==='SELECT')return;
+  var k=e.key;
+  if(k==='/'){e.preventDefault();if(document.getElementById('page-viewer').classList.contains('active'))document.getElementById('search').focus();else document.getElementById('batch-search').focus();return;}
+  if(!VIDEO)return;
+  if(k===' '){e.preventDefault();togglePlay();}
+  else if(k==='ArrowRight')VIDEO.currentTime+=10;
+  else if(k==='ArrowLeft')VIDEO.currentTime-=10;
+  else if(k==='f'||k==='F')toggleFS();
+  else if(k==='n'||k==='N')playNext();
+  else if(k==='p'||k==='P')playPrev();
+  else if(k==='m'||k==='M'){VIDEO.muted=!VIDEO.muted;}
+  else if(k==='Escape'&&document.getElementById('sections-overlay').classList.contains('open')){document.getElementById('sections-overlay').classList.remove('open');}
+});
 document.getElementById('search').addEventListener('input',renderTOC);
 document.getElementById('batch-search').addEventListener('input',renderBatches);
 function loadAll(){
@@ -553,6 +678,7 @@ input:focus,textarea:focus{outline:none;border-color:#5c8dff}
 .msg.ok{background:rgba(46,204,113,.1);color:#2ecc71}
 .msg.err{background:rgba(255,92,92,.1);color:#ff8b8b}
 .help{padding:14px;background:#07090c;border-radius:10px;font-size:12px;color:#7c8697;line-height:1.7;margin-top:12px}
+.help code{background:#141a22;padding:2px 6px;border-radius:4px;color:#9fb8ff;font-size:11px}
 </style></head><body>
 <div class="header">
   <h1>SeongEra_Study 📚✏ · Admin</h1>
