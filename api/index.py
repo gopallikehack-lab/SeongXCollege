@@ -181,7 +181,8 @@ class ApnaSession:
             r = self.s.post(f"{BASE}/api/learner/products", json=body,
                             headers=self.h(), timeout=TIMEOUT)
             d = r.json()
-        except Exception:
+        except Exception as e:
+            print(f"[!] fetch_batches {self.email}: {type(e).__name__}")
             return []
         out = []
         for c in d.get("data", []):
@@ -301,6 +302,36 @@ class ApnaSession:
             return out
         except Exception:
             return {}
+
+
+# ---- batch cache ----
+_BATCH_CACHE = {}
+_BATCH_CACHE_TTL = 300
+
+
+def _get_batches_cached(acct):
+    email = (acct.get("email") or "").lower()
+    if not email:
+        return []
+    now = time.time()
+    cached = _BATCH_CACHE.get(email)
+    if cached and now - cached[0] < _BATCH_CACHE_TTL:
+        return cached[1]
+    try:
+        s = ApnaSession(acct["email"], acct.get("token",""))
+        batches = s.fetch_batches()
+        _BATCH_CACHE[email] = (now, batches)
+        return batches
+    except Exception:
+        return cached[1] if cached else []
+
+
+def _find_session_for(titleId):
+    for acct in STORE.get_accounts():
+        batches = _get_batches_cached(acct)
+        if any(b.get("titleId") == titleId for b in batches):
+            return ApnaSession(acct["email"], acct.get("token",""))
+    return None
 
 
 app = Flask(__name__)
@@ -1104,48 +1135,49 @@ def logout():
 def api_batches():
     seen = {}
     for acct in STORE.get_accounts():
-        s = ApnaSession(acct["email"], acct.get("token",""))
-        for b in s.fetch_batches():
-            tid = b["titleId"]
-            if tid not in seen:
-                seen[tid] = {"titleId": tid, "label": b["label"]}
+        for b in _get_batches_cached(acct):
+            tid = b.get("titleId")
+            if tid and tid not in seen:
+                seen[tid] = {"titleId": tid, "label": b.get("label", tid)}
     return jsonify(batches=list(seen.values()))
 
 
 @app.route("/api/sections/<titleId>")
 def api_sections(titleId):
-    for acct in STORE.get_accounts():
-        s = ApnaSession(acct["email"], acct.get("token",""))
-        if any(b["titleId"] == titleId for b in s.fetch_batches()):
-            d = s.fetch_curriculum(titleId)
-            if d:
-                secs = (d.get("course") or {}).get("sections") or d.get("sections") or {}
-                out = []
-                for sid, sec in secs.items():
-                    out.append({
-                        "id": sid, "title": sec.get("title", sid),
-                        "units": [{"id": u.get("id"), "title": u.get("unitTitle",""), "type": u.get("type","")} for u in sec.get("learningPath", [])],
-                    })
-                return jsonify(sections=out)
-    return jsonify(error="no access"), 404
+    s = _find_session_for(titleId)
+    if not s:
+        return jsonify(error="no account has access to this batch"), 404
+    d = s.fetch_curriculum(titleId)
+    if not d:
+        return jsonify(error="failed to load curriculum from ApnaCollege"), 500
+    secs = (d.get("course") or {}).get("sections") or d.get("sections") or {}
+    out = []
+    for sid, sec in secs.items():
+        out.append({
+            "id": sid,
+            "title": sec.get("title", sid),
+            "units": [
+                {"id": u.get("id"), "title": u.get("unitTitle",""), "type": u.get("type","")}
+                for u in sec.get("learningPath", [])
+            ],
+        })
+    return jsonify(sections=out)
 
 
 @app.route("/api/video/<titleId>/<unit_id>")
 def api_video(titleId, unit_id):
-    for acct in STORE.get_accounts():
-        s = ApnaSession(acct["email"], acct.get("token",""))
-        if any(b["titleId"] == titleId for b in s.fetch_batches()):
-            return jsonify(s.fetch_video(titleId, unit_id))
-    return jsonify(error="no access"), 404
+    s = _find_session_for(titleId)
+    if not s:
+        return jsonify(error="no account has access to this batch"), 404
+    return jsonify(s.fetch_video(titleId, unit_id))
 
 
 @app.route("/api/pdf/<titleId>/<unit_id>")
 def api_pdf(titleId, unit_id):
-    for acct in STORE.get_accounts():
-        s = ApnaSession(acct["email"], acct.get("token",""))
-        if any(b["titleId"] == titleId for b in s.fetch_batches()):
-            return jsonify(s.pdf_redirect(titleId, unit_id))
-    return jsonify(error="no access"), 404
+    s = _find_session_for(titleId)
+    if not s:
+        return jsonify(error="no account has access to this batch"), 404
+    return jsonify(s.pdf_redirect(titleId, unit_id))
 
 
 @app.route("/api/variants/<sourceid>")
@@ -1196,10 +1228,15 @@ def admin_accounts():
         ok2, msg = STORE.add_account(email, token, label)
         if not ok2:
             return jsonify(error=msg)
+        # clear batch cache so it refetches
+        _BATCH_CACHE.pop(email.lower(), None)
         return jsonify(ok=True)
     if request.method == "DELETE":
         b = request.get_json(silent=True) or {}
-        return jsonify(ok=STORE.remove_account(b.get("email","")))
+        email = b.get("email","")
+        ok = STORE.remove_account(email)
+        _BATCH_CACHE.pop(email.lower(), None)
+        return jsonify(ok=ok)
 
 
 @app.route("/api/admin/test")
@@ -1211,6 +1248,13 @@ def admin_test():
         ok, detail = s.verify()
         results.append({"email": acct["email"], "ok": ok, "error": None if ok else detail})
     return jsonify(results=results)
+
+
+@app.route("/api/admin/clear_batch_cache")
+@require_admin
+def admin_clear_batch_cache():
+    _BATCH_CACHE.clear()
+    return jsonify(ok=True)
 
 
 @app.route("/api/debug")
