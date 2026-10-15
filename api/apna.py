@@ -113,8 +113,23 @@ class ApnaSession:
             out.append({"titleId": tid, "label": ttl, "image": img})
         return out
 
+    @staticmethod
+    def _patch_assessment_titles(sections, objects):
+        """For assessmentV2 units whose unitTitle is 'Untitled', use the
+        object's real title from the objects map."""
+        if not sections or not objects:
+            return
+        for _sid, _sec in sections.items():
+            for _u in (_sec.get("learningPath") or []):
+                _ut = (_u.get("type") or "")
+                if _ut == "assessmentV2":
+                    _obj = objects.get(_u.get("id")) or {}
+                    _real = _obj.get("title")
+                    if _real and _real != "Untitled":
+                        _u["unitTitle"] = _real
+
     def fetch_curriculum(self, titleId):
-        cache_key = f"curric:{self.email}:{titleId}"
+        cache_key = f"curric:v2:{self.email}:{titleId}"
         cached = STORE.cache_get(cache_key)
         if cached:
             try:
@@ -129,16 +144,20 @@ class ApnaSession:
                 return None
             d = r.json()
             try:
+                sections = d.get("course", {}).get("sections", {}) or {}
+                objects = d.get("course", {}).get("objects", {}) or {}
+                # patch Untitled assessment units before caching + returning
+                self._patch_assessment_titles(sections, objects)
                 compact = {
                     "id": d.get("course", {}).get("id"),
                     "titleId": d.get("course", {}).get("titleId"),
                     "title": d.get("course", {}).get("title"),
-                    "sections": d.get("course", {}).get("sections", {}),
-                    "objects": d.get("course", {}).get("objects", {}),
+                    "sections": sections,
+                    "objects": objects,
                 }
                 STORE.cache_set(cache_key, json.dumps(compact), ttl=TOKEN_TTL)
-            except Exception:
-                pass
+            except Exception as _e:
+                print(f"[!] curriculum compact failed: {_e}")
             return d
         except Exception:
             return None
@@ -169,7 +188,6 @@ class ApnaSession:
             if fname:
                 return {"unit_id": unit_id, "title": disp or fname,
                         "type": "pdf", "pdf": fname, "batch": titleId}
-            # check for assessmentV2 fallback
             a = self._assessment_meta(titleId, unit_id)
             if a:
                 return a
@@ -182,7 +200,6 @@ class ApnaSession:
                 "duration": v.get("duration"),
                 "batch": titleId,
             }
-        # video endpoint returned nothing useful — try assessment
         a = self._assessment_meta(titleId, unit_id)
         if a:
             return a
@@ -197,7 +214,6 @@ class ApnaSession:
         }
 
     def _assessment_meta(self, title_id, unit_id):
-        """Look up assessmentV2 metadata from curriculum objects map."""
         d = self.fetch_curriculum(title_id)
         if not d:
             return None
@@ -220,7 +236,6 @@ class ApnaSession:
     # ---------- assessment endpoints ----------
 
     def fetch_assessment_state(self, title_id, unit_id):
-        """GET /api/assessment/state?sourceType=unit&objectId=<unitId>"""
         try:
             r = self.s.get(f"{BASE}/api/assessment/state",
                 params={"sourceType": "unit", "objectId": unit_id},
@@ -239,7 +254,6 @@ class ApnaSession:
 
     def save_assessment(self, submission_id, title_id, unit_id, answers,
                         status="begun"):
-        """PATCH /api/assessment/submission/<id>"""
         body = {"answers": answers, "status": status}
         try:
             r = self.s.patch(
@@ -254,7 +268,6 @@ class ApnaSession:
             return {"error": f"{type(e).__name__}: {e}"}
 
     def submit_assessment(self, submission_id, title_id, unit_id, answers):
-        """Submit — same PATCH but status=submitted."""
         return self.save_assessment(submission_id, title_id, unit_id,
                                     answers, status="submitted")
 
