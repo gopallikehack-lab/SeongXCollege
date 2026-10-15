@@ -188,9 +188,10 @@ function buildPlayerUI(){
 function on(id,fn){var el=g(id);if(el)el.addEventListener('click',fn);}
 function bindUI(){
   var y=g('yt');
+  if(!y)return;
   y.addEventListener('mousemove',showUI);
   var zones=['yt-top','yt-bottom','yt-center'];
-  for(var i=0;i<zones.length;i++){g(zones[i]).addEventListener('pointerdown',function(e){e.stopPropagation();showUI();});}
+  for(var i=0;i<zones.length;i++){var z=g(zones[i]);if(z)z.addEventListener('pointerdown',function(e){e.stopPropagation();showUI();});}
   on('yt-big',function(e){e.stopPropagation();window.togglePlay();});
   on('yt-pp',function(e){e.stopPropagation();window.togglePlay();});
   on('yt-prev',function(e){e.stopPropagation();window.playPrev();});
@@ -201,8 +202,8 @@ function bindUI(){
   on('yt-lk',function(e){e.stopPropagation();leaveFS();window.openLink();});
   on('yt-set',function(e){e.stopPropagation();if(MENU_VIEW)closeMenu();else openMenu('main');});
   on('yt-fs',function(e){e.stopPropagation();window.toggleFS();});
-  g('yt-vol').addEventListener('input',function(e){e.stopPropagation();if(!VIDEO)return;var v=parseFloat(this.value);VIDEO.volume=v;VIDEO.muted=(v===0);});
-  g('yt-menu').addEventListener('click',function(e){
+  var vv=g('yt-vol'); if(vv) vv.addEventListener('input',function(e){e.stopPropagation();if(!VIDEO)return;var v=parseFloat(this.value);VIDEO.volume=v;VIDEO.muted=(v===0);});
+  var mm=g('yt-menu'); if(mm) mm.addEventListener('click',function(e){
     e.stopPropagation();
     var t=e.target;
     while(t&&t!==this&&!(t.dataset&&(t.dataset.go||t.dataset.q!==undefined||t.dataset.s!==undefined)))t=t.parentNode;
@@ -256,7 +257,7 @@ function syncVol(){
   if(!VIDEO.muted&&VIDEO.volume>0)VOL=VIDEO.volume;
   var eff=VIDEO.muted?0:VIDEO.volume;
   g('yt-mute').innerHTML=ic(eff===0?'mute':'vol');
-  var s=g('yt-vol');s.value=eff;
+  var s=g('yt-vol');if(!s)return;s.value=eff;
   var p=Math.round(eff*100);
   s.style.background='linear-gradient(90deg,#fff '+p+'%,rgba(255,255,255,.3) '+p+'%)';
 }
@@ -270,11 +271,6 @@ function hideUI(){
   var y=g('yt');
   if(!y||!VIDEO||VIDEO.paused||SCRUB||MENU_VIEW)return;
   y.classList.remove('show');
-}
-function toggleUI(){
-  var y=g('yt');if(!y)return;
-  if(y.classList.contains('show')){y.classList.remove('show');clearTimeout(UI_T);}
-  else showUI();
 }
 function dur(){var d=VIDEO&&VIDEO.duration;return (d&&isFinite(d))?d:0;}
 function setProg(pct){var f=g('yt-fill'),k=g('yt-knob');if(!f)return;f.style.width=pct+'%';k.style.left=pct+'%';}
@@ -294,7 +290,7 @@ function updateTime(){
 }
 function fmt(s){s=Math.floor(s||0);if(!isFinite(s))s=0;var h=Math.floor(s/3600),m=Math.floor((s%3600)/60),r=s%60;if(h)return h+':'+(m<10?'0':'')+m+':'+(r<10?'0':'')+r;return m+':'+(r<10?'0':'')+r;}
 function bindProgress(){
-  var pb=g('yt-pb'),tip=g('yt-tip');
+  var pb=g('yt-pb'),tip=g('yt-tip');if(!pb||!tip)return;
   function pos(e){var r=pb.getBoundingClientRect();return Math.max(0,Math.min(1,(e.clientX-r.left)/r.width));}
   function showTip(p){
     var w=pb.getBoundingClientRect().width;
@@ -334,7 +330,7 @@ function qualityLabel(){
   if(QSEL===-1){var l=HLS.levels[HLS.currentLevel];return 'Auto'+(l&&l.height?' ('+l.height+'p)':'');}
   var l2=HLS.levels[QSEL];return l2&&l2.height?l2.height+'p':'L'+QSEL;
 }
-function openMenu(view){MENU_VIEW=view;renderMenu();g('yt-menu').classList.add('open');showUI();}
+function openMenu(view){MENU_VIEW=view;renderMenu();var m=g('yt-menu');if(m)m.classList.add('open');showUI();}
 function closeMenu(){MENU_VIEW=null;var m=g('yt-menu');if(m)m.classList.remove('open');showUI();}
 function renderMenu(){
   var m=g('yt-menu');if(!m)return;
@@ -369,7 +365,8 @@ window.onQualityChange=function(v){setQuality(v);};
 window.setSpeed=function(v){CUR_SPEED=parseFloat(v)||1;if(VIDEO&&!HOLDING)VIDEO.playbackRate=CUR_SPEED;};
 
 function bindGestures(){
-  var gl=g('yt-gl'),down=false,holding=false,moved=false,sx=0,sy=0;
+  var gl=g('yt-gl');if(!gl)return;
+  var down=false,holding=false,moved=false,sx=0,sy=0;
   var isTouch=false;
   function sideOf(e){var r=gl.getBoundingClientRect();var x=(e.clientX-r.left)/r.width;return x<0.35?'l':(x>0.65?'r':'c');}
   gl.addEventListener('contextmenu',function(e){e.preventDefault();});
@@ -433,12 +430,8 @@ function singleTap(isTouch){
   if(isTouch){
     var y=g('yt');
     if(!y)return;
-    if(!y.classList.contains('show')){
-      showUI();
-    }else{
-      clearTimeout(UI_T);
-      if(VIDEO&&!VIDEO.paused)UI_T=setTimeout(hideUI,3200);
-    }
+    if(!y.classList.contains('show')){showUI();}
+    else{clearTimeout(UI_T);if(VIDEO&&!VIDEO.paused)UI_T=setTimeout(hideUI,3200);}
     return;
   }
   window.togglePlay();
@@ -517,17 +510,43 @@ var AS = { state:null, titleId:null, unitId:null, submissionId:null,
            answers:{}, order:[], blockMap:{}, curIdx:0, total:0, submitted:false };
 
 function asWidgetHtml(widgets){
-  if(!widgets)return '';
-  var parts=[];
-  for(var i=0;i<widgets.length;i++){
-    var w=widgets[i];
-    if(!w)continue;
-    if(w.type==='text'&&w.properties&&w.properties.html){parts.push(w.properties.html);}
-    else if(w.type==='spacer'){parts.push('<div style="height:'+((w.properties&&w.properties.height)||12)+'px"></div>');}
-    else if(w.type==='image'&&w.properties&&w.properties.url){parts.push('<img src="'+esc(w.properties.url)+'" style="max-width:100%;border-radius:8px">');}
-    else if(w.type==='button'&&w.properties&&w.properties.buttonLabel){parts.push('<span>'+w.properties.buttonLabel+'</span>');}
+  try{
+    if(!widgets||!widgets.length)return '';
+    var parts=[];
+    for(var i=0;i<widgets.length;i++){
+      var w=widgets[i];
+      if(!w)continue;
+      if(w.type==='text'&&w.properties&&w.properties.html){parts.push(w.properties.html);}
+      else if(w.type==='spacer'){parts.push('<div style="height:'+((w.properties&&w.properties.height)||12)+'px"></div>');}
+      else if(w.type==='image'&&w.properties){var u=w.properties.url||w.properties.src;if(u){parts.push('<img src="'+esc(u)+'" style="max-width:100%;border-radius:8px">');}}
+      else if(w.type==='button'&&w.properties&&w.properties.buttonLabel){parts.push('<span>'+w.properties.buttonLabel+'</span>');}
+      else if(w.type==='html'&&w.properties&&w.properties.html){parts.push(w.properties.html);}
+    }
+    return parts.join('');
+  }catch(e){
+    console.error('asWidgetHtml error',e);
+    return '';
   }
-  return parts.join('');
+}
+
+function extractBlockHtml(block){
+  if(!block)return '(empty block)';
+  var bd=block.blockData||block.data||{};
+  var desc=bd.description||{};
+  var widgets=desc.widgets||[];
+  var html=asWidgetHtml(widgets);
+  if(!html && desc.text){html=esc(desc.text).replace(/\n/g,'<br>');}
+  if(!html){html='<em style="color:#7c8697">(no text in this block)</em>';}
+  return html;
+}
+
+function extractOptionHtml(option){
+  if(!option)return '';
+  var d=option.description||{};
+  var widgets=d.widgets||[];
+  var html=asWidgetHtml(widgets);
+  if(!html && d.text){html=esc(d.text);}
+  return html || esc(option.id||'');
 }
 
 function playAssessment(titleId,unitId,info){
@@ -538,109 +557,122 @@ function playAssessment(titleId,unitId,info){
   fetch('/api/assessment/'+encodeURIComponent(titleId)+'/'+encodeURIComponent(unitId))
     .then(function(r){return r.json();})
     .then(function(j){
-      if(j.error){g('player-wrap').innerHTML='<div class="as-err">'+esc(j.error)+'</div>';setStatus('error','status err');return;}
-      AS.state=j;
-      var a=j.assessment||{};
-      var sub=j.latestSubmission||{};
-      AS.submissionId=sub.id||null;
-      var pre=(sub.answers||[]);
-      for(var i=0;i<pre.length;i++){
-        var e=pre[i];
-        var id=e.answer&&e.answer.id;
-        if(id)AS.answers[e.blockId]=id;
-      }
-      var secs=a.sections||[];
-      for(var si=0;si<secs.length;si++){
-        var blocks=secs[si].blocks||[];
-        for(var bi=0;bi<blocks.length;bi++){
-          var b=blocks[bi];
-          AS.blockMap[b.id]=b;
-          AS.order.push(b.id);
+      try{
+        if(j.error){g('player-wrap').innerHTML='<div class="as-err">'+esc(j.error)+'</div>';setStatus('error','status err');return;}
+        AS.state=j;
+        var a=j.assessment||{};
+        var sub=j.latestSubmission||{};
+        AS.submissionId=sub.id||null;
+        var pre=(sub.answers||[]);
+        for(var i=0;i<pre.length;i++){
+          var e=pre[i];
+          var id=e.answer&&e.answer.id;
+          if(id)AS.answers[e.blockId]=id;
         }
+        var secs=a.sections||[];
+        for(var si=0;si<secs.length;si++){
+          var blocks=secs[si].blocks||[];
+          for(var bi=0;bi<blocks.length;bi++){
+            var b=blocks[bi];
+            AS.blockMap[b.id]=b;
+            AS.order.push(b.id);
+          }
+        }
+        AS.total=AS.order.length;
+        if(sub.status==='submitted'){AS.submitted=true;renderAssessmentReview();}
+        else{renderAssessment();}
+      }catch(err){
+        console.error('playAssessment parse error',err);
+        g('player-wrap').innerHTML='<div class="as-err">parse error: '+esc(err.message||err)+'</div>';
       }
-      AS.total=AS.order.length;
-      if(sub.status==='submitted'){AS.submitted=true;renderAssessmentReview();}
-      else{renderAssessment();}
     })
-    .catch(function(e){g('player-wrap').innerHTML='<div class="as-err">'+esc(e.message||e)+'</div>';});
+    .catch(function(e){
+      console.error('playAssessment fetch error',e);
+      g('player-wrap').innerHTML='<div class="as-err">'+esc(e.message||e)+'</div>';
+    });
 }
 
 function asAnsweredCount(){var n=0;for(var k in AS.answers)if(AS.answers[k])n++;return n;}
 
 function renderAssessment(){
-  var a=AS.state.assessment||{};
-  var title=a.title||'Assessment';
-  var curIdx=AS.curIdx;
-  var blockId=AS.order[curIdx];
-  var block=AS.blockMap[blockId];
-  if(!block){renderAssessmentReview();return;}
-  var bd=block.blockData||{};
-  var qHtml=asWidgetHtml(bd.description&&bd.description.widgets);
-  var opts=bd.options||[];
-  var optsHtml='';
-  var curAns=AS.answers[blockId];
-  for(var i=0;i<opts.length;i++){
-    var o=opts[i];
-    var oHtml=asWidgetHtml(o.description&&o.description.widgets);
-    var sel=curAns===o.id?' sel':'';
-    optsHtml+='<div class="as-opt'+sel+'" data-opt="'+esc(o.id)+'"><div class="as-radio"></div><div class="as-opt-body">'+oHtml+'</div></div>';
-  }
-  if(bd.hasOptionOther){
-    var otherSel=curAns&&curAns.indexOf('other:')===0?' sel':'';
-    optsHtml+='<div class="as-opt'+otherSel+'" data-opt="other"><div class="as-radio"></div><div class="as-opt-body"><span>Other</span><input type="text" placeholder="your answer…" id="as-other-input" value="'+(otherSel?esc(curAns.slice(6)):'')+'"></div></div>';
-  }
-  var answered=asAnsweredCount();
-  var pct=AS.total?Math.round(answered/AS.total*100):0;
-  var html=
-    '<div class="as-wrap"><div class="as-inner">'+
-      '<div class="as-head">'+
-        '<div><h1>'+esc(title)+'</h1>'+
-          '<div class="as-sub">Question '+(curIdx+1)+' of '+AS.total+' · '+answered+' answered</div>'+
-          '<div class="as-progress"><div style="width:'+pct+'%"></div></div>'+
+  try{
+    var a=AS.state.assessment||{};
+    var title=a.title||'Assessment';
+    var curIdx=AS.curIdx;
+    var blockId=AS.order[curIdx];
+    var block=AS.blockMap[blockId];
+    if(!block){renderAssessmentReview();return;}
+    var bd=block.blockData||block.data||{};
+    var qHtml=extractBlockHtml(block);
+    var opts=bd.options||[];
+    var optsHtml='';
+    var curAns=AS.answers[blockId];
+    for(var i=0;i<opts.length;i++){
+      var o=opts[i];
+      var oHtml=extractOptionHtml(o);
+      var sel=curAns===o.id?' sel':'';
+      optsHtml+='<div class="as-opt'+sel+'" data-opt="'+esc(o.id)+'"><div class="as-radio"></div><div class="as-opt-body">'+oHtml+'</div></div>';
+    }
+    if(bd.hasOptionOther){
+      var otherSel=curAns&&curAns.indexOf('other:')===0?' sel':'';
+      optsHtml+='<div class="as-opt'+otherSel+'" data-opt="other"><div class="as-radio"></div><div class="as-opt-body"><span>Other</span><input type="text" placeholder="your answer…" id="as-other-input" value="'+(otherSel?esc(curAns.slice(6)):'')+'"></div></div>';
+    }
+    var answered=asAnsweredCount();
+    var pct=AS.total?Math.round(answered/AS.total*100):0;
+    var html=
+      '<div class="as-wrap"><div class="as-inner">'+
+        '<div class="as-head">'+
+          '<div style="flex:1;min-width:0"><h1>'+esc(title)+'</h1>'+
+            '<div class="as-sub">Question '+(curIdx+1)+' of '+AS.total+' · '+answered+' answered</div>'+
+            '<div class="as-progress"><div style="width:'+pct+'%"></div></div>'+
+          '</div>'+
         '</div>'+
-      '</div>'+
-      '<div class="as-q">'+
-        '<div class="as-q-num">Question '+(curIdx+1)+' / '+AS.total+'</div>'+
-        '<div class="as-q-text">'+qHtml+'</div>'+
-        '<div class="as-opts">'+optsHtml+'</div>'+
-      '</div>'+
-      '<div class="as-actions">'+
-        '<button class="as-btn" id="as-prev" '+(curIdx===0?'disabled':'')+'>← Prev</button>'+
-        '<div style="display:flex;gap:10px">'+
-          '<button class="as-btn primary" id="as-save">Save</button>'+
-          (curIdx<AS.total-1
-            ? '<button class="as-btn primary" id="as-next">Next →</button>'
-            : '<button class="as-btn danger" id="as-submit">Submit</button>')+
+        '<div class="as-q">'+
+          '<div class="as-q-num">Question '+(curIdx+1)+' / '+AS.total+'</div>'+
+          '<div class="as-q-text">'+qHtml+'</div>'+
+          '<div class="as-opts">'+optsHtml+'</div>'+
         '</div>'+
-      '</div>'+
-    '</div></div>';
-  g('player-wrap').innerHTML=html;
-  setStatus('assessment · Q'+(curIdx+1),'status ok');
-  var optEls=g('player-wrap').querySelectorAll('.as-opt');
-  for(var k=0;k<optEls.length;k++){
-    (function(el){
-      el.addEventListener('click',function(e){
-        if(e.target&&e.target.tagName==='INPUT')return;
-        var val=el.dataset.opt;
-        if(val==='other'){
-          var inp=g('as-other-input');
-          AS.answers[blockId]='other:'+(inp?inp.value:'');
-        }else{
-          AS.answers[blockId]=val;
-        }
-        renderAssessment();
-      });
-    })(optEls[k]);
+        '<div class="as-actions">'+
+          '<button class="as-btn" id="as-prev" '+(curIdx===0?'disabled':'')+'>← Prev</button>'+
+          '<div style="display:flex;gap:10px">'+
+            '<button class="as-btn primary" id="as-save">Save</button>'+
+            (curIdx<AS.total-1
+              ? '<button class="as-btn primary" id="as-next">Next →</button>'
+              : '<button class="as-btn danger" id="as-submit">Submit</button>')+
+          '</div>'+
+        '</div>'+
+      '</div></div>';
+    g('player-wrap').innerHTML=html;
+    setStatus('assessment · Q'+(curIdx+1),'status ok');
+    var optEls=g('player-wrap').querySelectorAll('.as-opt');
+    for(var k=0;k<optEls.length;k++){
+      (function(el){
+        el.addEventListener('click',function(e){
+          if(e.target&&e.target.tagName==='INPUT')return;
+          var val=el.dataset.opt;
+          if(val==='other'){
+            var inp=g('as-other-input');
+            AS.answers[blockId]='other:'+(inp?inp.value:'');
+          }else{
+            AS.answers[blockId]=val;
+          }
+          renderAssessment();
+        });
+      })(optEls[k]);
+    }
+    var oi=g('as-other-input');
+    if(oi){
+      oi.addEventListener('input',function(){AS.answers[blockId]='other:'+this.value;});
+      oi.addEventListener('click',function(e){e.stopPropagation();});
+    }
+    on('as-prev',function(){AS.curIdx=Math.max(0,AS.curIdx-1);renderAssessment();});
+    var nx=g('as-next');if(nx)nx.addEventListener('click',function(){autosave();AS.curIdx=Math.min(AS.total-1,AS.curIdx+1);renderAssessment();});
+    var sv=g('as-save');if(sv)sv.addEventListener('click',function(){autosave();});
+    var sb=g('as-submit');if(sb)sb.addEventListener('click',submitAssessment);
+  }catch(e){
+    console.error('renderAssessment error',e);
+    g('player-wrap').innerHTML='<div class="as-err">render error: '+esc(e.message||e)+'</div>';
   }
-  var oi=g('as-other-input');
-  if(oi){
-    oi.addEventListener('input',function(){AS.answers[blockId]='other:'+this.value;});
-    oi.addEventListener('click',function(e){e.stopPropagation();});
-  }
-  on('as-prev',function(){AS.curIdx=Math.max(0,AS.curIdx-1);renderAssessment();});
-  var nx=g('as-next');if(nx)nx.addEventListener('click',function(){autosave();AS.curIdx=Math.min(AS.total-1,AS.curIdx+1);renderAssessment();});
-  var sv=g('as-save');if(sv)sv.addEventListener('click',function(){autosave();});
-  var sb=g('as-submit');if(sb)sb.addEventListener('click',submitAssessment);
 }
 
 function asAnswersArray(){
@@ -692,68 +724,64 @@ function submitAssessment(){
 }
 
 function renderAssessmentReview(){
-  var a=AS.state.assessment||{};
-  var sub=AS.state.latestSubmission||{};
-  var feedback=AS.state.feedback||[];
-  var title=a.title||'Assessment';
-  var grades={};
-  var correctCount=0, gradedCount=0;
-  var subAnswers=sub.answers||[];
-  for(var i=0;i<subAnswers.length;i++){
-    var e=subAnswers[i];
-    grades[e.blockId]=e;
-    if(e.graded){gradedCount++; if(e.correct)correctCount++;}
-  }
-  var fbMap={};
-  for(var fi=0;fi<feedback.length;fi++){
-    var fsec=feedback[fi];
-    var fblocks=fsec.blocks||[];
-    for(var fbi=0;fbi<fblocks.length;fbi++){
-      var fb=fblocks[fbi];
-      fbMap[fb.id]=fb;
+  try{
+    var a=AS.state.assessment||{};
+    var sub=AS.state.latestSubmission||{};
+    var feedback=AS.state.feedback||[];
+    var title=a.title||'Assessment';
+    var grades={};
+    var correctCount=0, gradedCount=0;
+    var subAnswers=sub.answers||[];
+    for(var i=0;i<subAnswers.length;i++){
+      var e=subAnswers[i];
+      grades[e.blockId]=e;
+      if(e.graded){gradedCount++; if(e.correct)correctCount++;}
     }
-  }
-  var html='<div class="as-wrap"><div class="as-inner">';
-  html+='<div class="as-head"><div><h1>'+esc(title)+'</h1><div class="as-sub">✓ Submitted · reviewed</div></div></div>';
-  if(gradedCount>0){
-    var pct=Math.round(correctCount/gradedCount*100);
-    html+='<div class="as-score-card"><div class="num">'+correctCount+' / '+gradedCount+'</div><div class="lbl">'+pct+'% correct</div></div>';
-  }else{
-    html+='<div class="as-score-card"><div class="num">✓</div><div class="lbl">Submitted</div></div>';
-  }
-  for(var qi=0;qi<AS.order.length;qi++){
-    var bid=AS.order[qi];
-    var block=AS.blockMap[bid];
-    if(!block)continue;
-    var bd=block.blockData||{};
-    var qHtml=asWidgetHtml(bd.description&&bd.description.widgets);
-    var opts=bd.options||[];
-    var userAns=AS.answers[bid];
-    var grade=grades[bid];
-    var correctOptId=null;
-    if(grade&&grade.correctAnswer&&grade.correctAnswer.id)correctOptId=grade.correctAnswer.id;
-    var optsHtml='';
-    for(var oi=0;oi<opts.length;oi++){
-      var o=opts[oi];
-      var oHtml=asWidgetHtml(o.description&&o.description.widgets);
-      var cls='as-opt';
-      var tag='';
-      if(userAns===o.id){
-        if(grade&&grade.correct){cls+=' correct';tag='<span class="as-tag ok">✓ correct</span>';}
-        else if(grade&&!grade.correct){cls+=' wrong';tag='<span class="as-tag no">✗ wrong</span>';}
-      }else if(correctOptId&&o.id===correctOptId){
-        cls+=' correct';tag='<span class="as-tag ok">✓ answer</span>';
+    var html='<div class="as-wrap"><div class="as-inner">';
+    html+='<div class="as-head"><div style="flex:1;min-width:0"><h1>'+esc(title)+'</h1><div class="as-sub">✓ Submitted · reviewed</div></div></div>';
+    if(gradedCount>0){
+      var pct=Math.round(correctCount/gradedCount*100);
+      html+='<div class="as-score-card"><div class="num">'+correctCount+' / '+gradedCount+'</div><div class="lbl">'+pct+'% correct</div></div>';
+    }else{
+      html+='<div class="as-score-card"><div class="num">✓</div><div class="lbl">Submitted</div></div>';
+    }
+    for(var qi=0;qi<AS.order.length;qi++){
+      var bid=AS.order[qi];
+      var block=AS.blockMap[bid];
+      if(!block)continue;
+      var bd=block.blockData||block.data||{};
+      var qHtml=extractBlockHtml(block);
+      var opts=bd.options||[];
+      var userAns=AS.answers[bid];
+      var grade=grades[bid];
+      var correctOptId=null;
+      if(grade&&grade.correctAnswer&&grade.correctAnswer.id)correctOptId=grade.correctAnswer.id;
+      var optsHtml='';
+      for(var oi=0;oi<opts.length;oi++){
+        var o=opts[oi];
+        var oHtml=extractOptionHtml(o);
+        var cls='as-opt';
+        var tag='';
+        if(userAns===o.id){
+          if(grade&&grade.correct){cls+=' correct';tag='<span class="as-tag ok">✓ correct</span>';}
+          else if(grade&&!grade.correct){cls+=' wrong';tag='<span class="as-tag no">✗ wrong</span>';}
+        }else if(correctOptId&&o.id===correctOptId){
+          cls+=' correct';tag='<span class="as-tag ok">✓ answer</span>';
+        }
+        optsHtml+='<div class="'+cls+'"><div class="as-radio"></div><div class="as-opt-body">'+oHtml+'</div>'+tag+'</div>';
       }
-      optsHtml+='<div class="'+cls+'"><div class="as-radio"></div><div class="as-opt-body">'+oHtml+'</div>'+tag+'</div>';
+      html+='<div class="as-review"><div class="as-q-num">Question '+(qi+1)+' / '+AS.total+'</div><div class="as-q-text">'+qHtml+'</div><div class="as-opts">'+optsHtml+'</div></div>';
     }
-    html+='<div class="as-review"><div class="as-q-num">Question '+(qi+1)+' / '+AS.total+'</div><div class="as-q-text">'+qHtml+'</div><div class="as-opts">'+optsHtml+'</div></div>';
+    html+='<div class="as-actions"><button class="as-btn" id="as-back">← Back</button><button class="as-btn primary" id="as-retake">Retake</button></div>';
+    html+='</div></div>';
+    g('player-wrap').innerHTML=html;
+    setStatus('assessment · submitted','status ok');
+    on('as-back',function(){toggleSections();});
+    on('as-retake',function(){playAssessment(AS.titleId,AS.unitId);});
+  }catch(e){
+    console.error('renderAssessmentReview error',e);
+    g('player-wrap').innerHTML='<div class="as-err">review error: '+esc(e.message||e)+'</div>';
   }
-  html+='<div class="as-actions"><button class="as-btn" id="as-back">← Back</button><button class="as-btn primary" id="as-retake">Retake</button></div>';
-  html+='</div></div>';
-  g('player-wrap').innerHTML=html;
-  setStatus('assessment · submitted','status ok');
-  on('as-back',function(){toggleSections();});
-  on('as-retake',function(){playAssessment(AS.titleId,AS.unitId);});
 }
 /* ================= end assessment ================= */
 
@@ -775,8 +803,6 @@ window.togglePlay=function(){
   else VIDEO.pause();
 };
 window.toggleMute=function(){if(VIDEO){VIDEO.muted=!VIDEO.muted;if(!VIDEO.muted&&VIDEO.volume===0)VIDEO.volume=VOL||1;}};
-window.skip=function(n){if(VIDEO)VIDEO.currentTime+=n;};
-window.seekClick=function(e){if(!VIDEO)return;var r=e.currentTarget.getBoundingClientRect();VIDEO.currentTime=((e.clientX-r.left)/r.width)*(VIDEO.duration||0);};
 window.playNext=function(){if(CURRENT!=null&&CURRENT<FLAT.length-1)playUnit(CURRENT+1);};
 window.playPrev=function(){if(CURRENT!=null&&CURRENT>0)playUnit(CURRENT-1);};
 
