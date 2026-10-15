@@ -509,43 +509,49 @@ function attachAutoNext(){
 var AS = { state:null, titleId:null, unitId:null, submissionId:null,
            answers:{}, order:[], blockMap:{}, curIdx:0, total:0, submitted:false };
 
-function asWidgetHtml(widgets){
-  try{
-    if(!widgets||!widgets.length)return '';
-    var parts=[];
-    for(var i=0;i<widgets.length;i++){
-      var w=widgets[i];
-      if(!w)continue;
-      if(w.type==='text'&&w.properties&&w.properties.html){parts.push(w.properties.html);}
-      else if(w.type==='spacer'){parts.push('<div style="height:'+((w.properties&&w.properties.height)||12)+'px"></div>');}
-      else if(w.type==='image'&&w.properties){var u=w.properties.url||w.properties.src;if(u){parts.push('<img src="'+esc(u)+'" style="max-width:100%;border-radius:8px">');}}
-      else if(w.type==='button'&&w.properties&&w.properties.buttonLabel){parts.push('<span>'+w.properties.buttonLabel+'</span>');}
-      else if(w.type==='html'&&w.properties&&w.properties.html){parts.push(w.properties.html);}
-    }
-    return parts.join('');
-  }catch(e){
-    console.error('asWidgetHtml error',e);
-    return '';
+// bulletproof extractor — tries every known shape, logs nothing if it works
+function _asWidgetsToHtml(desc){
+  if(!desc)return '';
+  // desc could be {widgets:[...]} or a list directly or {html:...}
+  var widgets = desc.widgets;
+  if(!widgets && Array.isArray(desc)) widgets = desc;
+  if(!widgets) return desc.html || desc.text || '';
+  var parts=[];
+  for(var i=0;i<widgets.length;i++){
+    var w=widgets[i];
+    if(!w)continue;
+    if(typeof w==='string'){parts.push(w);continue;}
+    var t=w.type||'';
+    var p=w.properties||{};
+    if(t==='text'&&p.html){parts.push(p.html);}
+    else if(t==='html'&&p.html){parts.push(p.html);}
+    else if(t==='spacer'){var hh=(p.height||12);parts.push('<div style="height:'+hh+'px"></div>');}
+    else if(t==='image'){var u=p.url||p.src;if(u)parts.push('<img src="'+esc(u)+'" style="max-width:100%;border-radius:8px">');}
+    else if(t==='button'&&p.buttonLabel){parts.push('<span>'+p.buttonLabel+'</span>');}
+    else if(p.html){parts.push(p.html);}
   }
+  return parts.join('');
+}
+
+function asWidgetHtml(widgets){
+  return _asWidgetsToHtml({widgets:widgets});
 }
 
 function extractBlockHtml(block){
   if(!block)return '(empty block)';
   var bd=block.blockData||block.data||{};
   var desc=bd.description||{};
-  var widgets=desc.widgets||[];
-  var html=asWidgetHtml(widgets);
-  if(!html && desc.text){html=esc(desc.text).replace(/\n/g,'<br>');}
-  if(!html){html='<em style="color:#7c8697">(no text in this block)</em>';}
+  var html=_asWidgetsToHtml(desc);
+  if(!html && typeof desc==='string') html=desc;
+  if(!html) html='<em style="color:#7c8697">(no text in this block)</em>';
   return html;
 }
 
 function extractOptionHtml(option){
   if(!option)return '';
   var d=option.description||{};
-  var widgets=d.widgets||[];
-  var html=asWidgetHtml(widgets);
-  if(!html && d.text){html=esc(d.text);}
+  var html=_asWidgetsToHtml(d);
+  if(!html && typeof d==='string') html=d;
   return html || esc(option.id||'');
 }
 
@@ -727,7 +733,6 @@ function renderAssessmentReview(){
   try{
     var a=AS.state.assessment||{};
     var sub=AS.state.latestSubmission||{};
-    var feedback=AS.state.feedback||[];
     var title=a.title||'Assessment';
     var grades={};
     var correctCount=0, gradedCount=0;
