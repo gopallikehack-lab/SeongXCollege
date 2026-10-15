@@ -9,6 +9,10 @@ TOKEN_TTL = 60 * 60 * 24 * 7
 ADMIN_TTL = 60 * 60 * 4
 BATCH_CACHE_TTL = 300
 
+SECRET_KEY = os.environ.get("SECRET_KEY", "seongera-study-change-me-in-prod")
+ENROLL_COOKIE = "se_enrolled"
+ENROLL_TTL = 60 * 60 * 24 * 365   # 1 year
+
 BRAND = "SeongEra_Study 📚✏"
 TG_LINK = "https://t.me/SeongEraStudy"
 TG_ADMIN = "https://t.me/Seong_Era"
