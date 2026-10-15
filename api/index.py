@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
 """
-SeongEra_Study — ApnaCollege multi-batch streaming player (Vercel + token-based)
+SeongEra_Study — ApnaCollege multi-batch streaming player
 Made By @Seong_Era · t.me/Seong_Era
-
-Accounts use pre-minted tokens instead of logins (Vercel IPs get CF-blocked).
-Tokens are stored in Redis and refreshed from the /admin panel every 7 days.
+Vercel + Supabase edition (token-based, no login from Vercel IPs).
 """
 
 import json
@@ -24,11 +22,7 @@ except ImportError:
     import requests as http
     HAVE_CFFI = False
 
-try:
-    import redis
-    HAVE_REDIS = True
-except ImportError:
-    HAVE_REDIS = False
+import requests as plain_requests
 
 
 BASE = "https://www.apnacollege.in"
@@ -41,95 +35,116 @@ BRAND = "SeongEra_Study 📚✏"
 TG_LINK = "https://t.me/Seong_Era"
 
 ADMIN_CODE = os.environ.get("ADMIN_CODE", "12345678")
+SUPABASE_URL = (os.environ.get("SUPABASE_URL") or "").rstrip("/")
+SUPABASE_KEY = os.environ.get("SUPABASE_KEY") or ""
 
 
-# ---------- storage ----------
-class Store:
+# ---------- Supabase storage ----------
+class SupabaseStore:
     def __init__(self):
-        self.r = None
-        if HAVE_REDIS:
-            redis_url = os.environ.get("REDIS_URL")
-            if redis_url:
-                try:
-                    self.r = redis.from_url(redis_url, decode_responses=True,
-                                            socket_timeout=5)
-                    self.r.ping()
-                except Exception:
-                    self.r = None
-        self._mem = {}
+        self.url = SUPABASE_URL
+        self.key = SUPABASE_KEY
+        self.enabled = bool(self.url and self.key)
+        self._mem_accounts = []
+        self._mem_cache = {}
 
-    def get(self, k):
-        if self.r:
-            try: return self.r.get(k)
-            except Exception: pass
-        return self._mem.get(k)
+    def _headers(self, prefer="return=minimal"):
+        return {
+            "apikey": self.key,
+            "Authorization": f"Bearer {self.key}",
+            "Content-Type": "application/json",
+            "Prefer": prefer,
+        }
 
-    def set(self, k, v, ex=None):
-        if self.r:
-            try:
-                self.r.set(k, v, ex=ex); return
-            except Exception: pass
-        self._mem[k] = v
-
-    def delete(self, k):
-        if self.r:
-            try: self.r.delete(k); return
-            except Exception: pass
-        self._mem.pop(k, None)
-
-
-STORE = Store()
-
-
-# ---------- accounts ----------
-def get_accounts():
-    raw = STORE.get("accounts")
-    if not raw:
-        return []
-    try:
-        return json.loads(raw)
-    except Exception:
+    # --- accounts ---
+    def get_accounts(self):
+        if not self.enabled:
+            return self._mem_accounts
+        try:
+            r = plain_requests.get(
+                f"{self.url}/rest/v1/accounts?select=*&order=added_at.desc",
+                headers=self._headers(), timeout=10)
+            if r.status_code == 200:
+                return r.json()
+        except Exception as e:
+            print(f"[!] supabase get_accounts: {e}")
         return []
 
+    def add_account(self, email, token, label=""):
+        if not self.enabled:
+            self._mem_accounts.append({
+                "email": email, "token": token, "label": label,
+                "added_at": time.time(), "token_updated_at": time.time(),
+            })
+            return True, "added"
+        try:
+            r = plain_requests.post(
+                f"{self.url}/rest/v1/accounts",
+                headers=self._headers(),
+                json={"email": email.lower(), "token": token, "label": label},
+                timeout=10)
+            if r.status_code in (200, 201):
+                return True, "added"
+            if r.status_code == 409 or "duplicate" in (r.text or "").lower():
+                return False, "account already exists"
+            return False, f"supabase error {r.status_code}: {r.text[:200]}"
+        except Exception as e:
+            return False, f"{type(e).__name__}: {e}"
 
-def save_accounts(accounts):
-    STORE.set("accounts", json.dumps(accounts))
-
-
-def add_account(email, token, label=""):
-    accounts = get_accounts()
-    for a in accounts:
-        if a.get("email", "").lower() == email.lower():
-            return False, "account already exists"
-    accounts.append({
-        "email": email, "token": token, "label": label or email.split("@")[0],
-        "added": time.time(), "token_updated": time.time(),
-    })
-    save_accounts(accounts)
-    return True, "added"
-
-
-def remove_account(email):
-    accounts = get_accounts()
-    new = [a for a in accounts if a.get("email","").lower() != email.lower()]
-    if len(new) == len(accounts):
-        return False
-    save_accounts(new)
-    return True
-
-
-def update_token(email, new_token):
-    accounts = get_accounts()
-    for a in accounts:
-        if a.get("email", "").lower() == email.lower():
-            a["token"] = new_token
-            a["token_updated"] = time.time()
-            save_accounts(accounts)
+    def remove_account(self, email):
+        if not self.enabled:
+            self._mem_accounts = [a for a in self._mem_accounts
+                                  if a.get("email","").lower() != email.lower()]
             return True
-    return False
+        try:
+            r = plain_requests.delete(
+                f"{self.url}/rest/v1/accounts?email=eq.{urllib.parse.quote(email.lower())}",
+                headers=self._headers(), timeout=10)
+            return r.status_code in (200, 204)
+        except Exception:
+            return False
+
+    # --- cache ---
+    def cache_get(self, key):
+        if not self.enabled:
+            v = self._mem_cache.get(key)
+            if v and v.get("expires_at", 0) > time.time():
+                return v["value"]
+            return None
+        try:
+            r = plain_requests.get(
+                f"{self.url}/rest/v1/cache?key=eq.{urllib.parse.quote(key)}&select=value,expires_at",
+                headers=self._headers(), timeout=10)
+            if r.status_code == 200:
+                rows = r.json()
+                if rows and rows[0].get("value"):
+                    return rows[0]["value"]
+        except Exception:
+            pass
+        return None
+
+    def cache_set(self, key, value, ttl=TOKEN_TTL):
+        if not self.enabled:
+            self._mem_cache[key] = {"value": value, "expires_at": time.time()+ttl}
+            return
+        try:
+            # upsert via PATCH-then-POST or use prefer merge
+            headers = self._headers(prefer="resolution=merge-duplicates")
+            plain_requests.post(
+                f"{self.url}/rest/v1/cache",
+                headers=headers,
+                json={"key": key, "value": value,
+                      "expires_at": time.strftime("%Y-%m-%dT%H:%M:%S+00:00",
+                                                  time.gmtime(time.time()+ttl))},
+                timeout=10)
+        except Exception:
+            pass
 
 
-# ---------- ApnaCollege session (token-based) ----------
+STORE = SupabaseStore()
+
+
+# ---------- ApnaCollege session ----------
 class ApnaSession:
     def __init__(self, email, token):
         self.email = email.lower()
@@ -181,10 +196,12 @@ class ApnaSession:
 
     def fetch_curriculum(self, titleId):
         cache_key = f"curric:{self.email}:{titleId}"
-        raw = STORE.get(cache_key)
-        if raw:
-            try: return json.loads(raw)
-            except Exception: pass
+        cached = STORE.cache_get(cache_key)
+        if cached:
+            try:
+                return json.loads(cached)
+            except Exception:
+                pass
         try:
             r = self.s.get(f"{BASE}/api/course/{titleId}?contents&path-player",
                            headers=self.h(f"{BASE}/path-player?courseid={titleId}"),
@@ -200,7 +217,7 @@ class ApnaSession:
                     "sections": d.get("course",{}).get("sections",{}),
                     "objects": d.get("course",{}).get("objects",{}),
                 }
-                STORE.set(cache_key, json.dumps(compact), ex=TOKEN_TTL)
+                STORE.cache_set(cache_key, json.dumps(compact), ttl=TOKEN_TTL)
             except Exception:
                 pass
             return d
@@ -291,7 +308,7 @@ class ApnaSession:
 
 
 def find_session_with_access(titleId):
-    for acct in get_accounts():
+    for acct in STORE.get_accounts():
         s = ApnaSession(acct["email"], acct.get("token",""))
         batches = s.fetch_batches()
         if any(b["titleId"] == titleId for b in batches):
@@ -305,7 +322,9 @@ app = Flask(__name__)
 
 def current_admin():
     tok = request.cookies.get(ADMIN_COOKIE)
-    return tok and STORE.get(f"admin:{tok}") == "1"
+    if not tok:
+        return False
+    return STORE.cache_get(f"admin:{tok}") == "1"
 
 
 def require_admin(f):
@@ -317,7 +336,7 @@ def require_admin(f):
     return wrap
 
 
-# ============ PAGES ============
+# ============ PAGES (inline) ============
 LOGIN_PAGE = """<!DOCTYPE html>
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Admin · SeongEra_Study</title>
@@ -329,8 +348,7 @@ h1{margin:0 0 6px;font-size:22px;text-align:center;background:linear-gradient(90
 label{display:block;font-size:11px;color:#7c8697;text-transform:uppercase;letter-spacing:.6px;margin:16px 0 6px;font-weight:600}
 input{width:100%;padding:13px 14px;background:#07090c;border:1px solid #1e2630;color:#e6e9ee;font:inherit;border-radius:10px;min-height:48px;font-size:15px;letter-spacing:3px;text-align:center;box-sizing:border-box}
 input:focus{outline:none;border-color:#5c8dff}
-button{margin-top:22px;width:100%;padding:15px;background:linear-gradient(90deg,#5c8dff,#7c5cff);color:#fff;border:0;border-radius:10px;font:inherit;font-weight:700;cursor:pointer;min-height:50px;font-size:15px;letter-spacing:.5px}
-button:hover{filter:brightness(1.1)}
+button{margin-top:22px;width:100%;padding:15px;background:linear-gradient(90deg,#5c8dff,#7c5cff);color:#fff;border:0;border-radius:10px;font:inherit;font-weight:700;cursor:pointer;min-height:50px;font-size:15px}
 .err{margin-top:16px;padding:12px 14px;background:rgba(255,92,92,.1);border:1px solid rgba(255,92,92,.3);border-radius:8px;color:#ff8b8b;font-size:12.5px}
 .foot{margin-top:22px;text-align:center;color:#7c8697;font-size:11px}
 </style></head><body>
@@ -365,7 +383,6 @@ input,textarea{width:100%;padding:12px 14px;background:#07090c;border:1px solid 
 textarea{font:12px monospace;min-height:80px}
 input:focus,textarea:focus{outline:none;border-color:#5c8dff}
 .btn-primary{margin-top:14px;padding:12px 22px;background:linear-gradient(90deg,#5c8dff,#7c5cff);color:#fff;border:0;border-radius:10px;font:inherit;font-weight:700;cursor:pointer;min-height:46px;font-size:14px}
-.btn-primary:hover{filter:brightness(1.1)}
 .row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px;background:#07090c;border:1px solid #1e2630;border-radius:10px;margin-bottom:10px;flex-wrap:wrap}
 .info{display:flex;flex-direction:column;gap:4px;min-width:0;flex:1}
 .em{color:#dfe6f0;font-weight:600;word-break:break-all;font-size:13px}
@@ -377,8 +394,8 @@ input:focus,textarea:focus{outline:none;border-color:#5c8dff}
 .token-bad{background:rgba(255,92,92,.1);color:#ff5c5c;border:1px solid rgba(255,92,92,.3)}
 .msg{margin-top:12px;padding:11px 14px;border-radius:8px;font-size:12.5px;display:none}
 .msg.show{display:block}
-.msg.ok{background:rgba(46,204,113,.1);color:#2ecc71;border:1px solid rgba(46,204,113,.3)}
-.msg.err{background:rgba(255,92,92,.1);color:#ff8b8b;border:1px solid rgba(255,92,92,.3)}
+.msg.ok{background:rgba(46,204,113,.1);color:#2ecc71}
+.msg.err{background:rgba(255,92,92,.1);color:#ff8b8b}
 .help{padding:14px;background:#07090c;border-radius:10px;font-size:12px;color:#7c8697;line-height:1.7;margin-top:12px}
 .help b{color:#5c8dff}
 .help code{background:#141a22;padding:2px 6px;border-radius:4px;color:#9fb8ff;font-size:11px}
@@ -407,7 +424,7 @@ input:focus,textarea:focus{outline:none;border-color:#5c8dff}
       <b>How to get the token:</b><br>
       1. Log in to <code>apnacollege.in</code><br>
       2. DevTools → Application → Cookies → <code>www.apnacollege.in</code><br>
-      3. Copy <code>lw_tokens</code>, extract the <code>access_token</code> value<br>
+      3. Copy <code>lw_tokens</code> → extract only the <code>access_token</code> value<br>
       4. Paste here. Valid <b>7 days</b>.
     </div>
   </div>
@@ -475,7 +492,7 @@ MAIN_PAGE = """<!DOCTYPE html>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>SeongEra_Study 📚✏</title>
 <style>
-:root{--bg:#07090c;--panel:#0e1218;--panel2:#141a22;--line:#1e2630;--txt:#e6e9ee;--muted:#7c8697;--accent:#5c8dff;--accent2:#7c5cff;--good:#2ecc71;--warn:#f6b73c;--red:#ff5c5c;--tap:44px}
+:root{--bg:#07090c;--panel:#0e1218;--panel2:#141a22;--line:#1e2630;--txt:#e6e9ee;--muted:#7c8697;--accent:#5c8dff;--accent2:#7c5cff;--good:#2ecc71;--warn:#f6b73c;--tap:44px}
 [data-theme="rose"]{--accent:#ff5c8d;--accent2:#c45cff;--bg:#0c070b;--panel:#160d13;--panel2:#221420}
 [data-theme="green"]{--accent:#2ecc71;--accent2:#13b6a3;--bg:#060d09;--panel:#0d1a12;--panel2:#152622}
 [data-theme="amber"]{--accent:#f6b73c;--accent2:#ff8a4c;--bg:#0d0a06;--panel:#1a140a;--panel2:#2a2010}
@@ -493,19 +510,16 @@ a{color:var(--accent);text-decoration:none}
 .tg-link{font-size:11px;color:var(--muted);display:inline-block;margin-top:3px}
 .site-actions{display:flex;gap:8px;align-items:center}
 .btn-nav{padding:9px 15px;background:var(--panel2);border:1px solid var(--line);color:var(--txt);border-radius:9px;font:inherit;font-weight:600;font-size:12.5px;cursor:pointer;min-height:38px;display:inline-flex;align-items:center}
-.btn-nav:hover{border-color:var(--accent);color:var(--accent)}
 .theme-btn{padding:8px 12px;background:var(--panel2);border:1px solid var(--line);border-radius:9px;cursor:pointer;font-size:16px;min-height:38px}
 .tabs{display:flex;gap:8px;padding:12px 18px;overflow-x:auto;background:rgba(10,14,20,.7);border-bottom:1px solid var(--line);flex-shrink:0;scrollbar-width:none}
 .tabs::-webkit-scrollbar{display:none}
 .tab{padding:10px 16px;background:transparent;border:1px solid var(--line);color:var(--muted);border-radius:10px;font:inherit;font-weight:600;font-size:12.5px;cursor:pointer;white-space:nowrap;flex-shrink:0;min-height:40px}
-.tab:hover{color:var(--txt);border-color:var(--accent)}
 .tab.active{color:#fff;background:linear-gradient(90deg,var(--accent),var(--accent2));border-color:transparent}
 .tab .badge{font-size:10.5px;background:rgba(0,0,0,.25);padding:2px 7px;border-radius:10px;font-weight:600;margin-left:6px}
 .body{flex:1;display:flex;overflow:hidden;min-height:0;position:relative}
 .sidebar{width:360px;min-width:360px;background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column;transition:transform .22s ease}
 .search{padding:12px 14px;border-bottom:1px solid var(--line);flex-shrink:0}
 .search input{width:100%;padding:12px 14px;background:var(--bg);border:1px solid var(--line);color:var(--txt);font:inherit;border-radius:10px;min-height:var(--tap);font-size:14px}
-.search input:focus{outline:none;border-color:var(--accent)}
 .toc{flex:1;overflow-y:auto;padding-bottom:40px}
 .sec{border-bottom:1px solid var(--line)}
 .sec-head{padding:14px 16px;cursor:pointer;display:flex;justify-content:space-between;gap:10px;align-items:center;font-weight:600;font-size:13px;color:#c8d0dd;min-height:var(--tap)}
@@ -514,8 +528,7 @@ a{color:var(--accent);text-decoration:none}
 .sec-head .t{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sec-head .cnt{color:var(--muted);font-size:11px;background:var(--panel2);padding:2px 8px;border-radius:10px}
 .copy-btn{background:transparent;border:1px solid var(--line);color:var(--muted);border-radius:6px;padding:5px 8px;font-size:11px;cursor:pointer;min-width:32px;min-height:32px;display:inline-flex;align-items:center;justify-content:center}
-.copy-btn:hover{border-color:var(--accent);color:var(--accent)}
-.copy-btn.copied{border-color:var(--good);color:var(--good);background:rgba(46,204,113,.08)}
+.copy-btn.copied{border-color:var(--good);color:var(--good)}
 .sec-body{display:none;background:rgba(0,0,0,.15)}
 .sec-body.open{display:block}
 .unit{padding:12px 16px 12px 26px;cursor:pointer;font-size:13px;color:#a8b3c2;border-left:3px solid transparent;display:flex;justify-content:space-between;gap:10px;align-items:center;min-height:var(--tap)}
@@ -525,8 +538,6 @@ a{color:var(--accent);text-decoration:none}
 .unit .u-left .t{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .unit .right{display:flex;gap:6px;align-items:center}
 .unit .type{padding:2px 8px;border-radius:8px;font-size:10px;background:var(--panel2);color:var(--muted);font-weight:600;text-transform:uppercase}
-.unit .type.ivideo{color:#7fd6a1;background:rgba(46,204,113,.1)}
-.unit .type.pdf{color:var(--warn);background:rgba(246,183,60,.1)}
 .main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
 .topbar{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:12px 18px;background:var(--panel);border-bottom:1px solid var(--line)}
 .topbar .title{font-size:14px;font-weight:600;color:#dfe6f0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -541,7 +552,6 @@ a{color:var(--accent);text-decoration:none}
 .controls{background:var(--panel);border-top:1px solid var(--line);padding:12px 16px;flex-shrink:0}
 .ctr-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .controls button{background:var(--panel2);border:1px solid var(--line);color:var(--txt);border-radius:9px;padding:8px;cursor:pointer;min-height:var(--tap);min-width:var(--tap);font-size:15px;display:inline-flex;align-items:center;justify-content:center}
-.controls button:hover{border-color:var(--accent);color:var(--accent)}
 .controls .time{font-size:12px;color:var(--muted);min-width:104px;text-align:center}
 .seekbar{flex:1;height:8px;background:var(--panel2);border-radius:4px;position:relative;cursor:pointer;min-width:100px}
 .seekbar .filled{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--accent),var(--accent2));width:0%}
@@ -549,8 +559,8 @@ a{color:var(--accent);text-decoration:none}
 .controls select{background:var(--panel2);border:1px solid var(--line);color:var(--txt);border-radius:9px;padding:8px 10px;font:inherit;font-size:13px;min-height:var(--tap)}
 .bottombar{padding:10px 18px;background:var(--panel);border-top:1px solid var(--line);flex-shrink:0;font-size:11.5px;color:var(--muted)}
 .status{padding:4px 11px;background:var(--panel2);border-radius:12px;color:var(--accent);border:1px solid rgba(92,141,255,.2);font-size:11.5px;font-weight:600}
-.status.ok{color:var(--good);border-color:rgba(46,204,113,.25);background:rgba(46,204,113,.06)}
-.status.err{color:#ff7a7a;border-color:rgba(255,92,92,.25);background:rgba(255,92,92,.06)}
+.status.ok{color:var(--good)}
+.status.err{color:#ff7a7a}
 .pdf-viewer{width:100%;height:100%;display:flex;flex-direction:column;background:#0a0a0a}
 .pdf-toolbar{padding:10px 16px;background:var(--panel2);border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}
 .pdf-toolbar .name{color:#dfe6f0;font-weight:600;font-size:13px;flex:1;min-width:120px}
@@ -560,15 +570,14 @@ a{color:var(--accent);text-decoration:none}
 .pdf-frame{flex:1;border:0;background:#fff}
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;z-index:999;padding:16px}
 .modal.open{display:flex}
-.modal .box{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:24px;max-width:600px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 24px 60px rgba(0,0,0,.6)}
+.modal .box{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:24px;max-width:600px;width:100%;max-height:90vh;overflow-y:auto}
 .modal h2{margin:0 0 6px;font-size:17px}
 .modal .sub{color:var(--muted);font-size:12px;margin-bottom:16px}
 .modal input{width:100%;padding:12px 14px;background:var(--bg);border:1px solid var(--line);color:var(--accent);font:12px monospace;border-radius:10px;margin-bottom:10px;box-sizing:border-box}
-.modal .variants{display:flex;flex-direction:column;gap:8px}
-.modal .variant{padding:12px 14px;background:var(--bg);border:1px solid var(--line);border-radius:10px}
+.modal .variant{padding:12px 14px;background:var(--bg);border:1px solid var(--line);border-radius:10px;margin-bottom:8px}
 .modal .variant .name{font-weight:600;font-size:13px}
 .modal .variant button{padding:10px 16px;background:var(--panel2);border:1px solid var(--line);color:var(--txt);border-radius:8px;cursor:pointer;font:inherit;font-size:12.5px;font-weight:600;min-height:40px}
-.modal .close{float:right;background:transparent;border:0;color:var(--muted);font-size:26px;cursor:pointer;padding:0 6px;line-height:1;min-width:44px;min-height:44px}
+.modal .close{float:right;background:transparent;border:0;color:var(--muted);font-size:26px;cursor:pointer;min-width:44px;min-height:44px}
 @media (max-width:900px){
   .sidebar{position:absolute;top:0;left:0;bottom:0;width:85vw;max-width:340px;z-index:15;transform:translateX(-100%);box-shadow:12px 0 40px rgba(0,0,0,.6)}
   .sidebar.open{transform:translateX(0)}
@@ -596,10 +605,7 @@ a{color:var(--accent);text-decoration:none}
       <div class="topbar">
         <button class="mobile-toggle btn-nav" onclick="toggleSidebar()">☰</button>
         <div class="title" id="unit-title">Welcome</div>
-        <div class="nav">
-          <button onclick="playPrev()">‹</button>
-          <button onclick="playNext()">›</button>
-        </div>
+        <div class="nav"><button onclick="playPrev()">‹</button><button onclick="playNext()">›</button></div>
       </div>
       <div class="player-wrap" id="player-wrap">
         <div class="player-empty">
@@ -611,40 +617,19 @@ a{color:var(--accent);text-decoration:none}
         <div class="ctr-row">
           <button id="btn-play" onclick="togglePlay()">▶</button>
           <span class="time" id="time">0:00 / 0:00</span>
-          <div class="seekbar" id="seek" onclick="seekClick(event)">
-            <div class="filled" id="seek-filled"></div>
-            <div class="knob" id="seek-knob"></div>
-          </div>
-          <button onclick="skip(-10)">⟲</button>
-          <button onclick="skip(10)">⟳</button>
-          <select id="speed" onchange="setSpeed(this.value)">
-            <option value="0.5">0.5×</option><option value="0.75">0.75×</option>
-            <option value="1" selected>1×</option><option value="1.25">1.25×</option>
-            <option value="1.5">1.5×</option><option value="2">2×</option>
-          </select>
+          <div class="seekbar" id="seek" onclick="seekClick(event)"><div class="filled" id="seek-filled"></div><div class="knob" id="seek-knob"></div></div>
+          <button onclick="skip(-10)">⟲</button><button onclick="skip(10)">⟳</button>
+          <select id="speed" onchange="setSpeed(this.value)"><option value="0.5">0.5×</option><option value="0.75">0.75×</option><option value="1" selected>1×</option><option value="1.25">1.25×</option><option value="1.5">1.5×</option><option value="2">2×</option></select>
           <select id="quality" onchange="onQualityChange(this.value)"><option value="auto">auto</option></select>
-          <button onclick="openDownload()">⬇</button>
-          <button onclick="openLink()">🔗</button>
-          <button onclick="toggleFS()">⛶</button>
+          <button onclick="openDownload()">⬇</button><button onclick="openLink()">🔗</button><button onclick="toggleFS()">⛶</button>
         </div>
       </div>
       <div class="bottombar"><span class="status" id="status">ready</span></div>
     </main>
   </div>
 </div>
-<div class="modal" id="modal-dl"><div class="box">
-  <button class="close" onclick="closeModal('modal-dl')">×</button>
-  <h2>Download</h2><div class="sub">Downloads directly to your device</div>
-  <div class="variants" id="dl-variants"></div>
-</div></div>
-<div class="modal" id="modal-link"><div class="box">
-  <button class="close" onclick="closeModal('modal-link')">×</button>
-  <h2>Direct m3u8 links</h2>
-  <div class="sub">Paste into VLC, mpv, yt-dlp</div>
-  <input id="link-master" readonly onclick="this.select()">
-  <button onclick="copyField('link-master',this)" style="padding:12px 18px;background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;border:0;border-radius:10px;font:inherit;font-weight:600;cursor:pointer;margin-bottom:16px;width:100%">copy master</button>
-  <div class="variants" id="link-variants"></div>
-</div></div>
+<div class="modal" id="modal-dl"><div class="box"><button class="close" onclick="closeModal('modal-dl')">×</button><h2>Download</h2><div class="sub">Downloads directly to your device</div><div class="variants" id="dl-variants"></div></div></div>
+<div class="modal" id="modal-link"><div class="box"><button class="close" onclick="closeModal('modal-link')">×</button><h2>Direct m3u8 links</h2><div class="sub">Paste into VLC, mpv, yt-dlp</div><input id="link-master" readonly onclick="this.select()"><button onclick="copyField('link-master',this)" style="padding:12px 18px;background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;border:0;border-radius:10px;font:inherit;font-weight:600;cursor:pointer;margin-bottom:16px;width:100%">copy master</button><div class="variants" id="link-variants"></div></div></div>
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1"></script>
 <script>
 let BATCHES=[],ACTIVE=null,FLAT=[],CURRENT=null,CURRENT_INFO=null,HLS=null,VIDEO=null,CURRENT_VARIANTS={};
@@ -653,86 +638,17 @@ let curTheme=localStorage.getItem("theme")||"default";
 document.documentElement.setAttribute("data-theme",curTheme);
 function cycleTheme(){let i=THEMES.indexOf(curTheme);i=(i+1)%THEMES.length;curTheme=THEMES[i];document.documentElement.setAttribute("data-theme",curTheme);localStorage.setItem("theme",curTheme);}
 function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
-async function loadAll(){
-  const r=await fetch('/api/batches');const j=await r.json();BATCHES=j.batches||[];renderTabs();
-  if(!BATCHES.length){document.getElementById('toc').innerHTML='<div style="padding:24px;color:var(--muted);text-align:center">No batches. Add tokens in /admin.</div>';return;}
-  selectBatch(BATCHES[0].titleId);
-}
+async function loadAll(){const r=await fetch('/api/batches');const j=await r.json();BATCHES=j.batches||[];renderTabs();if(!BATCHES.length){document.getElementById('toc').innerHTML='<div style="padding:24px;color:var(--muted);text-align:center">No batches. Add tokens in /admin.</div>';return;}selectBatch(BATCHES[0].titleId);}
 function renderTabs(){const tabs=document.getElementById('tabs');tabs.innerHTML='';for(const b of BATCHES){const t=document.createElement('button');t.className='tab'+(ACTIVE===b.titleId?' active':'');t.innerHTML=`${esc(b.label)}<span class="badge">${b.units||'…'}</span>`;t.onclick=()=>selectBatch(b.titleId);tabs.appendChild(t);}}
-async function selectBatch(titleId){
-  ACTIVE=titleId;renderTabs();document.getElementById('search').value='';
-  document.getElementById('toc').innerHTML='<div style="padding:24px;color:var(--muted)">loading…</div>';
-  const r=await fetch(`/api/sections/${titleId}`);const j=await r.json();
-  if(!j.sections){document.getElementById('toc').innerHTML=`<div style="padding:24px;color:#ff7a7a">${esc(j.error||'failed')}</div>`;return;}
-  window._sections=j.sections;renderTOC();
-}
-function renderTOC(){
-  const toc=document.getElementById('toc');toc.innerHTML='';FLAT=[];
-  const q=document.getElementById('search').value.toLowerCase();
-  for(const sec of (window._sections||[])){
-    const units=sec.units.filter(u=>!q||(u.title||'').toLowerCase().includes(q));
-    if(q&&units.length===0)continue;
-    const secDiv=document.createElement('div');secDiv.className='sec';
-    const head=document.createElement('div');head.className='sec-head'+(q?' open':'');
-    const st=esc(sec.title).replace(/'/g,"\\'");
-    head.innerHTML=`<div class="left"><span class="t">${esc(sec.title)}</span></div><span class="cnt">${sec.units.length}</span><button class="copy-btn" onclick="event.stopPropagation();copyTitle(this,'${st}')">📋</button>`;
-    head.onclick=()=>{head.classList.toggle('open');body.classList.toggle('open');};
-    const body=document.createElement('div');body.className='sec-body'+(q?' open':'');
-    for(const u of units){
-      const idx=FLAT.length;FLAT.push({unit:u,sectionTitle:sec.title});
-      const uDiv=document.createElement('div');uDiv.className='unit';uDiv.dataset.idx=idx;
-      const st2=esc(u.title||u.id).replace(/'/g,"\\'");
-      uDiv.innerHTML=`<div class="u-left"><span class="t">${esc(u.title||u.id)}</span></div><span class="right"><span class="type ${u.type}">${u.type}</span><button class="copy-btn" onclick="event.stopPropagation();copyTitle(this,'${st2}')">📋</button></span>`;
-      uDiv.onclick=()=>playUnit(idx);body.appendChild(uDiv);
-    }
-    secDiv.appendChild(head);secDiv.appendChild(body);toc.appendChild(secDiv);
-  }
-}
+async function selectBatch(titleId){ACTIVE=titleId;renderTabs();document.getElementById('search').value='';document.getElementById('toc').innerHTML='<div style="padding:24px;color:var(--muted)">loading…</div>';const r=await fetch(`/api/sections/${titleId}`);const j=await r.json();if(!j.sections){document.getElementById('toc').innerHTML=`<div style="padding:24px;color:#ff7a7a">${esc(j.error||'failed')}</div>`;return;}window._sections=j.sections;renderTOC();}
+function renderTOC(){const toc=document.getElementById('toc');toc.innerHTML='';FLAT=[];const q=document.getElementById('search').value.toLowerCase();for(const sec of (window._sections||[])){const units=sec.units.filter(u=>!q||(u.title||'').toLowerCase().includes(q));if(q&&units.length===0)continue;const secDiv=document.createElement('div');secDiv.className='sec';const head=document.createElement('div');head.className='sec-head'+(q?' open':'');const st=esc(sec.title).replace(/'/g,"\\'");head.innerHTML=`<div class="left"><span class="t">${esc(sec.title)}</span></div><span class="cnt">${sec.units.length}</span><button class="copy-btn" onclick="event.stopPropagation();copyTitle(this,'${st}')">📋</button>`;head.onclick=()=>{head.classList.toggle('open');body.classList.toggle('open');};const body=document.createElement('div');body.className='sec-body'+(q?' open':'');for(const u of units){const idx=FLAT.length;FLAT.push({unit:u,sectionTitle:sec.title});const uDiv=document.createElement('div');uDiv.className='unit';uDiv.dataset.idx=idx;const st2=esc(u.title||u.id).replace(/'/g,"\\'");uDiv.innerHTML=`<div class="u-left"><span class="t">${esc(u.title||u.id)}</span></div><span class="right"><span class="type ${u.type}">${u.type}</span><button class="copy-btn" onclick="event.stopPropagation();copyTitle(this,'${st2}')">📋</button></span>`;uDiv.onclick=()=>playUnit(idx);body.appendChild(uDiv);}secDiv.appendChild(head);secDiv.appendChild(body);toc.appendChild(secDiv);}}
 function copyTitle(btn,title){navigator.clipboard.writeText(title).then(()=>{const o=btn.textContent;btn.textContent='✓';btn.classList.add('copied');setTimeout(()=>{btn.textContent=o;btn.classList.remove('copied');},1000);});}
-async function playUnit(idx){
-  if(idx<0||idx>=FLAT.length)return;CURRENT=idx;
-  const item=FLAT[idx];const u=item.unit;
-  document.querySelectorAll('.unit.active').forEach(el=>el.classList.remove('active'));
-  const el=document.querySelector(`.unit[data-idx="${idx}"]`);
-  if(el){el.classList.add('active');el.scrollIntoView({block:'nearest',behavior:'smooth'});}
-  document.getElementById('unit-title').textContent=u.title;
-  document.getElementById('status').textContent='loading…';document.getElementById('status').className='status';
-  document.getElementById('controls').style.display='none';destroyPlayer();
-  const r=await fetch(`/api/video/${ACTIVE}/${u.id}`);const j=await r.json();CURRENT_INFO=j;
-  if(j.error){document.getElementById('player-wrap').innerHTML=`<div class="player-empty"><p>error: ${esc(j.error)}</p></div>`;document.getElementById('status').textContent='error';document.getElementById('status').className='status err';return;}
-  if(j.type==='wistia'&&j.sourceid)await playWistia(j.sourceid);
-  else if(j.type==='pdf')await playPdf(ACTIVE,u.id);
-  else document.getElementById('player-wrap').innerHTML=`<div class="player-empty"><p>unsupported: ${esc(j.type||'?')}</p></div>`;
-  if(window.innerWidth<=900)document.getElementById('sidebar').classList.remove('open');
-}
+async function playUnit(idx){if(idx<0||idx>=FLAT.length)return;CURRENT=idx;const item=FLAT[idx];const u=item.unit;document.querySelectorAll('.unit.active').forEach(el=>el.classList.remove('active'));const el=document.querySelector(`.unit[data-idx="${idx}"]`);if(el){el.classList.add('active');el.scrollIntoView({block:'nearest',behavior:'smooth'});}document.getElementById('unit-title').textContent=u.title;document.getElementById('status').textContent='loading…';document.getElementById('status').className='status';document.getElementById('controls').style.display='none';destroyPlayer();const r=await fetch(`/api/video/${ACTIVE}/${u.id}`);const j=await r.json();CURRENT_INFO=j;if(j.error){document.getElementById('player-wrap').innerHTML=`<div class="player-empty"><p>error: ${esc(j.error)}</p></div>`;document.getElementById('status').textContent='error';document.getElementById('status').className='status err';return;}if(j.type==='wistia'&&j.sourceid)await playWistia(j.sourceid);else if(j.type==='pdf')await playPdf(ACTIVE,u.id);else document.getElementById('player-wrap').innerHTML=`<div class="player-empty"><p>unsupported: ${esc(j.type||'?')}</p></div>`;if(window.innerWidth<=900)document.getElementById('sidebar').classList.remove('open');}
 function destroyPlayer(){if(HLS){try{HLS.destroy();}catch(e){}HLS=null;}if(VIDEO){try{VIDEO.pause();}catch(e){}VIDEO=null;}}
-async function playWistia(sourceid){
-  const master=`https://fast.wistia.com/embed/medias/${sourceid}.m3u8`;
-  document.getElementById('player-wrap').innerHTML='<video id="v" playsinline preload="metadata"></video>';
-  VIDEO=document.getElementById('v');document.getElementById('controls').style.display='block';
-  try{const r=await fetch(`/api/variants/${sourceid}`);const j=await r.json();CURRENT_VARIANTS=j.variants||{};}catch(e){CURRENT_VARIANTS={};}
-  if(window.Hls&&Hls.isSupported()){
-    HLS=new Hls({capLevelToPlayerSize:false,startLevel:-1,autoStartLoad:true,maxBufferLength:60});
-    HLS.loadSource(master);HLS.attachMedia(VIDEO);
-    HLS.on(Hls.Events.MANIFEST_PARSED,(e,data)=>{const sel=document.getElementById('quality');sel.innerHTML='<option value="auto">auto</option>';data.levels.forEach((lvl,i)=>{const o=document.createElement('option');o.value=i;o.textContent=lvl.height?`${lvl.height}p`:`L${i}`;sel.appendChild(o);});VIDEO.play().catch(()=>{});});
-    HLS.on(Hls.Events.LEVEL_SWITCHED,(e,data)=>{const lvl=HLS.levels[data.level];if(lvl){document.getElementById('status').textContent=`playing · ${lvl.height||'?'}p`;document.getElementById('status').className='status ok';}});
-  } else if(VIDEO.canPlayType('application/vnd.apple.mpegurl')){VIDEO.src=master;VIDEO.play().catch(()=>{});}
-  VIDEO.addEventListener('timeupdate',updateTime);VIDEO.addEventListener('loadedmetadata',updateTime);
-  VIDEO.addEventListener('play',()=>document.getElementById('btn-play').textContent='❚❚');
-  VIDEO.addEventListener('pause',()=>document.getElementById('btn-play').textContent='▶');
-  VIDEO.addEventListener('click',togglePlay);
-  document.getElementById('status').textContent='playing';
-}
-async function playPdf(titleId,unitId){
-  document.getElementById('player-wrap').innerHTML='<div class="player-empty">loading PDF…</div>';
-  let info;try{const r=await fetch(`/api/pdf/${titleId}/${unitId}`);info=await r.json();}catch(e){return;}
-  if(info.error){document.getElementById('player-wrap').innerHTML=`<div class="player-empty"><p>PDF error: ${esc(info.error)}</p></div>`;return;}
-  window._pdfInfo=info;
-  document.getElementById('player-wrap').innerHTML=`<div class="pdf-viewer"><div class="pdf-toolbar"><span class="name">📄 ${esc(info.display||info.filename)}</span><div class="pdf-actions"><a href="${esc(info.redirectUrl)}" download="${esc(info.filename)}" target="_blank" class="primary">⬇ download</a><button onclick="pdfCopyUrl(this)">🔗 copy url</button><button onclick="pdfNewTab()">↗ new tab</button></div></div><iframe class="pdf-frame" src="${esc(info.redirectUrl)}"></iframe></div>`;
-  document.getElementById('status').textContent='pdf';document.getElementById('status').className='status ok';
-}
+async function playWistia(sourceid){const master=`https://fast.wistia.com/embed/medias/${sourceid}.m3u8`;document.getElementById('player-wrap').innerHTML='<video id="v" playsinline preload="metadata"></video>';VIDEO=document.getElementById('v');document.getElementById('controls').style.display='block';try{const r=await fetch(`/api/variants/${sourceid}`);const j=await r.json();CURRENT_VARIANTS=j.variants||{};}catch(e){CURRENT_VARIANTS={};}if(window.Hls&&Hls.isSupported()){HLS=new Hls({capLevelToPlayerSize:false,startLevel:-1,autoStartLoad:true,maxBufferLength:60});HLS.loadSource(master);HLS.attachMedia(VIDEO);HLS.on(Hls.Events.MANIFEST_PARSED,(e,data)=>{const sel=document.getElementById('quality');sel.innerHTML='<option value="auto">auto</option>';data.levels.forEach((lvl,i)=>{const o=document.createElement('option');o.value=i;o.textContent=lvl.height?`${lvl.height}p`:`L${i}`;sel.appendChild(o);});VIDEO.play().catch(()=>{});});HLS.on(Hls.Events.LEVEL_SWITCHED,(e,data)=>{const lvl=HLS.levels[data.level];if(lvl){document.getElementById('status').textContent=`playing · ${lvl.height||'?'}p`;document.getElementById('status').className='status ok';}});}else if(VIDEO.canPlayType('application/vnd.apple.mpegurl')){VIDEO.src=master;VIDEO.play().catch(()=>{});}VIDEO.addEventListener('timeupdate',updateTime);VIDEO.addEventListener('loadedmetadata',updateTime);VIDEO.addEventListener('play',()=>document.getElementById('btn-play').textContent='❚❚');VIDEO.addEventListener('pause',()=>document.getElementById('btn-play').textContent='▶');VIDEO.addEventListener('click',togglePlay);document.getElementById('status').textContent='playing';}
+async function playPdf(titleId,unitId){document.getElementById('player-wrap').innerHTML='<div class="player-empty">loading PDF…</div>';let info;try{const r=await fetch(`/api/pdf/${titleId}/${unitId}`);info=await r.json();}catch(e){return;}if(info.error){document.getElementById('player-wrap').innerHTML=`<div class="player-empty"><p>PDF error: ${esc(info.error)}</p></div>`;return;}window._pdfInfo=info;document.getElementById('player-wrap').innerHTML=`<div class="pdf-viewer"><div class="pdf-toolbar"><span class="name">📄 ${esc(info.display||info.filename)}</span><div class="pdf-actions"><a href="${esc(info.redirectUrl)}" download="${esc(info.filename)}" target="_blank" class="primary">⬇ download</a><button onclick="pdfCopyUrl(this)">🔗 copy</button><button onclick="pdfNewTab()">↗ new tab</button></div></div><iframe class="pdf-frame" src="${esc(info.redirectUrl)}"></iframe></div>`;document.getElementById('status').textContent='pdf';document.getElementById('status').className='status ok';}
 function pdfNewTab(){if(window._pdfInfo&&window._pdfInfo.redirectUrl)window.open(window._pdfInfo.redirectUrl,'_blank');}
-async function pdfCopyUrl(btn){const item=FLAT[CURRENT];try{const r=await fetch(`/api/pdf/${ACTIVE}/${item.unit.id}`);const info=await r.json();if(info.redirectUrl){await navigator.clipboard.writeText(info.redirectUrl);const o=btn.textContent;btn.textContent='✓ copied';setTimeout(()=>btn.textContent=o,1200);}}catch(e){}}
+async function pdfCopyUrl(btn){const item=FLAT[CURRENT];try{const r=await fetch(`/api/pdf/${ACTIVE}/${item.unit.id}`);const info=await r.json();if(info.redirectUrl){await navigator.clipboard.writeText(info.redirectUrl);const o=btn.textContent;btn.textContent='✓';setTimeout(()=>btn.textContent=o,1200);}}catch(e){}}
 function updateTime(){if(!VIDEO)return;const cur=VIDEO.currentTime||0,dur=VIDEO.duration||0;document.getElementById('time').textContent=fmt(cur)+' / '+fmt(dur);const pct=dur?(cur/dur)*100:0;document.getElementById('seek-filled').style.width=pct+'%';document.getElementById('seek-knob').style.left=pct+'%';}
 function fmt(s){s=Math.floor(s||0);const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),r=s%60;return h?`${h}:${String(m).padStart(2,'0')}:${String(r).padStart(2,'0')}`:`${m}:${String(r).padStart(2,'0')}`;}
 function togglePlay(){if(VIDEO)VIDEO.paused?VIDEO.play():VIDEO.pause();}
@@ -744,55 +660,9 @@ function toggleFS(){const w=document.getElementById('player-wrap');if(!document.
 function playNext(){if(CURRENT!=null&&CURRENT<FLAT.length-1)playUnit(CURRENT+1);}
 function playPrev(){if(CURRENT!=null&&CURRENT>0)playUnit(CURRENT-1);}
 function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');}
-function openDownload(){
-  if(!CURRENT_INFO)return;
-  if(CURRENT_INFO.type==='pdf'){const a=document.querySelector('.pdf-actions a.primary');if(a)a.click();return;}
-  const box=document.getElementById('dl-variants');box.innerHTML='';
-  const items=Object.entries(CURRENT_VARIANTS).sort((a,b)=>parseInt(b[0])-parseInt(a[0]));
-  if(!items.length){box.innerHTML='<p style="color:var(--muted)">no variants</p>';document.getElementById('modal-dl').classList.add('open');return;}
-  const best=document.createElement('div');best.className='variant';best.style.borderColor='var(--accent)';
-  best.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><span class="name">Best available</span><button onclick="browserHlsDownload('${esc(items[0][1])}','${esc((CURRENT_INFO.title||'video').replace(/'/g,''))}','${esc(items[0][0])}')" style="background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;border-color:transparent">download</button></div>`;
-  box.appendChild(best);
-  for(const [q,url] of items){
-    const el=document.createElement('div');el.className='variant';
-    el.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><span class="name">${esc(q)}</span><button onclick="browserHlsDownload('${esc(url)}','${esc((CURRENT_INFO.title||'video').replace(/'/g,''))}','${esc(q)}')">download</button></div>`;
-    box.appendChild(el);
-  }
-  document.getElementById('modal-dl').classList.add('open');
-}
-async function browserHlsDownload(masterUrl,title,quality){
-  closeModal('modal-dl');
-  const status=document.getElementById('status');status.textContent='download starting…';
-  try{
-    const m=await fetch(masterUrl).then(r=>r.text());
-    const lines=m.split(/\r?\n/);const base=masterUrl.substring(0,masterUrl.lastIndexOf('/')+1);
-    const segs=[];
-    for(const line of lines){const t=line.trim();if(!t||t.startsWith('#'))continue;let abs=t;if(!t.startsWith('http')){abs=t.startsWith('/')?(new URL(masterUrl)).origin+t:base+t;}segs.push(abs);}
-    if(!segs.length)throw new Error('no segments');
-    const buffers=[];let done=0,cursor=0;
-    async function worker(){while(true){const i=cursor++;if(i>=segs.length)return;try{buffers[i]=await fetch(segs[i]).then(r=>r.arrayBuffer());}catch(e){buffers[i]=new Uint8Array(0);}done++;status.textContent=`fetching ${done}/${segs.length}`;}}
-    await Promise.all(Array.from({length:6},worker));
-    status.textContent='assembling…';
-    const total=buffers.reduce((a,b)=>a+b.byteLength,0);const out=new Uint8Array(total);let off=0;
-    for(const b of buffers){out.set(new Uint8Array(b),off);off+=b.byteLength;}
-    const blob=new Blob([out],{type:'video/mp2t'});const url=URL.createObjectURL(blob);
-    const a=document.createElement('a');a.href=url;a.download=`${title.replace(/[\\/:*?"<>|]/g,'_').slice(0,80)}_${quality}.ts`;
-    document.body.appendChild(a);a.click();document.body.removeChild(a);
-    setTimeout(()=>URL.revokeObjectURL(url),60000);
-    status.textContent='✓ downloaded';status.className='status ok';
-  }catch(e){status.textContent='error: '+e.message;status.className='status err';}
-}
-async function openLink(){
-  if(!CURRENT_INFO||!CURRENT_INFO.sourceid){alert('no video loaded');return;}
-  const master=`https://fast.wistia.com/embed/medias/${CURRENT_INFO.sourceid}.m3u8`;
-  document.getElementById('link-master').value=master;
-  const box=document.getElementById('link-variants');box.innerHTML='<p style="color:var(--muted);font-size:12px">loading…</p>';
-  if(!Object.keys(CURRENT_VARIANTS).length){try{const r=await fetch(`/api/variants/${CURRENT_INFO.sourceid}`);const j=await r.json();CURRENT_VARIANTS=j.variants||{};}catch(e){}}
-  const items=Object.entries(CURRENT_VARIANTS).sort((a,b)=>parseInt(b[0])-parseInt(a[0]));
-  if(!items.length){box.innerHTML='<p style="color:var(--muted);font-size:12px">no variants</p>';}
-  else{box.innerHTML='';for(const [q,url] of items){const el=document.createElement('div');el.className='variant';el.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px"><span class="name">${esc(q)}</span><button onclick="copyText('${esc(url)}',this)">copy</button></div><input value="${esc(url)}" readonly onclick="this.select()" style="font:11px monospace">`;box.appendChild(el);}}
-  document.getElementById('modal-link').classList.add('open');
-}
+function openDownload(){if(!CURRENT_INFO)return;if(CURRENT_INFO.type==='pdf'){const a=document.querySelector('.pdf-actions a.primary');if(a)a.click();return;}const box=document.getElementById('dl-variants');box.innerHTML='';const items=Object.entries(CURRENT_VARIANTS).sort((a,b)=>parseInt(b[0])-parseInt(a[0]));if(!items.length){box.innerHTML='<p style="color:var(--muted)">no variants</p>';document.getElementById('modal-dl').classList.add('open');return;}const best=document.createElement('div');best.className='variant';best.style.borderColor='var(--accent)';best.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><span class="name">Best available</span><button onclick="browserHlsDownload('${esc(items[0][1])}','${esc((CURRENT_INFO.title||'video').replace(/'/g,''))}','${esc(items[0][0])}')" style="background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;border-color:transparent">download</button></div>`;box.appendChild(best);for(const [q,url] of items){const el=document.createElement('div');el.className='variant';el.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><span class="name">${esc(q)}</span><button onclick="browserHlsDownload('${esc(url)}','${esc((CURRENT_INFO.title||'video').replace(/'/g,''))}','${esc(q)}')">download</button></div>`;box.appendChild(el);}document.getElementById('modal-dl').classList.add('open');}
+async function browserHlsDownload(masterUrl,title,quality){closeModal('modal-dl');const status=document.getElementById('status');status.textContent='download starting…';try{const m=await fetch(masterUrl).then(r=>r.text());const lines=m.split(/\r?\n/);const base=masterUrl.substring(0,masterUrl.lastIndexOf('/')+1);const segs=[];for(const line of lines){const t=line.trim();if(!t||t.startsWith('#'))continue;let abs=t;if(!t.startsWith('http')){abs=t.startsWith('/')?(new URL(masterUrl)).origin+t:base+t;}segs.push(abs);}if(!segs.length)throw new Error('no segments');const buffers=[];let done=0,cursor=0;async function worker(){while(true){const i=cursor++;if(i>=segs.length)return;try{buffers[i]=await fetch(segs[i]).then(r=>r.arrayBuffer());}catch(e){buffers[i]=new Uint8Array(0);}done++;status.textContent=`fetching ${done}/${segs.length}`;}}await Promise.all(Array.from({length:6},worker));status.textContent='assembling…';const total=buffers.reduce((a,b)=>a+b.byteLength,0);const out=new Uint8Array(total);let off=0;for(const b of buffers){out.set(new Uint8Array(b),off);off+=b.byteLength;}const blob=new Blob([out],{type:'video/mp2t'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`${title.replace(/[\\/:*?"<>|]/g,'_').slice(0,80)}_${quality}.ts`;document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(()=>URL.revokeObjectURL(url),60000);status.textContent='✓ downloaded';status.className='status ok';}catch(e){status.textContent='error: '+e.message;status.className='status err';}}
+async function openLink(){if(!CURRENT_INFO||!CURRENT_INFO.sourceid){alert('no video loaded');return;}const master=`https://fast.wistia.com/embed/medias/${CURRENT_INFO.sourceid}.m3u8`;document.getElementById('link-master').value=master;const box=document.getElementById('link-variants');box.innerHTML='<p style="color:var(--muted);font-size:12px">loading…</p>';if(!Object.keys(CURRENT_VARIANTS).length){try{const r=await fetch(`/api/variants/${CURRENT_INFO.sourceid}`);const j=await r.json();CURRENT_VARIANTS=j.variants||{};}catch(e){}}const items=Object.entries(CURRENT_VARIANTS).sort((a,b)=>parseInt(b[0])-parseInt(a[0]));if(!items.length){box.innerHTML='<p style="color:var(--muted);font-size:12px">no variants</p>';}else{box.innerHTML='';for(const [q,url] of items){const el=document.createElement('div');el.className='variant';el.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px"><span class="name">${esc(q)}</span><button onclick="copyText('${esc(url)}',this)">copy</button></div><input value="${esc(url)}" readonly onclick="this.select()" style="font:11px monospace">`;box.appendChild(el);}}document.getElementById('modal-link').classList.add('open');}
 function copyText(t,btn){navigator.clipboard.writeText(t).then(()=>{const o=btn.textContent;btn.textContent='✓';setTimeout(()=>btn.textContent=o,1200);}).catch(()=>{const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);const o=btn.textContent;btn.textContent='✓';setTimeout(()=>btn.textContent=o,1200);});}
 function closeModal(id){document.getElementById(id).classList.remove('open');}
 function copyField(id,btn){const el=document.getElementById(id);el.select();el.setSelectionRange(0,99999);navigator.clipboard.writeText(el.value).then(()=>{const o=btn.textContent;btn.textContent='copied!';setTimeout(()=>btn.textContent=o,1200);});}
@@ -819,7 +689,7 @@ def admin_route():
     if code != ADMIN_CODE:
         return render_template_string(LOGIN_PAGE, error="Invalid code")
     token = secrets.token_urlsafe(24)
-    STORE.set(f"admin:{token}", "1", ex=ADMIN_TTL)
+    STORE.cache_set(f"admin:{token}", "1", ttl=ADMIN_TTL)
     resp = make_response(redirect("/admin"))
     resp.set_cookie(ADMIN_COOKIE, token, httponly=True, samesite="Lax", max_age=ADMIN_TTL)
     return resp
@@ -829,7 +699,7 @@ def admin_route():
 def logout():
     tok = request.cookies.get(ADMIN_COOKIE)
     if tok:
-        STORE.delete(f"admin:{tok}")
+        STORE.cache_set(f"admin:{tok}", "0", ttl=10)
     resp = make_response(redirect("/"))
     resp.delete_cookie(ADMIN_COOKIE)
     return resp
@@ -838,7 +708,7 @@ def logout():
 @app.route("/api/batches")
 def api_batches():
     seen = {}
-    for acct in get_accounts():
+    for acct in STORE.get_accounts():
         s = ApnaSession(acct["email"], acct.get("token",""))
         for b in s.fetch_batches():
             tid = b["titleId"]
@@ -849,7 +719,7 @@ def api_batches():
 
 @app.route("/api/sections/<titleId>")
 def api_sections(titleId):
-    for acct in get_accounts():
+    for acct in STORE.get_accounts():
         s = ApnaSession(acct["email"], acct.get("token",""))
         if any(b["titleId"] == titleId for b in s.fetch_batches()):
             d = s.fetch_curriculum(titleId)
@@ -867,7 +737,7 @@ def api_sections(titleId):
 
 @app.route("/api/video/<titleId>/<unit_id>")
 def api_video(titleId, unit_id):
-    for acct in get_accounts():
+    for acct in STORE.get_accounts():
         s = ApnaSession(acct["email"], acct.get("token",""))
         if any(b["titleId"] == titleId for b in s.fetch_batches()):
             return jsonify(s.fetch_video(titleId, unit_id))
@@ -876,7 +746,7 @@ def api_video(titleId, unit_id):
 
 @app.route("/api/pdf/<titleId>/<unit_id>")
 def api_pdf(titleId, unit_id):
-    for acct in get_accounts():
+    for acct in STORE.get_accounts():
         s = ApnaSession(acct["email"], acct.get("token",""))
         if any(b["titleId"] == titleId for b in s.fetch_batches()):
             return jsonify(s.pdf_redirect(titleId, unit_id))
@@ -885,8 +755,9 @@ def api_pdf(titleId, unit_id):
 
 @app.route("/api/variants/<sourceid>")
 def api_variants(sourceid):
-    for acct in get_accounts():
-        s = ApnaSession(acct["email"], acct.get("token",""))
+    accts = STORE.get_accounts()
+    if accts:
+        s = ApnaSession(accts[0]["email"], accts[0].get("token",""))
         return jsonify(variants=s.wistia_variants(sourceid))
     return jsonify(variants={})
 
@@ -896,21 +767,23 @@ def api_variants(sourceid):
 def admin_accounts():
     if request.method == "GET":
         out = []
-        for a in get_accounts():
+        for a in STORE.get_accounts():
             e = a["email"]; u, _, d = e.partition("@")
             masked = (u[:2] + "*" * max(3, len(u)-4) + u[-2:]) + "@" + d if len(u)>4 else u[:1] + "*"*(len(u)-1) + "@" + d
             tok = a.get("token","") or ""
-            age = time.time() - a.get("token_updated", a.get("added", time.time()))
-            if age > 7*24*3600:
-                cls, txt = "token-bad", "expired"
-            elif age > 6*24*3600:
-                cls, txt = "token-warn", "expiring soon"
-            else:
-                cls, txt = "token-ok", f"valid · {int((7*24*3600-age)/3600)}h left"
+            try:
+                added_ts = time.mktime(time.strptime(a["added_at"][:19], "%Y-%m-%dT%H:%M:%S")) if isinstance(a.get("added_at"), str) else a.get("added_at", time.time())
+                updated_ts = time.mktime(time.strptime(a["token_updated_at"][:19], "%Y-%m-%dT%H:%M:%S")) if isinstance(a.get("token_updated_at"), str) else a.get("token_updated_at", time.time())
+            except Exception:
+                added_ts = updated_ts = time.time()
+            age = time.time() - updated_ts
+            if age > 7*24*3600: cls, txt = "token-bad", "expired"
+            elif age > 6*24*3600: cls, txt = "token-warn", "expiring soon"
+            else: cls, txt = "token-ok", f"valid · {int((7*24*3600-age)/3600)}h left"
             out.append({
                 "email": e, "display": masked, "label": a.get("label",""),
                 "token_prefix": tok[:16],
-                "added_ago": f"{int((time.time()-a.get('added',time.time()))/3600)}h ago",
+                "added_ago": f"{int((time.time()-added_ts)/3600)}h ago",
                 "status_class": cls, "status_text": txt,
             })
         return jsonify(accounts=out)
@@ -925,20 +798,20 @@ def admin_accounts():
         ok, detail = s.verify()
         if not ok:
             return jsonify(error=f"token invalid: {detail}")
-        ok2, msg = add_account(email, token, label)
+        ok2, msg = STORE.add_account(email, token, label)
         if not ok2:
             return jsonify(error=msg)
         return jsonify(ok=True)
     if request.method == "DELETE":
         b = request.get_json(silent=True) or {}
-        return jsonify(ok=remove_account(b.get("email","")))
+        return jsonify(ok=STORE.remove_account(b.get("email","")))
 
 
 @app.route("/api/admin/test")
 @require_admin
 def admin_test():
     results = []
-    for acct in get_accounts():
+    for acct in STORE.get_accounts():
         s = ApnaSession(acct["email"], acct.get("token",""))
         ok, detail = s.verify()
         results.append({"email": acct["email"], "ok": ok, "error": None if ok else detail})
@@ -949,35 +822,13 @@ def admin_test():
 def debug():
     return jsonify({
         "have_cffi": HAVE_CFFI,
-        "have_redis": HAVE_REDIS,
-        "redis_connected": STORE.r is not None,
+        "supabase_enabled": STORE.enabled,
+        "supabase_url_set": bool(SUPABASE_URL),
+        "supabase_key_set": bool(SUPABASE_KEY),
         "admin_code_set": bool(os.environ.get("ADMIN_CODE")),
-        "redis_url_set": bool(os.environ.get("REDIS_URL")),
-        "accounts_count": len(get_accounts()),
+        "accounts_count": len(STORE.get_accounts()),
         "python_version": __import__("sys").version.split()[0],
     })
-
-
-@app.route("/api/token_test")
-def token_test():
-    token = request.args.get("token")
-    if not token:
-        return jsonify(error="pass ?token=xxx")
-    s = ApnaSession("test@test.com", token)
-    info = {"token_prefix": token[:16]}
-    ok, detail = s.verify()
-    info["verify_ok"] = ok
-    info["verify_detail"] = detail
-    try:
-        r = s.s.get(f"{BASE}/api/course/sigma-7?contents&path-player",
-                    headers=s.h(f"{BASE}/path-player?courseid=sigma-7"),
-                    timeout=TIMEOUT)
-        info["curric_status"] = r.status_code
-        info["curric_size"] = len(r.text or "")
-        info["curric_has_sections"] = '"sections"' in (r.text or "")
-    except Exception as e:
-        info["curric_error"] = f"{type(e).__name__}: {e}"
-    return jsonify(info)
 
 
 if __name__ == "__main__":
