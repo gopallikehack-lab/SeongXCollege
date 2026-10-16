@@ -45,14 +45,12 @@ class ApnaSession:
             pass
 
     def h(self, referer=None):
-        self._prime()
         return {"Accept": "application/json", "Content-Type": "application/json",
                 "Origin": BASE, "Referer": referer or f"{BASE}/start",
                 "token": self.token or ""}
 
     def verify(self):
         try:
-            self._prime()
             r = self.s.get(f"{BASE}/api/user/me", headers=self.h(), timeout=TIMEOUT)
             if r.status_code != 200:
                 return False, f"status {r.status_code}"
@@ -63,8 +61,8 @@ class ApnaSession:
             return False, f"{type(e).__name__}"
 
     def fetch_image_map(self):
+        self._prime()
         try:
-            self._prime()
             r = self.s.get(f"{BASE}/start",
                 headers={
                     "Accept": "text/html,application/xhtml+xml",
@@ -90,6 +88,7 @@ class ApnaSession:
             return {}
 
     def fetch_batches(self):
+        self._prime()
         body = {
             "type": "course",
             "access": "public,private-enroll,soon,view-locked",
@@ -182,10 +181,10 @@ class ApnaSession:
         return (d.get("course") or {}).get("id") or d.get("id")
 
     def fetch_video(self, titleId, unit_id):
+        self._prime()
         cid = self.course_internal_id(titleId)
         if not cid:
             return {"error": "no course id"}
-        # check for assessmentV2 first
         a = self._assessment_meta(titleId, unit_id)
         if a:
             return a
@@ -246,7 +245,6 @@ class ApnaSession:
     # ---------- assessment ----------
 
     def fetch_assessment_state(self, title_id, unit_id, force_new=False):
-        """GET /state (auto-init if skeleton) or POST /init (if force_new)."""
         self._prime()
         ref = f"{BASE}/path-player?courseid={title_id}&unit={unit_id}Unit"
 
@@ -339,6 +337,7 @@ class ApnaSession:
         return (fname, disp) if fname else (None, None)
 
     def pdf_redirect(self, titleId, unit_id):
+        self._prime()
         fname, disp = self.get_pdf_filename(titleId, unit_id)
         if not fname:
             return {"error": "no pdf in curriculum"}
