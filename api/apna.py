@@ -28,23 +28,29 @@ class ApnaSession:
         self._primed = False
 
     def _prime(self):
-        """Hit /start once to pick up slim_session + _cfuvid, preserving lw_tokens."""
+        """Hit /start once (browser-style) to pick up slim_session + _cfuvid,
+        then restore the auth cookie if the server downgraded it."""
         if self._primed:
             return
         saved_lw = None
-        saved_slim = None
         try:
             for c in self.s.cookies.jar:
                 if c.name == "lw_tokens":
                     saved_lw = c.value
-                elif c.name == "slim_session":
-                    saved_slim = c.value
         except Exception:
             pass
         try:
             self.s.get(f"{BASE}/start",
                 headers={
-                    "Accept": "text/html,application/xhtml+xml",
+                    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+                    "Accept-Language": "en-US,en;q=0.9",
+                    "Cache-Control": "no-cache",
+                    "Pragma": "no-cache",
+                    "Sec-Fetch-Dest": "document",
+                    "Sec-Fetch-Mode": "navigate",
+                    "Sec-Fetch-Site": "same-origin",
+                    "Sec-Fetch-User": "?1",
+                    "Upgrade-Insecure-Requests": "1",
                     "Origin": BASE,
                     "Referer": f"{BASE}/start",
                     "token": self.token or "",
@@ -76,7 +82,6 @@ class ApnaSession:
             return False, f"{type(e).__name__}"
 
     def fetch_image_map(self):
-        """Hit /start and parse the SITE_AFFILIATES blob — no priming needed."""
         try:
             r = self.s.get(f"{BASE}/start",
                 headers={
@@ -103,7 +108,7 @@ class ApnaSession:
             return {}
 
     def fetch_batches(self):
-        """GET owned courses — no priming, uses lw_tokens directly."""
+        """GET owned courses — NO priming, uses lw_tokens directly."""
         body = {
             "type": "course",
             "access": "public,private-enroll,soon,view-locked",
@@ -116,9 +121,10 @@ class ApnaSession:
         try:
             r = self.s.post(f"{BASE}/api/learner/products", json=body,
                             headers=self.h(), timeout=TIMEOUT)
+            print(f"[batches] {self.email} status={r.status_code} len={len(r.text)} head={r.text[:200]!r}")
             d = r.json()
         except Exception as e:
-            print(f"[!] fetch_batches {self.email}: {type(e).__name__}")
+            print(f"[!] fetch_batches {self.email}: {type(e).__name__}: {e}")
             return []
 
         data = d.get("data") or []
@@ -165,9 +171,13 @@ class ApnaSession:
                 pass
         try:
             self._prime()
+            cookies_now = [c.name for c in self.s.cookies.jar]
+            has_lw = bool(self.s.cookies.get("lw_tokens"))
+            print(f"[curric] {titleId} prime done. cookies={cookies_now} has_lw_tokens={has_lw}")
             r = self.s.get(f"{BASE}/api/course/{titleId}?contents&path-player",
                            headers=self.h(f"{BASE}/path-player?courseid={titleId}"),
                            timeout=TIMEOUT)
+            print(f"[curric] {titleId} status={r.status_code} len={len(r.text)} head={r.text[:200]!r}")
             if r.status_code != 200:
                 return None
             d = r.json()
@@ -186,7 +196,8 @@ class ApnaSession:
             except Exception as _e:
                 print(f"[!] curriculum compact failed: {_e}")
             return d
-        except Exception:
+        except Exception as e:
+            print(f"[curric] {titleId} EXC {type(e).__name__}: {e}")
             return None
 
     def course_internal_id(self, titleId):
