@@ -5,10 +5,9 @@ CHATBOT_HTML = r"""
 <div id="sa-launcher" class="sa-launcher" title="SEONG AI">
   <img src="https://i.8upload.com/thumbnail/d252db6ffe117d55/6240190351691944107-120.jpg" alt="SEONG AI">
   <span class="sa-dot"></span>
-</div>
-
-<div id="sa-toast" class="sa-toast">
-  <div class="sa-toast-text">Heyy 👋 Can I help you?</div>
+  <div id="sa-toast" class="sa-toast">
+    <span class="sa-toast-text">Heyy👋I'm ✦ 𝑺𝒆𝒐𝒏𝒈 𝑨𝒊 ✦, can I help you?</span>
+  </div>
 </div>
 
 <div id="sa-panel" class="sa-panel">
@@ -53,13 +52,14 @@ CHATBOT_HTML = r"""
 .sa-launcher .sa-dot{position:absolute;left:3px;bottom:3px;width:15px;height:15px;border-radius:50%;background:#2ecc71;border:2px solid #0e1218;box-shadow:0 0 10px #2ecc71}
 @keyframes sa-pulse{0%,100%{box-shadow:0 16px 46px rgba(0,0,0,.6),0 0 0 0 rgba(92,141,255,.4)}50%{box-shadow:0 16px 46px rgba(0,0,0,.6),0 0 0 18px rgba(92,141,255,0)}}
 
-/* ===== greeting toast ===== */
-.sa-toast{position:fixed;left:110px;bottom:44px;z-index:8999;padding:11px 16px;background:linear-gradient(135deg,rgba(92,141,255,.18),rgba(124,92,255,.1));border:1px solid rgba(92,141,255,.35);border-radius:14px;color:var(--txt);font-size:13.5px;font-weight:600;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:0 14px 40px rgba(0,0,0,.55);opacity:0;transform:translateX(-10px) scale(.95);pointer-events:none;transition:opacity .35s cubic-bezier(.22,.9,.28,1),transform .35s cubic-bezier(.22,.9,.28,1);white-space:nowrap;max-width:calc(100vw - 140px);overflow:hidden;text-overflow:ellipsis}
-.sa-toast.show{opacity:1;transform:translateX(0) scale(1)}
-.sa-toast::after{content:"";position:absolute;left:-8px;bottom:14px;width:0;height:0;border:8px solid transparent;border-right-color:rgba(92,141,255,.35);border-left:0}
-.sa-toast-text{background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+/* ===== greeting toast (attached to launcher) ===== */
+.sa-toast{position:absolute;left:calc(100% + 14px);top:50%;transform:translateY(-50%) translateX(-8px) scale(.94);z-index:10;padding:11px 16px;background:linear-gradient(135deg,rgba(14,18,24,.95),rgba(20,26,34,.95));border:1px solid rgba(92,141,255,.45);border-radius:14px;color:var(--txt);font-size:13px;font-weight:600;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:0 14px 40px rgba(0,0,0,.6);opacity:0;pointer-events:none;transition:opacity .35s cubic-bezier(.22,.9,.28,1),transform .35s cubic-bezier(.22,.9,.28,1);white-space:nowrap;max-width:min(280px,70vw);overflow:hidden;text-overflow:ellipsis}
+.sa-toast.show{opacity:1;transform:translateY(-50%) translateX(0) scale(1)}
+.sa-toast::before{content:"";position:absolute;right:100%;top:50%;transform:translateY(-50%);width:0;height:0;border:9px solid transparent;border-right-color:rgba(92,141,255,.45);border-left:0}
+.sa-toast::after{content:"";position:absolute;right:calc(100% - 1px);top:50%;transform:translateY(-50%);width:0;height:0;border:8px solid transparent;border-right-color:rgba(14,18,24,.95);border-left:0}
+.sa-toast-text{background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;background-clip:text}
 @media (max-width:520px){
-  .sa-toast{left:96px;bottom:34px;font-size:12.5px;padding:10px 14px;max-width:calc(100vw - 120px)}
+  .sa-toast{font-size:12px;padding:10px 13px;max-width:min(220px,60vw);left:calc(100% + 10px)}
 }
 
 /* ===== panel ===== */
