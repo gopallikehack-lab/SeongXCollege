@@ -4,16 +4,46 @@ from flask import Blueprint, jsonify, render_template_string, request
 from ..apna import (
     ApnaSession, get_batches_cached, find_session_for,
 )
-from ..config import UPI_ID, QR_IMAGE
+from ..config import UPI_ID, QR_IMAGE, ADMIN_COOKIE
 from ..pages import MAIN_PAGE
+from ..pages.maintenance import MAINTENANCE_PAGE
+from ..pages.protection import PROTECTION_PAGE
+from ..protection import _verified
+from ..routes.maintenance import is_on as maint_on
 from ..store import STORE
 
 
 public_bp = Blueprint("public", __name__)
 
 
+def _is_admin():
+    tok = request.cookies.get(ADMIN_COOKIE)
+    if not tok:
+        return False
+    try:
+        return STORE.cache_get(f"admin:{tok}") == "1"
+    except Exception:
+        return False
+
+
 @public_bp.route("/")
 def index():
+    # 1. admin bypasses everything
+    if _is_admin():
+        html = (MAIN_PAGE
+                .replace("__UPI_ID__", UPI_ID)
+                .replace("__QR_IMAGE__", QR_IMAGE))
+        return render_template_string(html)
+
+    # 2. protection gate (Cloudflare Turnstile)
+    if not _verified():
+        return render_template_string(PROTECTION_PAGE)
+
+    # 3. maintenance mode
+    if maint_on():
+        return render_template_string(MAINTENANCE_PAGE)
+
+    # 4. real site
     html = (MAIN_PAGE
             .replace("__UPI_ID__", UPI_ID)
             .replace("__QR_IMAGE__", QR_IMAGE))
