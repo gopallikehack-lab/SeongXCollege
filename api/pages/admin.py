@@ -71,6 +71,20 @@ input:focus,textarea:focus{outline:none;border-color:#5c8dff}
     </div>
   </div>
   <div class="card">
+  <h2>Site Status</h2>
+  <div class="row" style="justify-content:space-between;align-items:center">
+    <div class="info">
+      <span class="em">Maintenance mode</span>
+      <span class="lb">When ON, everyone except admin sees a maintenance page.</span>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center">
+      <span id="maint-status" class="token-status token-ok">off</span>
+      <button class="btn" id="maint-toggle" onclick="toggleMaint()">Turn ON</button>
+    </div>
+  </div>
+  <div id="maint-msg" class="msg"></div>
+</div>
+  <div class="card">
     <h2>Accounts (<span id="count">0</span>)</h2>
     <div id="list"></div>
     <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap">
