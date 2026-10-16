@@ -136,6 +136,56 @@ class ApnaSession:
         except Exception:
             return None
 
+    def fetch_course_info(self, titleId):
+    """Compact info about a course — title, subtitle, poster, price, curriculum counts."""
+    try:
+        r = self.s.get(f"{BASE}/api/course/{titleId}",
+                       headers=self.h(f"{BASE}/path-player?courseid={titleId}"),
+                       timeout=TIMEOUT)
+        if r.status_code != 200:
+            return None
+        d = r.json()
+        c = d.get("course") or d
+        img = ""
+        ci = c.get("courseImage") or {}
+        if isinstance(ci, dict):
+            img = ci.get("url") or ci.get("uncompressedUrl") or ""
+        elif isinstance(ci, str):
+            img = ci
+
+        # curriculum counts — pull from sections/objects if present
+        sections = c.get("sections") or {}
+        objects = c.get("objects") or {}
+        sec_count = len(sections)
+        unit_count = 0
+        type_counts = {}
+        for sid, sec in sections.items():
+            for u in (sec.get("learningPath") or []):
+                unit_count += 1
+                t = (u.get("type") or "unknown").lower()
+                type_counts[t] = type_counts.get(t, 0) + 1
+        # fallback counts from objects map if sections empty
+        if not unit_count and objects:
+            unit_count = len(objects)
+            for u in objects.values():
+                t = (u.get("objectType") or "unknown").lower()
+                type_counts[t] = type_counts.get(t, 0) + 1
+
+        return {
+            "titleId": titleId,
+            "title": c.get("title") or titleId,
+            "subtitle": c.get("keywords") or "",
+            "image": img,
+            "price": c.get("price"),
+            "status": c.get("status"),
+            "sections": sec_count,
+            "units": unit_count,
+            "types": type_counts,
+        }
+    except Exception as e:
+        print(f"[!] course_info {titleId}: {type(e).__name__}: {e}")
+        return None
+        
     def course_internal_id(self, titleId):
         d = self.fetch_curriculum(titleId)
         if not d:
