@@ -4,66 +4,58 @@ PLAYER_JS = r"""
 (function(){
 'use strict';
 
-/* ===================== ICON SET (lucide-style inline svg) ===================== */
+/* ===== icon set (inline svg) ===== */
 var ICON_PATHS = {
-  // drawer / nav (from user-provided images)
-  menu:    '<line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>',
-  palette: '<circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/>',
-  book:    '<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>',
-  plus:    '<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',
-  heart:   '<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>',
-  code:    '<polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>',
-  message: '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
-  mail:    '<rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="22,6 12,13 2,6"/>',
-  // arrows / chevrons
+  menu:'<line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>',
+  palette:'<circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/>',
+  book:'<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>',
+  plus:'<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',
+  heart:'<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>',
+  code:'<polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>',
+  message:'<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
+  mail:'<rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="22,6 12,13 2,6"/>',
   arrowleft:'<line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>',
   chevleft:'<polyline points="15 18 9 12 15 6"/>',
   chevright:'<polyline points="9 18 15 12 9 6"/>',
-  arrowright:'<line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>',
   chevdown:'<polyline points="6 9 12 15 18 9"/>',
-  x:       '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>',
-  check:   '<polyline points="20 6 9 17 4 12"/>',
-  refresh: '<polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>',
-  // player controls
-  play:    '<polygon points="5 3 19 12 5 21 5 3"/>',
-  pause:   '<rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/>',
-  replay:  '<polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>',
-  prev:    '<polygon points="19 20 9 12 19 4 19 20"/><line x1="5" y1="19" x2="5" y2="5"/>',
-  next:    '<polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/>',
-  vol:     '<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>',
-  mute:    '<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/>',
-  gear:    '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>',
-  fs:      '<path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>',
-  exitfs:  '<path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/>',
-  list:    '<line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>',
-  dl:      '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>',
-  link:    '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>',
-  clock:   '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
-  layers:  '<polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/>',
-  // unit types
-  video:   '<polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/>',
-  file:    '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>',
+  x:'<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>',
+  check:'<polyline points="20 6 9 17 4 12"/>',
+  refresh:'<polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>',
+  play:'<polygon points="5 3 19 12 5 21 5 3"/>',
+  pause:'<rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/>',
+  replay:'<polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>',
+  prev:'<polygon points="19 20 9 12 19 4 19 20"/><line x1="5" y1="19" x2="5" y2="5"/>',
+  next:'<polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/>',
+  vol:'<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>',
+  mute:'<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/>',
+  gear:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>',
+  fs:'<path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>',
+  exitfs:'<path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/>',
+  list:'<line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>',
+  dl:'<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>',
+  link:'<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>',
+  clock:'<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
+  video:'<polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/>',
+  file:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>',
   clipboard:'<path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><path d="M9 12h6"/><path d="M9 16h6"/>',
-  youtube: '<path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.42a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.42 8.6.42 8.6.42s6.88 0 8.6-.42a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z"/><polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"/>',
-  package: '<path d="M16.5 9.4 7.5 4.21"/><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>',
-  embed:   '<polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>',
-  help:    '<circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>',
-  pie:     '<path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/>',
+  youtube:'<path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.42a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.42 8.6.42 8.6.42s6.88 0 8.6-.42a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z"/><polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"/>',
+  package:'<path d="M16.5 9.4 7.5 4.21"/><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>',
+  embed:'<polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>',
+  help:'<circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>',
 };
-function icon(name, size) {
+function icon(name, size){
   size = size || 20;
-  var path = ICON_PATHS[name];
-  if (!path) path = ICON_PATHS.book;
+  var path = ICON_PATHS[name] || ICON_PATHS.book;
   return '<svg xmlns="http://www.w3.org/2000/svg" width="'+size+'" height="'+size+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+path+'</svg>';
 }
-function hydrateIcons(root) {
+function hydrateIcons(root){
   (root||document).querySelectorAll('[data-icon]').forEach(function(el){
     if (el.dataset.iconDone) return;
     el.innerHTML = icon(el.dataset.icon, parseInt(el.dataset.iconSize||'', 10) || 20);
     el.dataset.iconDone = '1';
   });
 }
-function unitTypeIcon(t) {
+function unitTypeIcon(t){
   t = (t||'').toLowerCase();
   if (t === 'ivideo') return 'video';
   if (t === 'pdf') return 'file';
@@ -76,28 +68,28 @@ function unitTypeIcon(t) {
   return 'book';
 }
 
-/* ===================== THEMES ===================== */
+/* ===== themes ===== */
 var THEMES = [
-  {id:"default",  name:"Midnight",  accent:"#5c8dff", accent2:"#7c5cff", bg:"#07090c"},
-  {id:"dracula",  name:"Dracula",   accent:"#bd93f9", accent2:"#ff79c6", bg:"#1e1f29"},
-  {id:"rose",     name:"Rose",      accent:"#ff5c8d", accent2:"#c45cff", bg:"#0c070b"},
-  {id:"green",    name:"Forest",    accent:"#2ecc71", accent2:"#13b6a3", bg:"#060d09"},
-  {id:"amber",    name:"Amber",     accent:"#f6b73c", accent2:"#ff8a4c", bg:"#0d0a06"},
-  {id:"crimson",  name:"Crimson",   accent:"#ff5c5c", accent2:"#b35cff", bg:"#0c0606"},
-  {id:"cyber",    name:"Cyber",     accent:"#00d4ff", accent2:"#7c5cff", bg:"#05080d"},
-  {id:"mono",     name:"Mono",      accent:"#e6e9ee", accent2:"#9fb8ff", bg:"#050505"},
-  {id:"sunset",   name:"Sunset",    accent:"#ff7c5c", accent2:"#ff5cbd", bg:"#0d0608"},
-  {id:"nord",     name:"Nord",      accent:"#88c0d0", accent2:"#b48ead", bg:"#2e3440"},
-  {id:"day",      name:"Day",       accent:"#3b6dff", accent2:"#7c5cff", bg:"#f5f6f9"},
+  {id:"default",  name:"Midnight", accent:"#5c8dff", accent2:"#7c5cff"},
+  {id:"dracula",  name:"Dracula",  accent:"#bd93f9", accent2:"#ff79c6"},
+  {id:"rose",     name:"Rose",     accent:"#ff5c8d", accent2:"#c45cff"},
+  {id:"green",    name:"Forest",   accent:"#2ecc71", accent2:"#13b6a3"},
+  {id:"amber",    name:"Amber",    accent:"#f6b73c", accent2:"#ff8a4c"},
+  {id:"crimson",  name:"Crimson",  accent:"#ff5c5c", accent2:"#b35cff"},
+  {id:"cyber",    name:"Cyber",    accent:"#00d4ff", accent2:"#7c5cff"},
+  {id:"mono",     name:"Mono",     accent:"#e6e9ee", accent2:"#9fb8ff"},
+  {id:"sunset",   name:"Sunset",   accent:"#ff7c5c", accent2:"#ff5cbd"},
+  {id:"nord",     name:"Nord",     accent:"#88c0d0", accent2:"#b48ead"},
+  {id:"day",      name:"Day",      accent:"#3b6dff", accent2:"#7c5cff"},
 ];
 var curTheme = localStorage.getItem("theme") || "default";
 document.documentElement.setAttribute("data-theme", curTheme);
 
-function renderThemePicker() {
+function renderThemePicker(){
   var grid = document.getElementById('theme-grid');
   if (!grid) return;
   var h = '';
-  for (var i = 0; i < THEMES.length; i++) {
+  for (var i = 0; i < THEMES.length; i++){
     var t = THEMES[i];
     var isCur = t.id === curTheme;
     h += '<div class="theme-swatch'+(isCur?' cur':'')+'" data-tid="'+t.id+'">'
@@ -107,22 +99,21 @@ function renderThemePicker() {
   grid.innerHTML = h;
   grid.querySelectorAll('.theme-swatch').forEach(function(el){
     el.addEventListener('click', function(){
-      var id = el.dataset.tid;
-      curTheme = id;
-      document.documentElement.setAttribute("data-theme", id);
-      localStorage.setItem("theme", id);
+      curTheme = el.dataset.tid;
+      document.documentElement.setAttribute("data-theme", curTheme);
+      localStorage.setItem("theme", curTheme);
       renderThemePicker();
       closeThemePicker();
     });
   });
 }
-window.toggleThemePicker = function() {
+window.toggleThemePicker = function(){
   var p = document.getElementById('theme-picker');
   if (!p) return;
   p.classList.toggle('open');
   if (p.classList.contains('open')) renderThemePicker();
 };
-function closeThemePicker() {
+function closeThemePicker(){
   var p = document.getElementById('theme-picker');
   if (p) p.classList.remove('open');
 }
@@ -134,7 +125,7 @@ document.addEventListener('click', function(e){
   p.classList.remove('open');
 });
 
-/* ===================== utils ===================== */
+/* ===== utils ===== */
 function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
 function g(id){return document.getElementById(id);}
 function hashCode(s){var h=0;for(var i=0;i<(s||'').length;i++){h=((h<<5)-h)+s.charCodeAt(i);h|=0;}return Math.abs(h);}
@@ -142,19 +133,18 @@ var PALETTES=[['#5c8dff','#7c5cff'],['#ff5c8d','#c45cff'],['#2ecc71','#13b6a3'],
 function pickGradient(l){return PALETTES[hashCode(l||'?')%PALETTES.length];}
 function initials(l){var p=(l||'?').trim().split(/\s+/);if(p.length===1)return p[0].slice(0,2).toUpperCase();return (p[0].charAt(0)+p[1].charAt(0)).toUpperCase();}
 function showPage(name){var pages=document.querySelectorAll('.page');for(var i=0;i<pages.length;i++)pages[i].classList.remove('active');var el=document.getElementById('page-'+name);if(el)el.classList.add('active');var items=document.querySelectorAll('.drawer-item[data-page]');for(var j=0;j<items.length;j++)items[j].classList.remove('active');var act=document.querySelector('.drawer-item[data-page="'+name+'"]');if(act)act.classList.add('active');}
+window.goPage=function(name){showPage(name);closeDrawer();};
+window.openDrawer=function(){g('drawer').classList.add('open');g('drawer-bg').classList.add('open');};
+window.closeDrawer=function(){g('drawer').classList.remove('open');g('drawer-bg').classList.remove('open');};
 
-window.goPage = function(name){ showPage(name); closeDrawer(); };
-window.openDrawer = function(){ g('drawer').classList.add('open'); g('drawer-bg').classList.add('open'); };
-window.closeDrawer = function(){ g('drawer').classList.remove('open'); g('drawer-bg').classList.remove('open'); };
-
-/* ===================== state ===================== */
+/* ===== state ===== */
 var BATCHES=[],ACTIVE=null,FLAT=[],CURRENT=null,CURRENT_INFO=null,HLS=null,VIDEO=null,CURRENT_VARIANTS={};
-var UI_T=null,LP_T=null,TAP_T=null,seekReset=null,seekSide=null,seekAcc=0,ripT=null,lastTapT=0,lastTapSide=null,lastPtr='mouse';
+var UI_T=null,LP_T=null,TAP_T=null,seekReset=null,seekSide=null,seekAcc=0,ripT=null,lastTapT=0,lastTapSide=null;
 var CUR_SPEED=1,VOL=1,MUTED=false,QSEL=-1,QPREF=0,MENU_VIEW=null,SCRUB=false,HOLDING=false;
 var DT_STEP=10;
 var SPEEDS=[0.5,0.75,1,1.25,1.5,2];
 
-/* ===================== batch list ===================== */
+/* ===== batch list ===== */
 function renderBatches(){
   var grid=g('batch-list');
   if(!grid)return;
@@ -167,7 +157,7 @@ function renderBatches(){
       var gr=pickGradient(b.label);
       var thumb;
       if(b.image){
-        thumb='<div class="bcard-img-wrap"><img src="'+esc(b.image)+'" alt="" loading="lazy"></div>';
+        thumb='<div class="bcard-img-wrap"><img src="'+esc(b.image)+'" alt="" loading="lazy" onerror="this.parentNode.outerHTML=\'<div class=&quot;bcard-img-wrap fallback&quot; style=&quot;background:linear-gradient(135deg,'+gr[0]+','+gr[1]+')&quot;><div class=&quot;mono&quot;>'+esc(initials(b.label))+'</div></div>\'"></div>';
       } else {
         thumb='<div class="bcard-img-wrap fallback" style="background:linear-gradient(135deg,'+gr[0]+','+gr[1]+')"><div class="mono">'+esc(initials(b.label))+'</div></div>';
       }
@@ -190,7 +180,7 @@ function renderBatches(){
   }
 }
 
-/* ===================== batch open / sections ===================== */
+/* ===== open batch / render playlist ===== */
 window.openBatch=function(titleId,label){
   ACTIVE=titleId;
   g('viewer-title').textContent=label;
@@ -216,7 +206,9 @@ window.closeBatch=function(){destroyPlayer();ACTIVE=null;g('sections-overlay').c
 window.toggleSections=function(){g('sections-overlay').classList.toggle('open');};
 
 function renderTOC(){
-  var toc=g('toc');toc.innerHTML='';FLAT=[];
+  var toc=g('toc');
+  if(!toc) return;
+  toc.innerHTML='';FLAT=[];
   var q=(g('search').value||'').toLowerCase();
   var sections=window._sections||[];
   for(var si=0;si<sections.length;si++){
@@ -229,7 +221,7 @@ function renderTOC(){
     head.innerHTML='<div class="toc-num">'+(si+1)+'</div>'
       +'<div class="toc-info"><div class="toc-title">'+esc(sec.title)+'</div>'
       +'<div class="toc-sub">'+units.length+' / '+sec.units.length+' units</div></div>'
-      +'<div class="toc-arrow">'+icon('chevright',14)+'</div>';
+      +'<div class="toc-arrow">'+icon('chevright',16)+'</div>';
     var body=document.createElement('div');body.className='toc-body'+open;
     head.onclick=(function(h,b){return function(){h.classList.toggle('open');b.classList.toggle('open');};})(head,body);
     for(var ui=0;ui<units.length;ui++){
@@ -238,7 +230,7 @@ function renderTOC(){
       var typeKey=(u.type||'').replace(/[^a-zA-Z0-9]/g,'')||'unit';
       var uDiv=document.createElement('div');uDiv.className='toc-unit';uDiv.dataset.idx=idx;
       uDiv.innerHTML='<div class="t">'+esc(u.title||u.id)+'</div>'
-        +'<span class="type '+esc(typeKey)+'">'+icon(unitTypeIcon(u.type),12)+' '+esc(u.type||'')+'</span>';
+        +'<span class="type '+esc(typeKey)+'">'+icon(unitTypeIcon(u.type),11)+'<span>'+esc(u.type||'')+'</span></span>';
       (function(i){uDiv.onclick=function(){playUnit(i);};})(idx);
       body.appendChild(uDiv);
     }
@@ -246,7 +238,7 @@ function renderTOC(){
   }
 }
 
-/* ===================== unit playback ===================== */
+/* ===== unit playback ===== */
 function playUnit(idx){
   if(idx<0||idx>=FLAT.length)return;
   CURRENT=idx;var item=FLAT[idx];var u=item.unit;
@@ -279,7 +271,7 @@ function destroyPlayer(){
   if(window._asTimer){clearInterval(window._asTimer);window._asTimer=null;}
 }
 
-/* ===================== youtube-style player ===================== */
+/* ===== youtube player ===== */
 function setStatus(t,c){var s=g('status');if(!s)return;s.textContent=t;s.className=c||'status';}
 function on(id,fn){var el=g(id);if(el)el.addEventListener('click',fn);}
 
@@ -290,8 +282,8 @@ function buildPlayerUI(){
     '<video id="v" playsinline webkit-playsinline preload="metadata"></video>'+
     '<div class="yt-gl" id="yt-gl"></div>'+
     '<div class="yt-logo brand-gradient">SeongEra</div>'+
-    '<div class="yt-rip l" id="yt-rl"><div class="in"><span class="ar">'+icon('replay',30)+'</span><span id="yt-rlt">10 seconds</span></div></div>'+
-    '<div class="yt-rip r" id="yt-rr"><div class="in"><span class="ar flip">'+icon('replay',30)+'</span><span id="yt-rrt">10 seconds</span></div></div>'+
+    '<div class="yt-rip l" id="yt-rl"><div class="in">'+icon('replay',30)+'<span id="yt-rlt">10 seconds</span></div></div>'+
+    '<div class="yt-rip r" id="yt-rr"><div class="in">'+icon('replay',30)+'<span id="yt-rrt">10 seconds</span></div></div>'+
     '<div class="yt-2x" id="yt-2x">▶▶ 2× speed</div>'+
     '<div class="yt-spin" id="yt-spin"></div>'+
     '<div class="yt-top" id="yt-top"><div class="yt-title" id="yt-title">'+esc(title)+'</div></div>'+
@@ -401,17 +393,8 @@ function syncVol(){
   var p=Math.round(eff*100);
   s.style.background='linear-gradient(90deg,#fff '+p+'%,rgba(255,255,255,.3) '+p+'%)';
 }
-function showUI(){
-  var y=g('yt');if(!y)return;
-  y.classList.add('show');
-  clearTimeout(UI_T);
-  if(VIDEO&&!VIDEO.paused&&!SCRUB&&!MENU_VIEW&&!HOLDING){UI_T=setTimeout(hideUI,3200);}
-}
-function hideUI(){
-  var y=g('yt');
-  if(!y||!VIDEO||VIDEO.paused||SCRUB||MENU_VIEW)return;
-  y.classList.remove('show');
-}
+function showUI(){var y=g('yt');if(!y)return;y.classList.add('show');clearTimeout(UI_T);if(VIDEO&&!VIDEO.paused&&!SCRUB&&!MENU_VIEW&&!HOLDING){UI_T=setTimeout(hideUI,3200);}}
+function hideUI(){var y=g('yt');if(!y||!VIDEO||VIDEO.paused||SCRUB||MENU_VIEW)return;y.classList.remove('show');}
 function dur(){var d=VIDEO&&VIDEO.duration;return (d&&isFinite(d))?d:0;}
 function setProg(pct){var f=g('yt-fill'),k=g('yt-knob');if(!f)return;f.style.width=pct+'%';k.style.left=pct+'%';}
 function updateTime(){
@@ -473,13 +456,11 @@ window.setSpeed=function(v){CUR_SPEED=parseFloat(v)||1;if(VIDEO&&!HOLDING)VIDEO.
 
 function bindGestures(){
   var gl=g('yt-gl');if(!gl)return;
-  var down=false,holding=false,moved=false,sx=0,sy=0;
-  var isTouch=false;
+  var down=false,holding=false,moved=false,sx=0,sy=0,isTouch=false;
   function sideOf(e){var r=gl.getBoundingClientRect();var x=(e.clientX-r.left)/r.width;return x<0.35?'l':(x>0.65?'r':'c');}
   gl.addEventListener('contextmenu',function(e){e.preventDefault();});
   gl.addEventListener('pointerdown',function(e){
     if(e.pointerType==='mouse'&&e.button!==0)return;
-    lastPtr=e.pointerType||'mouse';
     isTouch=(e.pointerType==='touch'||e.pointerType==='pen');
     down=true;holding=false;moved=false;sx=e.clientX;sy=e.clientY;
     clearTimeout(LP_T);
@@ -540,7 +521,7 @@ function showRipple(side,acc){
   ripT=setTimeout(function(){el.classList.remove('on');},650);
 }
 
-/* ===================== video loading ===================== */
+/* ===== wistia load ===== */
 function playWistia(sourceid){
   var master='https://fast.wistia.com/embed/medias/'+sourceid+'.m3u8';
   buildPlayerUI();
@@ -575,7 +556,7 @@ function attachAutoNext(){
   });
 }
 
-/* ===================== PDF ===================== */
+/* ===== pdf ===== */
 function playPdf(titleId,unitId){
   g('player-wrap').innerHTML='<div class="player-empty">loading PDF…</div>';
   fetch('/api/pdf/'+encodeURIComponent(titleId)+'/'+encodeURIComponent(unitId))
@@ -590,12 +571,8 @@ function playPdf(titleId,unitId){
 window.pdfNewTab=function(){if(window._pdfInfo&&window._pdfInfo.redirectUrl)window.open(window._pdfInfo.redirectUrl,'_blank');};
 window.pdfCopyUrl=function(btn){var item=FLAT[CURRENT];fetch('/api/pdf/'+encodeURIComponent(ACTIVE)+'/'+encodeURIComponent(item.unit.id)).then(function(r){return r.json();}).then(function(info){if(info.redirectUrl){navigator.clipboard.writeText(info.redirectUrl);var o=btn.textContent;btn.textContent='✓';setTimeout(function(){btn.textContent=o;},1200);}});};
 
-/* ===================== controls ===================== */
-window.togglePlay=function(){
-  if(!VIDEO)return;
-  if(VIDEO.paused||VIDEO.ended){var p=VIDEO.play();if(p&&p.catch)p.catch(function(){});}
-  else VIDEO.pause();
-};
+/* ===== controls ===== */
+window.togglePlay=function(){if(!VIDEO)return;if(VIDEO.paused||VIDEO.ended){var p=VIDEO.play();if(p&&p.catch)p.catch(function(){});}else VIDEO.pause();};
 window.toggleMute=function(){if(VIDEO){VIDEO.muted=!VIDEO.muted;if(!VIDEO.muted&&VIDEO.volume===0)VIDEO.volume=VOL||1;}};
 window.playNext=function(){if(CURRENT!=null&&CURRENT<FLAT.length-1)playUnit(CURRENT+1);};
 window.playPrev=function(){if(CURRENT!=null&&CURRENT>0)playUnit(CURRENT-1);};
@@ -609,16 +586,14 @@ window.toggleFS=function(){
     else if(w.webkitRequestFullscreen)p=w.webkitRequestFullscreen();
     else if(w.msRequestFullscreen)p=w.msRequestFullscreen();
     else if(VIDEO&&VIDEO.webkitEnterFullscreen){VIDEO.webkitEnterFullscreen();return;}
-    if(p&&p.then)p.then(function(){
-      try{if(window.innerWidth<=900&&screen.orientation&&screen.orientation.lock)screen.orientation.lock('landscape').catch(function(){});}catch(e){}
-    }).catch(function(){});
+    if(p&&p.then)p.then(function(){try{if(window.innerWidth<=900&&screen.orientation&&screen.orientation.lock)screen.orientation.lock('landscape').catch(function(){});}catch(e){}}).catch(function(){});
   }else leaveFS();
 };
 function onFsChange(){var b=g('yt-fs');if(b)b.innerHTML=icon(fsEl()?'exitfs':'fs');if(!fsEl()){try{if(screen.orientation&&screen.orientation.unlock)screen.orientation.unlock();}catch(e){}}}
 document.addEventListener('fullscreenchange',onFsChange);
 document.addEventListener('webkitfullscreenchange',onFsChange);
 
-/* ===================== download / link modals ===================== */
+/* ===== download / link modals ===== */
 window.openDownload=function(){
   if(!CURRENT_INFO)return;
   if(CURRENT_INFO.type==='pdf'){var a=document.querySelector('.pdf-actions a.primary');if(a)a.click();return;}
@@ -677,10 +652,9 @@ function copyText(t,btn){navigator.clipboard.writeText(t).then(function(){var o=
 window.closeModal=function(id){g(id).classList.remove('open');};
 window.copyField=function(id,btn){var el=g(id);el.select();el.setSelectionRange(0,99999);navigator.clipboard.writeText(el.value).then(function(){var o=btn.textContent;btn.textContent='copied!';setTimeout(function(){btn.textContent=o;},1200);});};
 window.copyUpi=function(btn){var id=g('upi-id').textContent.trim();navigator.clipboard.writeText(id).then(function(){var o=btn.textContent;btn.textContent='✓ copied';setTimeout(function(){btn.textContent=o;},1200);});};
-var modals=document.querySelectorAll('.modal');
-for(var mi=0;mi<modals.length;mi++){(function(m){m.addEventListener('click',function(e){if(e.target===m)m.classList.remove('open');});})(modals[mi]);}
+document.querySelectorAll('.modal').forEach(function(m){m.addEventListener('click',function(e){if(e.target===m)m.classList.remove('open');});});
 
-/* ===================== keyboard ===================== */
+/* ===== keyboard ===== */
 document.addEventListener('keydown',function(e){
   if(e.target.tagName==='INPUT'||e.target.tagName==='SELECT'||e.target.tagName==='TEXTAREA')return;
   var k=e.key;
@@ -698,7 +672,7 @@ document.addEventListener('keydown',function(e){
   else if(k==='Escape'&&g('sections-overlay').classList.contains('open'))g('sections-overlay').classList.remove('open');
 });
 
-/* ===================== ASSESSMENT ===================== */
+/* ===== assessment ===== */
 var AS={state:null,titleId:null,unitId:null,submissionId:null,answers:{},order:[],blockMap:{},curIdx:0,total:0,submitted:false};
 
 function asWidgetsHtml(desc){
@@ -770,17 +744,14 @@ function renderAssessment(){
     if(!b){renderAssessmentReview();return;}
     var bd=b.blockData||b.data||{};
     var qHtml=asBlockHtml(b);
-    // if no block text → coming soon
     if(!qHtml || !qHtml.trim()){
       g('player-wrap').innerHTML='<div class="as-coming">'
-        +'<div class="icon">'+icon('clock',32)+'</div>'
+        +'<div class="as-icon">'+icon('clock',32)+'</div>'
         +'<h2>Coming Soon</h2>'
         +'<p>This test isn\'t available yet. The question content hasn\'t been published. Please check back later or try a different unit.</p>'
-        +'<div class="as-actions" style="position:static;margin:0;padding:0;background:none;justify-content:center">'
-        +'<button class="as-btn primary" onclick="toggleSections()">'+icon('list',16)+' Open playlist</button>'
-        +'</div>'
+        +'<button class="as-btn primary" onclick="window.toggleSections()">'+icon('list',16)+' Open playlist</button>'
         +'</div>';
-      setStatus('coming soon','status');
+      setStatus('coming soon');
       return;
     }
     var opts=bd.options||[];
@@ -907,9 +878,9 @@ function pieSvg(correct,wrong,neutral){
   var noLen=(wrong/total)*c;
   return '<svg width="120" height="120" viewBox="0 0 120 120">'
     +'<circle cx="60" cy="60" r="'+r+'" fill="none" stroke="rgba(124,134,151,.2)" stroke-width="14"/>'
-    +(correct>0?'<circle cx="60" cy="60" r="'+r+'" fill="none" stroke="#2ecc71" stroke-width="14" stroke-dasharray="'+okLen+' '+c+'" stroke-linecap="butt"/>':'')
-    +(wrong>0?'<circle cx="60" cy="60" r="'+r+'" fill="none" stroke="#ff5c5c" stroke-width="14" stroke-dasharray="'+noLen+' '+c+'" stroke-dashoffset="'+(-okLen)+'" stroke-linecap="butt"/>':'')
-    +(neutral>0?'<circle cx="60" cy="60" r="'+r+'" fill="none" stroke="rgba(124,134,151,.6)" stroke-width="14" stroke-dasharray="'+((neutral/total)*c)+' '+c+'" stroke-dashoffset="'+(-(okLen+noLen))+'" stroke-linecap="butt"/>':'')
+    +(correct>0?'<circle cx="60" cy="60" r="'+r+'" fill="none" stroke="#2ecc71" stroke-width="14" stroke-dasharray="'+okLen+' '+c+'"/>':'')
+    +(wrong>0?'<circle cx="60" cy="60" r="'+r+'" fill="none" stroke="#ff5c5c" stroke-width="14" stroke-dasharray="'+noLen+' '+c+'" stroke-dashoffset="'+(-okLen)+'"/>':'')
+    +(neutral>0?'<circle cx="60" cy="60" r="'+r+'" fill="none" stroke="rgba(124,134,151,.6)" stroke-width="14" stroke-dasharray="'+((neutral/total)*c)+' '+c+'" stroke-dashoffset="'+(-(okLen+noLen))+'"/>':'')
     +'</svg>';
 }
 function renderAssessmentReview(){
@@ -974,7 +945,7 @@ function renderAssessmentReview(){
   }
 }
 
-/* ===================== bootstrap ===================== */
+/* ===== bootstrap ===== */
 g('search').addEventListener('input',renderTOC);
 g('batch-search').addEventListener('input',renderBatches);
 hydrateIcons();
@@ -982,6 +953,7 @@ renderThemePicker();
 
 function loadAll(){
   var grid=g('batch-list');
+  if(!grid) return;
   grid.innerHTML='<div style="padding:24px;color:var(--muted);text-align:center">loading…</div>';
   fetch('/api/batches').then(function(r){return r.json();}).then(function(j){
     BATCHES=(j&&j.batches)||[];renderBatches();
