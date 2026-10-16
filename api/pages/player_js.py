@@ -4,16 +4,8 @@ PLAYER_JS = r"""
 (function(){
 'use strict';
 
-/* ===== icon set (inline svg) ===== */
+/* ===== inline svg icons (fallback + player controls) ===== */
 var ICON_PATHS = {
-  menu:'<line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>',
-  palette:'<circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/>',
-  book:'<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>',
-  plus:'<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',
-  heart:'<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>',
-  code:'<polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>',
-  message:'<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
-  mail:'<rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="22,6 12,13 2,6"/>',
   arrowleft:'<line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>',
   chevleft:'<polyline points="15 18 9 12 15 6"/>',
   chevright:'<polyline points="9 18 15 12 9 6"/>',
@@ -42,19 +34,14 @@ var ICON_PATHS = {
   package:'<path d="M16.5 9.4 7.5 4.21"/><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>',
   embed:'<polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>',
   help:'<circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>',
+  book:'<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>'
 };
 function icon(name, size){
   size = size || 20;
   var path = ICON_PATHS[name] || ICON_PATHS.book;
   return '<svg xmlns="http://www.w3.org/2000/svg" width="'+size+'" height="'+size+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+path+'</svg>';
 }
-function hydrateIcons(root){
-  (root||document).querySelectorAll('[data-icon]').forEach(function(el){
-    if (el.dataset.iconDone) return;
-    el.innerHTML = icon(el.dataset.icon, parseInt(el.dataset.iconSize||'', 10) || 20);
-    el.dataset.iconDone = '1';
-  });
-}
+function hydrateIcons(){/* no-op — using <img> icons in the static HTML */}
 function unitTypeIcon(t){
   t = (t||'').toLowerCase();
   if (t === 'ivideo') return 'video';
@@ -80,7 +67,7 @@ var THEMES = [
   {id:"mono",     name:"Mono",     accent:"#e6e9ee", accent2:"#9fb8ff"},
   {id:"sunset",   name:"Sunset",   accent:"#ff7c5c", accent2:"#ff5cbd"},
   {id:"nord",     name:"Nord",     accent:"#88c0d0", accent2:"#b48ead"},
-  {id:"day",      name:"Day",      accent:"#3b6dff", accent2:"#7c5cff"},
+  {id:"day",      name:"Day",      accent:"#3b6dff", accent2:"#7c5cff"}
 ];
 var curTheme = localStorage.getItem("theme") || "default";
 document.documentElement.setAttribute("data-theme", curTheme);
@@ -184,12 +171,10 @@ function renderBatches(){
 window.openBatch=function(titleId,label){
   ACTIVE=titleId;
   g('viewer-title').textContent=label;
-  g('sections-title').textContent=label;
   g('search').value='';
   g('toc').innerHTML='<div style="padding:20px;color:var(--muted)">loading sections…</div>';
-  g('player-wrap').innerHTML='<div class="player-empty"><h2 class="brand-gradient">Pick a lecture</h2><p>Open the playlist panel with the list icon</p></div>';
-  g('controls').style.display='none';
-  g('nowplaying').textContent='';
+  g('player-wrap').innerHTML='<div class="player-empty"><svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg><h2 class="brand-gradient">Pick a lecture</h2><p>Pick any unit from the playlist on the left.</p></div>';
+  g('pcount').textContent='…';
   destroyPlayer();
   showPage('viewer');
   fetch('/api/sections/'+encodeURIComponent(titleId))
@@ -198,12 +183,14 @@ window.openBatch=function(titleId,label){
       if(!j||!j.sections){g('toc').innerHTML='<div style="padding:20px;color:#ff7a7a">'+esc((j&&j.error)||'failed')+'</div>';return;}
       window._sections=j.sections;
       renderTOC();
-      if(window.innerWidth>900)g('sections-overlay').classList.add('open');
     })
     .catch(function(e){g('toc').innerHTML='<div style="padding:20px;color:#ff7a7a">error: '+esc(e.message||e)+'</div>';});
 };
-window.closeBatch=function(){destroyPlayer();ACTIVE=null;g('sections-overlay').classList.remove('open');showPage('batches');};
-window.toggleSections=function(){g('sections-overlay').classList.toggle('open');};
+window.closeBatch=function(){destroyPlayer();ACTIVE=null;showPage('batches');};
+window.toggleSections=function(){
+  var p=g('playlist-panel');
+  if(p)p.classList.toggle('open');
+};
 
 function renderTOC(){
   var toc=g('toc');
@@ -221,7 +208,7 @@ function renderTOC(){
     head.innerHTML='<div class="toc-num">'+(si+1)+'</div>'
       +'<div class="toc-info"><div class="toc-title">'+esc(sec.title)+'</div>'
       +'<div class="toc-sub">'+units.length+' / '+sec.units.length+' units</div></div>'
-      +'<div class="toc-arrow">'+icon('chevright',16)+'</div>';
+      +'<div class="toc-arrow">'+icon('chevright',14)+'</div>';
     var body=document.createElement('div');body.className='toc-body'+open;
     head.onclick=(function(h,b){return function(){h.classList.toggle('open');b.classList.toggle('open');};})(head,body);
     for(var ui=0;ui<units.length;ui++){
@@ -236,6 +223,8 @@ function renderTOC(){
     }
     secDiv.appendChild(head);secDiv.appendChild(body);toc.appendChild(secDiv);
   }
+  var cnt=g('pcount');
+  if(cnt) cnt.textContent = FLAT.length + ' units';
 }
 
 /* ===== unit playback ===== */
@@ -248,7 +237,6 @@ function playUnit(idx){
   if(el){el.classList.add('active');el.scrollIntoView({block:'nearest',behavior:'smooth'});}
   g('nowplaying').textContent=u.title||'';
   setStatus('loading…');
-  g('controls').style.display='none';
   destroyPlayer();
   fetch('/api/video/'+encodeURIComponent(ACTIVE)+'/'+encodeURIComponent(u.id))
     .then(function(r){return r.json();})
@@ -259,7 +247,6 @@ function playUnit(idx){
       else if(j.type==='pdf'){playPdf(ACTIVE,u.id);}
       else if(j.type==='assessment'){playAssessment(ACTIVE,u.id,false);}
       else{g('player-wrap').innerHTML='<div class="player-empty"><p>unsupported: '+esc(j.type||'?')+'</p></div>';}
-      if(window.innerWidth<=900)g('sections-overlay').classList.remove('open');
     })
     .catch(function(e){g('player-wrap').innerHTML='<div class="player-empty"><p>error: '+esc(e.message||e)+'</p></div>';});
 }
@@ -301,7 +288,7 @@ function buildPlayerUI(){
           '<span class="yt-time" id="yt-time">0:00 / 0:00</span>'+
         '</div>'+
         '<div class="yt-r">'+
-          '<button class="yb" id="yt-list" title="Playlist">'+icon('list')+'</button>'+
+          '<button class="yb" id="yt-list" title="Toggle playlist in fullscreen">'+icon('list')+'</button>'+
           '<button class="yb" id="yt-dl" title="Download">'+icon('dl')+'</button>'+
           '<button class="yb" id="yt-lk" title="m3u8 link">'+icon('link')+'</button>'+
           '<button class="yb" id="yt-set" title="Settings">'+icon('gear')+'</button>'+
@@ -589,7 +576,14 @@ window.toggleFS=function(){
     if(p&&p.then)p.then(function(){try{if(window.innerWidth<=900&&screen.orientation&&screen.orientation.lock)screen.orientation.lock('landscape').catch(function(){});}catch(e){}}).catch(function(){});
   }else leaveFS();
 };
-function onFsChange(){var b=g('yt-fs');if(b)b.innerHTML=icon(fsEl()?'exitfs':'fs');if(!fsEl()){try{if(screen.orientation&&screen.orientation.unlock)screen.orientation.unlock();}catch(e){}}}
+function onFsChange(){
+  var b=g('yt-fs');if(b)b.innerHTML=icon(fsEl()?'exitfs':'fs');
+  if(!fsEl()){
+    var p=g('playlist-panel');
+    if(p)p.classList.remove('open');
+    try{if(screen.orientation&&screen.orientation.unlock)screen.orientation.unlock();}catch(e){}
+  }
+}
 document.addEventListener('fullscreenchange',onFsChange);
 document.addEventListener('webkitfullscreenchange',onFsChange);
 
@@ -669,7 +663,7 @@ document.addEventListener('keydown',function(e){
   else if(k==='n'||k==='N')playNext();
   else if(k==='p'||k==='P')playPrev();
   else if(k==='m'||k==='M'){VIDEO.muted=!VIDEO.muted;showUI();}
-  else if(k==='Escape'&&g('sections-overlay').classList.contains('open'))g('sections-overlay').classList.remove('open');
+  else if(k==='Escape'){var p=g('playlist-panel');if(p)p.classList.remove('open');}
 });
 
 /* ===== assessment ===== */
@@ -749,7 +743,6 @@ function renderAssessment(){
         +'<div class="as-icon">'+icon('clock',32)+'</div>'
         +'<h2>Coming Soon</h2>'
         +'<p>This test isn\'t available yet. The question content hasn\'t been published. Please check back later or try a different unit.</p>'
-        +'<button class="as-btn primary" onclick="window.toggleSections()">'+icon('list',16)+' Open playlist</button>'
         +'</div>';
       setStatus('coming soon');
       return;
@@ -937,7 +930,7 @@ function renderAssessmentReview(){
     html+='</div></div>';
     g('player-wrap').innerHTML=html;
     setStatus('assessment · submitted','status ok');
-    on('as-back-btn',function(){window.toggleSections();});
+    on('as-back-btn',function(){closeBatch();});
     on('as-refresh-btn',function(){playAssessment(AS.titleId,AS.unitId,false);});
     on('as-retake-btn',function(){if(confirm('Start a new attempt?'))playAssessment(AS.titleId,AS.unitId,true);});
   }catch(e){
