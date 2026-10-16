@@ -124,6 +124,8 @@ def admin_test():
 def admin_clear_batch_cache():
     clear_batch_cache()
     return jsonify(ok=True)
+
+
 @admin_bp.route("/api/admin/maintenance", methods=["GET", "POST"])
 @_require_admin
 def admin_maintenance():
