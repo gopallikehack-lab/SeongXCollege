@@ -650,8 +650,14 @@ g('search').addEventListener('input',renderTOC);
 g('batch-search').addEventListener('input',renderBatches);
 renderThemePicker();
 function loadAll(){var grid=g('batch-grid');if(!grid)return;grid.innerHTML='<div style="padding:24px;color:var(--muted);text-align:center;grid-column:1/-1">loading…</div>';fetch('/api/batches').then(function(r){return r.json();}).then(function(j){BATCHES=(j&&j.batches)||[];renderBatches();}).catch(function(e){grid.innerHTML='<div style="padding:24px;color:#ff7a7a;text-align:center;grid-column:1/-1">error: '+esc(e.message||e)+'</div>';});}
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',loadAll);
-else loadAll();
+function loadLiveStats(){
+  var el=g('total-batches');if(!el)return;
+  fetch('/api/live/stats').then(function(r){return r.json();}).then(function(j){
+    el.textContent = (j&&typeof j.total==='number') ? j.total : '—';
+  }).catch(function(){el.textContent='—';});
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){loadAll();loadLiveStats();});
+else {loadAll();loadLiveStats();}
 
 })();
 """
