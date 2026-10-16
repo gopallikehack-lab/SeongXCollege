@@ -276,12 +276,12 @@ function bindVideo(){
   v.addEventListener('loadedmetadata',function(){if(!HOLDING)v.playbackRate=CUR_SPEED;updateTime();});
   v.addEventListener('play',function(){syncPlay();showUI();});
   v.addEventListener('pause',function(){
-  if(!VIDEO)return;
-  syncPlay(); showUI(); setStatus('paused');
-  // after 5s of pause, hide the UI (until user moves mouse / taps)
-  clearTimeout(UI_T);
-  UI_T=setTimeout(hideUI, 5000);
-});
+    if(!VIDEO)return;
+    syncPlay(); showUI(); setStatus('paused');
+    // auto-hide controls after 5 seconds of pause
+    clearTimeout(UI_T);
+    UI_T=setTimeout(hideUI, 5000);
+  });
   v.addEventListener('playing',function(){if(!VIDEO)return;setBuf(false);syncPlay();setStatus(playingLabel(),'status ok');showUI();});
   v.addEventListener('waiting',function(){if(!VIDEO)return;setBuf(true);setStatus('buffering…');});
   v.addEventListener('canplay',function(){setBuf(false);});
@@ -289,6 +289,7 @@ function bindVideo(){
   v.addEventListener('ended',function(){syncPlay();showUI();});
   v.addEventListener('volumechange',syncVol);
   v.addEventListener('error',function(){if(!VIDEO)return;setBuf(false);setStatus('video error','status err');});
+}
 function playingLabel(){if(HLS&&HLS.levels&&HLS.currentLevel>=0&&HLS.levels[HLS.currentLevel]&&HLS.levels[HLS.currentLevel].height)return 'playing · '+HLS.levels[HLS.currentLevel].height+'p';return 'playing';}
 function setBuf(on){var y=g('yt'),s=g('yt-spin');if(!y||!s)return;y.classList.toggle('buf',on);s.classList.toggle('on',on);}
 function syncPlay(){if(!VIDEO||!g('yt-big'))return;var playing=!VIDEO.paused&&!VIDEO.ended;var nm=VIDEO.ended?'replay':(playing?'pause':'play');g('yt-big').innerHTML=icon(nm,44);g('yt-pp').innerHTML=icon(nm,26);var y=g('yt');if(y)y.classList.toggle('yt-paused',!playing);}
@@ -298,14 +299,13 @@ function showUI(){
   var y=g('yt');if(!y)return;
   y.classList.add('show');
   clearTimeout(UI_T);
-  // hide after 3.2s if playing, or after 5s if paused
   if(VIDEO&&!SCRUB&&!MENU_VIEW&&!HOLDING){
     UI_T=setTimeout(hideUI, VIDEO.paused ? 5000 : 3200);
   }
 }
 function hideUI(){
   var y=g('yt');if(!y)return;
-  if(SCRUB||MENU_VIEW)return;   // don't hide while scrubbing or menu is open
+  if(SCRUB||MENU_VIEW)return;
   y.classList.remove('show');
 }
 function dur(){var d=VIDEO&&VIDEO.duration;return (d&&isFinite(d))?d:0;}
@@ -666,15 +666,34 @@ function renderAssessmentReview(){
 g('search').addEventListener('input',renderTOC);
 g('batch-search').addEventListener('input',renderBatches);
 renderThemePicker();
-function loadAll(){var grid=g('batch-grid');if(!grid)return;grid.innerHTML='<div style="padding:24px;color:var(--muted);text-align:center;grid-column:1/-1">loading…</div>';fetch('/api/batches').then(function(r){return r.json();}).then(function(j){BATCHES=(j&&j.batches)||[];renderBatches();}).catch(function(e){grid.innerHTML='<div style="padding:24px;color:#ff7a7a;text-align:center;grid-column:1/-1">error: '+esc(e.message||e)+'</div>';});}
-function loadLiveStats(){
-  var el=g('total-batches');if(!el)return;
-  fetch('/api/live/stats').then(function(r){return r.json();}).then(function(j){
-    el.textContent = (j&&typeof j.total==='number') ? j.total : '—';
-  }).catch(function(){el.textContent='—';});
+
+function setTotalPill(n){
+  var el=g('total-batches');
+  if(!el) return;
+  el.textContent = (typeof n==='number' && n>0) ? n : '—';
 }
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){loadAll();loadLiveStats();});
-else {loadAll();loadLiveStats();}
+
+function loadAll(){
+  var grid=g('batch-grid');
+  if(!grid) return;
+  grid.innerHTML='<div style="padding:24px;color:var(--muted);text-align:center;grid-column:1/-1">loading…</div>';
+  var t0 = Date.now();
+  fetch('/api/batches')
+    .then(function(r){return r.json();})
+    .then(function(j){
+      BATCHES=(j&&j.batches)||[];
+      try{console.log('[batches] loaded', BATCHES.length, 'in', (Date.now()-t0)+'ms');}catch(e){}
+      renderBatches();
+      setTotalPill(BATCHES.length);
+    })
+    .catch(function(e){
+      try{console.error('[batches] error', e);}catch(_){}
+      grid.innerHTML='<div style="padding:24px;color:#ff7a7a;text-align:center;grid-column:1/-1">error: '+esc(e.message||e)+'</div>';
+    });
+}
+
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',loadAll);
+else loadAll();
 
 })();
 """
