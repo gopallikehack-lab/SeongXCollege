@@ -264,4 +264,7 @@ __PLAYER_JS__
 </script>
 </body></html>"""
 
-MAIN_PAGE = _MAIN_HTML.replace("__PLAYER_CSS__", PLAYER_CSS).replace("__PLAYER_JS__", PLAYER_JS)
+MAIN_PAGE = (_MAIN_HTML
+             .replace("__PLAYER_CSS__", PLAYER_CSS)
+             .replace("__PLAYER_JS__", PLAYER_JS)
+             .replace("</body>", CHATBOT_HTML + "\n</body>"))
