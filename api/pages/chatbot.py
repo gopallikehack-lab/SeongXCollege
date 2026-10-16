@@ -7,6 +7,10 @@ CHATBOT_HTML = r"""
   <span class="sa-dot"></span>
 </div>
 
+<div id="sa-toast" class="sa-toast">
+  <div class="sa-toast-text">Heyy 👋 Can I help you?</div>
+</div>
+
 <div id="sa-panel" class="sa-panel">
   <div class="sa-head">
     <img class="sa-ava" src="https://i.8upload.com/thumbnail/d252db6ffe117d55/6240190351691944107-120.jpg" alt="">
@@ -42,12 +46,21 @@ CHATBOT_HTML = r"""
 </div>
 
 <style>
-/* ===== launcher (bigger) ===== */
+/* ===== launcher ===== */
 .sa-launcher{position:fixed;left:22px;bottom:22px;width:78px;height:78px;border-radius:50%;cursor:grab;z-index:9000;background:#0e1218;border:3px solid rgba(92,141,255,.6);box-shadow:0 16px 46px rgba(0,0,0,.6),0 0 0 0 rgba(92,141,255,.35);display:flex;align-items:center;justify-content:center;overflow:visible;animation:sa-pulse 2.6s ease-in-out infinite;user-select:none;touch-action:none}
 .sa-launcher.dragging{cursor:grabbing;animation:none}
 .sa-launcher img{width:100%;height:100%;border-radius:50%;object-fit:cover;pointer-events:none;display:block;background:#000}
 .sa-launcher .sa-dot{position:absolute;left:3px;bottom:3px;width:15px;height:15px;border-radius:50%;background:#2ecc71;border:2px solid #0e1218;box-shadow:0 0 10px #2ecc71}
 @keyframes sa-pulse{0%,100%{box-shadow:0 16px 46px rgba(0,0,0,.6),0 0 0 0 rgba(92,141,255,.4)}50%{box-shadow:0 16px 46px rgba(0,0,0,.6),0 0 0 18px rgba(92,141,255,0)}}
+
+/* ===== greeting toast ===== */
+.sa-toast{position:fixed;left:110px;bottom:44px;z-index:8999;padding:11px 16px;background:linear-gradient(135deg,rgba(92,141,255,.18),rgba(124,92,255,.1));border:1px solid rgba(92,141,255,.35);border-radius:14px;color:var(--txt);font-size:13.5px;font-weight:600;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:0 14px 40px rgba(0,0,0,.55);opacity:0;transform:translateX(-10px) scale(.95);pointer-events:none;transition:opacity .35s cubic-bezier(.22,.9,.28,1),transform .35s cubic-bezier(.22,.9,.28,1);white-space:nowrap;max-width:calc(100vw - 140px);overflow:hidden;text-overflow:ellipsis}
+.sa-toast.show{opacity:1;transform:translateX(0) scale(1)}
+.sa-toast::after{content:"";position:absolute;left:-8px;bottom:14px;width:0;height:0;border:8px solid transparent;border-right-color:rgba(92,141,255,.35);border-left:0}
+.sa-toast-text{background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+@media (max-width:520px){
+  .sa-toast{left:96px;bottom:34px;font-size:12.5px;padding:10px 14px;max-width:calc(100vw - 120px)}
+}
 
 /* ===== panel ===== */
 .sa-panel{position:fixed;left:22px;bottom:112px;width:min(410px,92vw);height:min(620px,78vh);z-index:9001;background:var(--panel);border:1px solid var(--line);border-radius:20px;overflow:hidden;display:none;flex-direction:column;box-shadow:0 30px 80px rgba(0,0,0,.7);animation:sa-in .22s cubic-bezier(.22,.9,.28,1)}
@@ -92,7 +105,7 @@ CHATBOT_HTML = r"""
 @keyframes sa-bnc{0%,80%,100%{opacity:.35;transform:translateY(0)}40%{opacity:1;transform:translateY(-4px)}}
 .sa-err{align-self:flex-start;max-width:88%;padding:10px 12px;background:rgba(255,92,92,.1);border:1px solid rgba(255,92,92,.25);border-radius:10px;color:#ff8b8b;font-size:12px;font-family:monospace;white-space:pre-wrap;word-break:break-word}
 
-/* ===== voice hint bar ===== */
+/* ===== voice hint ===== */
 .sa-voice-hint{display:none;align-items:center;justify-content:center;gap:8px;padding:10px 14px;background:linear-gradient(135deg,rgba(255,92,92,.14),rgba(179,92,255,.1));border-top:1px solid rgba(255,92,92,.3);color:#ffb0b0;font-size:12.5px;font-weight:600;flex-shrink:0;animation:sa-in .2s}
 .sa-voice-hint.on{display:flex}
 .sa-voice-hint span:first-child{font-size:16px;animation:sa-mic-pulse 1.1s ease-in-out infinite}
@@ -128,12 +141,29 @@ CHATBOT_HTML = r"""
   var micBtn   = document.getElementById('sa-mic');
   var modelsBar= document.getElementById('sa-models');
   var voiceHint= document.getElementById('sa-voice-hint');
+  var toast    = document.getElementById('sa-toast');
 
   var history  = [];
   var busy     = false;
   var curModel = null;
   var MODELS   = [];
   var DEF      = null;
+
+  /* ============ GREETING TOAST ============ */
+  (function showGreeting(){
+    // only once per session
+    var KEY = 'sa_greet_shown';
+    var done = false;
+    try{ done = sessionStorage.getItem(KEY) === '1'; }catch(e){}
+    if(done) return;
+    try{ sessionStorage.setItem(KEY, '1'); }catch(e){}
+    setTimeout(function(){
+      toast.classList.add('show');
+      setTimeout(function(){
+        toast.classList.remove('show');
+      }, 3600);   // visible for ~3.6s
+    }, 900);      // 0.9s after page load
+  })();
 
   /* ============ DRAG ============ */
   var drag = {active:false, moved:false, sx:0, sy:0, ox:0, oy:0, ptr:null};
@@ -177,6 +207,8 @@ CHATBOT_HTML = r"""
   /* ============ OPEN / CLOSE ============ */
   window.saClose = function(){ panel.classList.remove('open'); stopVoice(); };
   function saToggle(){
+    // hide toast on open
+    toast.classList.remove('show');
     panel.classList.toggle('open');
     if(panel.classList.contains('open')) setTimeout(function(){ input.focus(); }, 80);
   }
@@ -213,32 +245,18 @@ CHATBOT_HTML = r"""
   function renderMarkdown(text){
     if(!text) return '';
     var s = escapeHtml(text);
-
-    // fenced code blocks ```code```
     var blocks = [];
     s = s.replace(/```([\s\S]*?)```/g, function(_, code){
       var idx = blocks.length;
       blocks.push('<pre><code>' + code.trim() + '</code></pre>');
       return '\u0000CB' + idx + '\u0000';
     });
-
-    // inline code `x`
     s = s.replace(/`([^`\n]+?)`/g, function(_, c){ return '<code>' + c + '</code>'; });
-
-    // bold **x**
     s = s.replace(/\*\*([^*\n]+?)\*\*/g, '<b>$1</b>');
-    // italic *x* (avoid matching inside **)
     s = s.replace(/(^|[^*])\*([^*\n]+?)\*(?!\*)/g, '$1<i>$2</i>');
-
-    // bullets — lines starting with "- " or "* "
     s = s.replace(/^\s*[-*]\s+(.+)$/gm, '• $1');
-
-    // line breaks
     s = s.replace(/\n/g, '<br>');
-
-    // restore code blocks
     s = s.replace(/\u0000CB(\d+)\u0000/g, function(_, i){ return blocks[+i]; });
-
     return s;
   }
 
@@ -247,11 +265,8 @@ CHATBOT_HTML = r"""
     wrap.className = 'sa-msg sa-' + (role==='user' ? 'user' : 'bot');
     var bubble = document.createElement('div');
     bubble.className = 'sa-bubble';
-    if(role==='user'){
-      bubble.textContent = text;
-    } else {
-      bubble.innerHTML = renderMarkdown(text);
-    }
+    if(role==='user'){ bubble.textContent = text; }
+    else{ bubble.innerHTML = renderMarkdown(text); }
     wrap.appendChild(bubble);
     if(model){
       var mt = document.createElement('div');
@@ -333,25 +348,18 @@ CHATBOT_HTML = r"""
 
   function setRecUI(on){
     recording = on;
-    if(on){
-      micBtn.classList.add('rec');
-      voiceHint.classList.add('on');
-    } else {
-      micBtn.classList.remove('rec');
-      voiceHint.classList.remove('on');
-    }
+    if(on){ micBtn.classList.add('rec'); voiceHint.classList.add('on'); }
+    else  { micBtn.classList.remove('rec'); voiceHint.classList.remove('on'); }
   }
-
   function buildRecognizer(){
     if(!SR) return null;
     var r = new SR();
-    r.continuous = true;      // keep listening until user stops
+    r.continuous = true;
     r.interimResults = true;
     r.lang = 'en-IN';
     r.maxAlternatives = 1;
 
     r.onstart = function(){ setRecUI(true); };
-
     r.onresult = function(e){
       var finalTxt = '';
       var interimTxt = '';
@@ -366,58 +374,36 @@ CHATBOT_HTML = r"""
       input.style.height = Math.min(120, input.scrollHeight) + 'px';
       body.scrollTop = body.scrollHeight;
     };
-
     r.onerror = function(e){
       setRecUI(false);
       if(e.error === 'not-allowed' || e.error === 'service-not-allowed'){
         addError('microphone permission denied');
-      } else if(e.error === 'no-speech'){
-        // silent, user can retry
-      } else if(e.error === 'aborted'){
-        // user stopped, ignore
+      } else if(e.error === 'no-speech' || e.error === 'aborted'){
+        // silent
       } else {
         addError('voice: ' + e.error);
       }
     };
-
-    r.onend = function(){
-      setRecUI(false);
-      input.focus();
-    };
+    r.onend = function(){ setRecUI(false); input.focus(); };
     return r;
   }
-
   function startVoice(){
-    if(!SR){
-      addError('voice input not supported on this browser — try Chrome / Edge / Kiwi');
-      return;
-    }
+    if(!SR){ addError('voice input not supported on this browser — try Chrome / Edge / Kiwi'); return; }
     if(recording) return;
     recog = buildRecognizer();
     baseText = input.value.trim();
-    try{
-      recog.start();
-    }catch(e){
-      setRecUI(false);
-      addError('could not start microphone: ' + (e.message||e));
-    }
+    try{ recog.start(); }
+    catch(e){ setRecUI(false); addError('could not start microphone: ' + (e.message||e)); }
   }
   function stopVoice(){
     if(!recog || !recording) return;
     try{ recog.stop(); }catch(e){}
     setRecUI(false);
   }
-  function toggleVoice(){
-    if(recording) stopVoice();
-    else startVoice();
-  }
+  function toggleVoice(){ if(recording) stopVoice(); else startVoice(); }
 
-  if(SR){
-    micBtn.addEventListener('click', toggleVoice);
-  } else {
-    // hide mic if browser can't do it
-    micBtn.style.display = 'none';
-  }
+  if(SR){ micBtn.addEventListener('click', toggleVoice); }
+  else{ micBtn.style.display = 'none'; }
 
   /* ============ INIT ============ */
   loadModels();
