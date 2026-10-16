@@ -89,7 +89,8 @@ def api_assessment_state(titleId, unit_id):
     s = find_session_for(titleId)
     if not s:
         return jsonify(error="no account has access"), 404
-    return jsonify(s.fetch_assessment_state(titleId, unit_id))
+    force = request.args.get("retake") == "1"
+    return jsonify(s.fetch_assessment_state(titleId, unit_id, force_new=force))
 
 
 @public_bp.route("/api/assessment/save/<titleId>/<unit_id>", methods=["POST"])
