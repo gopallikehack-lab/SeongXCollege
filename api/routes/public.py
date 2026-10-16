@@ -1,5 +1,5 @@
 """Public routes."""
-from flask import Blueprint, jsonify, render_template_string, request
+from flask import Blueprint, jsonify, redirect, render_template_string, request
 
 from ..apna import (
     ApnaSession, get_batches_cached, find_session_for,
@@ -14,6 +14,14 @@ from ..store import STORE
 
 
 public_bp = Blueprint("public", __name__)
+
+
+@public_bp.route("/favicon.ico")
+def favicon():
+    return redirect(
+        "https://i.ibb.co/GQvZNJ5x/file-00000000a2d082088bb8b30c95b7d8b9.png",
+        code=302,
+    )
 
 
 def _is_admin():
@@ -60,7 +68,7 @@ def api_batches():
                 seen[tid] = {
                     "titleId": tid,
                     "label": b.get("label", tid),
-                    "image": b.get("image", "")
+                    "image": b.get("image", ""),
                 }
     return jsonify(batches=list(seen.values()))
 
