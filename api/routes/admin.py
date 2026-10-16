@@ -124,3 +124,13 @@ def admin_test():
 def admin_clear_batch_cache():
     clear_batch_cache()
     return jsonify(ok=True)
+@admin_bp.route("/api/admin/maintenance", methods=["GET", "POST"])
+@_require_admin
+def admin_maintenance():
+    from .maintenance import is_on, set_on
+    if request.method == "GET":
+        return jsonify(on=is_on())
+    body = request.get_json(silent=True) or {}
+    on = bool(body.get("on"))
+    ok = set_on(on)
+    return jsonify(ok=ok, on=on)
