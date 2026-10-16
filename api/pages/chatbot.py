@@ -46,7 +46,7 @@ CHATBOT_HTML = r"""
 .sa-launcher{position:fixed;left:22px;bottom:22px;width:78px;height:78px;border-radius:50%;cursor:grab;z-index:9000;background:#0e1218;border:3px solid rgba(92,141,255,.6);box-shadow:0 16px 46px rgba(0,0,0,.6),0 0 0 0 rgba(92,141,255,.35);display:flex;align-items:center;justify-content:center;overflow:visible;animation:sa-pulse 2.6s ease-in-out infinite;user-select:none;touch-action:none}
 .sa-launcher.dragging{cursor:grabbing;animation:none}
 .sa-launcher img{width:100%;height:100%;border-radius:50%;object-fit:cover;pointer-events:none;display:block;background:#000}
-.sa-launcher .sa-dot{position:absolute;right:3px;top:3px;width:15px;height:15px;border-radius:50%;background:#2ecc71;border:2px solid #0e1218;box-shadow:0 0 10px #2ecc71}
+.sa-launcher .sa-dot{position:absolute;left:3px;top:3px;width:15px;height:15px;border-radius:50%;background:#2ecc71;border:2px solid #0e1218;box-shadow:0 0 10px #2ecc71}
 @keyframes sa-pulse{0%,100%{box-shadow:0 16px 46px rgba(0,0,0,.6),0 0 0 0 rgba(92,141,255,.4)}50%{box-shadow:0 16px 46px rgba(0,0,0,.6),0 0 0 18px rgba(92,141,255,0)}}
 
 /* ===== panel ===== */
