@@ -36,22 +36,18 @@ def _is_admin():
 
 @public_bp.route("/")
 def index():
-    # 1. admin bypasses everything
     if _is_admin():
         html = (MAIN_PAGE
                 .replace("__UPI_ID__", UPI_ID)
                 .replace("__QR_IMAGE__", QR_IMAGE))
         return render_template_string(html)
 
-    # 2. protection gate (Cloudflare Turnstile)
     if not _verified():
         return render_template_string(PROTECTION_PAGE)
 
-    # 3. maintenance mode
     if maint_on():
         return render_template_string(MAINTENANCE_PAGE)
 
-    # 4. real site
     html = (MAIN_PAGE
             .replace("__UPI_ID__", UPI_ID)
             .replace("__QR_IMAGE__", QR_IMAGE))
