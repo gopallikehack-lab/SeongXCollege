@@ -116,7 +116,7 @@ a{color:var(--accent);text-decoration:none}
 .upi-box .id{font:13px monospace;color:var(--accent);word-break:break-all;flex:1;min-width:120px}
 .upi-box button{padding:10px 16px;background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;border:0;border-radius:9px;font:inherit;font-weight:600;font-size:12.5px;cursor:pointer;min-height:40px}
 .dev-hero{text-align:center;padding:20px;background:linear-gradient(180deg,rgba(92,141,255,.1),transparent);border-radius:14px;margin-bottom:14px}
-.dev-hero .avatar{width:96px;height:96px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:inline-flex;align-items:center;justify-content:center;font-size:42px;font-weight:800;color:#fff;margin-bottom:14px}
+.dev-hero .avatar-vid{width:120px;height:120px;border-radius:50%;object-fit:cover;object-position:center;display:block;margin:0 auto 14px;border:3px solid var(--accent);box-shadow:0 12px 40px rgba(92,141,255,.35);background:#000;overflow:hidden}
 .dev-hero h2{margin:0 0 6px;font-size:20px;color:var(--txt)}
 .dev-hero .tag{color:var(--muted);font-size:12.5px}
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.82);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;z-index:999;padding:16px}
