@@ -230,6 +230,13 @@ __PLAYER_CSS__
       <div class="card"><h2><img src="https://i.8upload.com/thumbnail/075d2a01f70a99ee/file-000000004c5481fab490646052af760d.png" alt=""> Support 𝐒𝐞𝐨𝐧𝐠𝐒𝐭𝐮𝐝𝐲𝐄𝐫𝐚</h2><p>If this helped you, even a small amount keeps it alive for everyone.</p><p><b>Thank you for the support — it means a lot. 🙏</b></p><img class="qr-img" src="__QR_IMAGE__" alt="UPI QR"><div class="upi-box"><span class="id" id="upi-id">__UPI_ID__</span><button onclick="copyUpi(this)">📋 copy UPI ID</button></div><p style="margin-top:16px;color:var(--warn);font-weight:600">📸 After donation, kindly send the payment screenshot to the owner on Telegram.</p><div class="btn-row"><a class="btn-link" href="https://t.me/SeongEra" target="_blank">💬 Send Screenshot</a></div></div>
       <div class="card"><h2>Where it goes</h2><p>• Server + domain costs</p><p>• New batches, more lectures</p><p>• Keeping it free for everyone</p></div>
     </div>
+    
+    <div class="modal" id="modal-info">
+  <div class="box" style="max-width:520px;padding:0;overflow:hidden">
+    <button class="close" onclick="closeModal('modal-info')" style="position:absolute;top:10px;right:10px;z-index:2;background:rgba(0,0,0,.55);border-radius:50%;width:36px;height:36px;color:#fff">×</button>
+    <div id="info-body"></div>
+  </div>
+</div>
 
     <div class="page" id="page-developer">
       <div class="dev-hero">
