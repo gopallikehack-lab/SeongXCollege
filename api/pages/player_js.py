@@ -109,11 +109,10 @@ function renderBatches(){
       else{thumb='<div class="pattern"></div><div class="mono">'+esc(initials(b.label))+'</div>';thumbStyle=' style="background:linear-gradient(135deg,'+gr[0]+','+gr[1]+')"';}
       var card=document.createElement('div');card.className='batch-card';
       card.innerHTML='<div class="thumb"'+thumbStyle+'>'+thumb+'</div>'
-        +'<div class="meta"><span class="t">'+esc(b.label)+'</span><span class="s">tap to open</span></div>'
-        +'<button class="study-btn">▶ Study</button>';
-      var go=function(){openBatch(b.titleId,b.label);};
-      card.querySelector('.thumb').addEventListener('click',go);
-      card.querySelector('.study-btn').addEventListener('click',go);
+  +'<div class="meta"><span class="t">'+esc(b.label)+'</span><span class="s">tap for info</span></div>'
+  +'<button class="study-btn">▶ Study</button>';
+card.querySelector('.thumb').addEventListener('click',function(){openBatchInfo(b.titleId,b.label);});
+card.querySelector('.study-btn').addEventListener('click',function(){openBatch(b.titleId,b.label);});
       grid.appendChild(card);
     })(filtered[i]);
   }
@@ -672,7 +671,64 @@ function setTotalPill(n){
   if(!el) return;
   el.textContent = (typeof n==='number' && n>0) ? n : '—';
 }
+function openBatchInfo(titleId,label){
+  var body=g('info-body');
+  if(!body) return;
+  body.innerHTML='<div style="padding:60px 24px;text-align:center;color:var(--muted);font-size:13px">'
+    +'<div style="width:32px;height:32px;margin:0 auto 14px;border:3px solid var(--panel2);border-top-color:var(--accent);border-radius:50%;animation:ytspin .85s linear infinite"></div>'
+    +'loading info…</div>';
+  g('modal-info').classList.add('open');
+  fetch('/api/batch-info/'+encodeURIComponent(titleId))
+    .then(function(r){return r.json();})
+    .then(function(j){
+      if(!j||j.error){
+        body.innerHTML='<div style="padding:40px 24px;text-align:center;color:#ff7a7a;font-size:13px">'+esc((j&&j.error)||'failed')+'</div>';
+        return;
+      }
+      renderBatchInfo(j);
+    })
+    .catch(function(e){
+      body.innerHTML='<div style="padding:40px 24px;text-align:center;color:#ff7a7a;font-size:13px">error: '+esc(e.message||e)+'</div>';
+    });
+}
+function renderBatchInfo(info){
+  var body=g('info-body');
+  var img = info.image && info.image.indexOf('course-default-img')===-1 ? info.image : '';
+  var gr = pickGradient(info.title||'');
+  var hero = img
+    ? '<img src="'+esc(img)+'" alt="" style="width:100%;aspect-ratio:16/9;object-fit:cover;display:block">'
+    : '<div style="width:100%;aspect-ratio:16/9;background:linear-gradient(135deg,'+gr[0]+','+gr[1]+');display:flex;align-items:center;justify-content:center;font-size:56px;font-weight:800;color:#fff">'+esc(initials(info.title||'?'))+'</div>';
 
+  var types = info.types || {};
+  var video = (types.ivideo||0) + (types.youtube||0);
+  var pdfs = types.pdf||0;
+  var assess = (types.assessmentv2||0) + (types.assessment||0);
+  var statBits = [];
+  if(info.sections) statBits.push(info.sections+' sections');
+  if(info.units) statBits.push(info.units+' units');
+  if(video) statBits.push(video+' videos');
+  if(pdfs) statBits.push(pdfs+' pdfs');
+  if(assess) statBits.push(assess+' tests');
+
+  var html=''
+    +'<div style="position:relative">'+hero+'</div>'
+    +'<div style="padding:20px 22px 22px">'
+      +'<h2 style="margin:0 0 8px;font-size:19px;font-weight:800;color:var(--txt)">'+esc(info.title||'')+'</h2>'
+      +(info.subtitle?'<p style="margin:0 0 16px;color:var(--muted);font-size:13.5px;line-height:1.6">'+esc(info.subtitle)+'</p>':'')
+      +(statBits.length?'<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px">'+statBits.map(function(s){return '<span style="padding:5px 10px;background:var(--panel2);border:1px solid var(--line);border-radius:8px;font-size:11.5px;font-weight:600;color:var(--txt)">'+esc(s)+'</span>';}).join('')+'</div>':'')
+      +'<div style="display:flex;gap:10px;flex-wrap:wrap">'
+        +'<button class="as-btn primary" onclick="closeModal(\'modal-info\');openBatch(\''+esc(info.titleId||'')+'\',\''+esc(info.title||'')+'\')">▶ Study now</button>'
+        +'<button class="as-btn" onclick="closeModal(\'modal-info\')">Close</button>'
+      +'</div>'
+      +'<div style="margin-top:18px;padding:12px 14px;background:var(--panel2);border:1px dashed var(--line);border-radius:10px;display:flex;gap:10px;align-items:flex-start">'
+        +'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent);flex-shrink:0;margin-top:2px"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>'
+        +'<div style="font-size:12.5px;color:var(--muted);line-height:1.6">'
+          +'Tap <b style="color:var(--accent)">☰</b> inside the batch to see all lectures, PDFs and practice tests.'
+        +'</div>'
+      +'</div>'
+    +'</div>';
+  body.innerHTML=html;
+}
 function loadAll(){
   var grid=g('batch-grid');
   if(!grid) return;
