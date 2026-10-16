@@ -4,6 +4,7 @@ PLAYER_JS = r"""
 (function(){
 'use strict';
 
+/* ===== inline svg icons ===== */
 var ICON_PATHS = {
   arrowleft:'<line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>',
   chevleft:'<polyline points="15 18 9 12 15 6"/>',
@@ -37,6 +38,7 @@ var ICON_PATHS = {
 function icon(n,s){s=s||20;var p=ICON_PATHS[n]||ICON_PATHS.book;return '<svg xmlns="http://www.w3.org/2000/svg" width="'+s+'" height="'+s+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+p+'</svg>';}
 function unitTypeIcon(t){t=(t||'').toLowerCase();if(t==='ivideo')return 'video';if(t==='pdf')return 'file';if(t==='assessmentv2'||t==='assessment')return 'clipboard';if(t==='youtube')return 'youtube';if(t==='scorm')return 'package';if(t==='embed')return 'embed';if(t==='url')return 'link';if(t==='quizformal'||t==='selfassessment')return 'help';return 'book';}
 
+/* ===== themes ===== */
 var THEMES = [
   {id:"default",name:"Midnight",accent:"#5c8dff",accent2:"#7c5cff"},
   {id:"dracula",name:"Dracula",accent:"#bd93f9",accent2:"#ff79c6"},
@@ -73,6 +75,7 @@ window.toggleThemePicker=function(){var p=document.getElementById('theme-picker'
 function closeThemePicker(){var p=document.getElementById('theme-picker');if(p)p.classList.remove('open');}
 document.addEventListener('click',function(e){var p=document.getElementById('theme-picker');if(!p||!p.classList.contains('open'))return;var b=document.querySelector('.icon-btn[title="Themes"]');if(p.contains(e.target)||(b&&b.contains(e.target)))return;p.classList.remove('open');});
 
+/* ===== utils ===== */
 function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
 function g(id){return document.getElementById(id);}
 function hashCode(s){var h=0;for(var i=0;i<(s||'').length;i++){h=((h<<5)-h)+s.charCodeAt(i);h|=0;}return Math.abs(h);}
@@ -84,12 +87,14 @@ window.goPage=function(name){showPage(name);closeDrawer();};
 window.openDrawer=function(){g('drawer').classList.add('open');g('drawer-bg').classList.add('open');};
 window.closeDrawer=function(){g('drawer').classList.remove('open');g('drawer-bg').classList.remove('open');};
 
+/* ===== state ===== */
 var BATCHES=[],ACTIVE=null,FLAT=[],CURRENT=null,CURRENT_INFO=null,HLS=null,VIDEO=null,CURRENT_VARIANTS={};
 var UI_T=null,LP_T=null,TAP_T=null,seekReset=null,seekSide=null,seekAcc=0,ripT=null,lastTapT=0,lastTapSide=null;
 var CUR_SPEED=1,VOL=1,MUTED=false,QSEL=-1,QPREF=0,MENU_VIEW=null,SCRUB=false,HOLDING=false;
 var DT_STEP=10;
 var SPEEDS=[0.5,0.75,1,1.25,1.5,2];
 
+/* ===== batch list ===== */
 function renderBatches(){
   var grid=g('batch-grid');if(!grid)return;
   var q=(g('batch-search').value||'').toLowerCase();
@@ -99,10 +104,9 @@ function renderBatches(){
   for(var i=0;i<filtered.length;i++){
     (function(b){
       var gr=pickGradient(b.label);
-      var thumb;
-      if(b.image){thumb='<img src="'+esc(b.image)+'" alt="" loading="lazy">';}
-      else{thumb='<div class="pattern"></div><div class="mono">'+esc(initials(b.label))+'</div>';}
-      var thumbStyle = b.image ? '' : ' style="background:linear-gradient(135deg,'+gr[0]+','+gr[1]+')"';
+      var thumb,thumbStyle;
+      if(b.image){thumb='<img src="'+esc(b.image)+'" alt="" loading="lazy">';thumbStyle='';}
+      else{thumb='<div class="pattern"></div><div class="mono">'+esc(initials(b.label))+'</div>';thumbStyle=' style="background:linear-gradient(135deg,'+gr[0]+','+gr[1]+')"';}
       var card=document.createElement('div');card.className='batch-card';
       card.innerHTML='<div class="thumb"'+thumbStyle+'>'+thumb+'</div>'
         +'<div class="meta"><span class="t">'+esc(b.label)+'</span><span class="s">tap to open</span></div>'
@@ -115,13 +119,14 @@ function renderBatches(){
   }
 }
 
+/* ===== viewer ===== */
 window.openBatch=function(titleId,label){
   ACTIVE=titleId;
   g('viewer-title').textContent=label;
   g('sections-title').textContent=label;
   g('search').value='';
   g('toc').innerHTML='<div style="padding:20px;color:var(--muted)">loading sections…</div>';
-  g('player-wrap').innerHTML='<div class="player-empty"><h2 class="brand-gradient">Pick a lecture</h2><p>Open the playlist with the list button.</p></div>';
+  g('player-wrap').innerHTML='<div class="player-empty"><svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg><h2 class="brand-gradient">Pick a lecture</h2><p>Open the playlist with the list button.</p></div>';
   g('nowplaying').textContent='';
   destroyPlayer();
   showPage('viewer');
@@ -150,7 +155,7 @@ function renderTOC(){
     head.innerHTML='<div class="toc-num">'+(si+1)+'</div>'
       +'<div class="toc-info"><div class="toc-title">'+esc(sec.title)+'</div>'
       +'<div class="toc-sub">'+units.length+' / '+sec.units.length+' units</div></div>'
-      +'<div class="toc-arrow">'+icon('chevright',14)+'</div>';
+      +'<div class="toc-arrow">'+icon('chevright',18)+'</div>';
     var body=document.createElement('div');body.className='toc-body'+open;
     head.onclick=(function(h,b){return function(){h.classList.toggle('open');b.classList.toggle('open');};})(head,body);
     for(var ui=0;ui<units.length;ui++){
@@ -158,7 +163,7 @@ function renderTOC(){
       FLAT.push({unit:u,sectionTitle:sec.title});
       var typeKey=(u.type||'').replace(/[^a-zA-Z0-9]/g,'')||'unit';
       var uDiv=document.createElement('div');uDiv.className='toc-unit';uDiv.dataset.idx=idx;
-      uDiv.innerHTML='<div class="t">'+esc(u.title||u.id)+'</div><span class="type '+esc(typeKey)+'">'+icon(unitTypeIcon(u.type),11)+'<span>'+esc(u.type||'')+'</span></span>';
+      uDiv.innerHTML='<div class="t">'+esc(u.title||u.id)+'</div><span class="type '+esc(typeKey)+'">'+icon(unitTypeIcon(u.type),13)+'<span>'+esc(u.type||'')+'</span></span>';
       (function(i){uDiv.onclick=function(){playUnit(i);};})(idx);
       body.appendChild(uDiv);
     }
@@ -166,6 +171,7 @@ function renderTOC(){
   }
 }
 
+/* ===== unit playback ===== */
 function playUnit(idx){
   if(idx<0||idx>=FLAT.length)return;
   CURRENT=idx;var item=FLAT[idx];var u=item.unit;
@@ -194,6 +200,7 @@ function destroyPlayer(){
   if(window._asTimer){clearInterval(window._asTimer);window._asTimer=null;}
 }
 
+/* ===== player ===== */
 function setStatus(t,c){var s=g('status');if(!s)return;s.textContent=t;s.className=c||'status';}
 function on(id,fn){var el=g(id);if(el)el.addEventListener('click',fn);}
 
@@ -204,30 +211,30 @@ function buildPlayerUI(){
     '<video id="v" playsinline webkit-playsinline preload="metadata"></video>'+
     '<div class="yt-gl" id="yt-gl"></div>'+
     '<div class="yt-logo brand-gradient">SeongEra</div>'+
-    '<div class="yt-rip l" id="yt-rl"><div class="in">'+icon('replay',30)+'<span id="yt-rlt">10 seconds</span></div></div>'+
-    '<div class="yt-rip r" id="yt-rr"><div class="in">'+icon('replay',30)+'<span id="yt-rrt">10 seconds</span></div></div>'+
+    '<div class="yt-rip l" id="yt-rl"><div class="in">'+icon('replay',34)+'<span id="yt-rlt">10 seconds</span></div></div>'+
+    '<div class="yt-rip r" id="yt-rr"><div class="in">'+icon('replay',34)+'<span id="yt-rrt">10 seconds</span></div></div>'+
     '<div class="yt-2x" id="yt-2x">▶▶ 2× speed</div>'+
     '<div class="yt-spin" id="yt-spin"></div>'+
     '<div class="yt-top" id="yt-top"><div class="yt-title" id="yt-title">'+esc(title)+'</div></div>'+
     '<div class="yt-center" id="yt-center">'+
-      '<button class="yt-sb" id="yt-prev" title="Previous">'+icon('prev',28)+'</button>'+
-      '<button class="yt-big" id="yt-big" title="Play / Pause">'+icon('play',40)+'</button>'+
-      '<button class="yt-sb" id="yt-next" title="Next">'+icon('next',28)+'</button>'+
+      '<button class="yt-sb" id="yt-prev" title="Previous">'+icon('prev',30)+'</button>'+
+      '<button class="yt-big" id="yt-big" title="Play / Pause">'+icon('play',44)+'</button>'+
+      '<button class="yt-sb" id="yt-next" title="Next">'+icon('next',30)+'</button>'+
     '</div>'+
     '<div class="yt-bottom" id="yt-bottom">'+
       '<div class="yt-pb" id="yt-pb"><div class="yt-track"><div class="yt-buf" id="yt-buf"></div><div class="yt-fill" id="yt-fill"></div><div class="yt-knob" id="yt-knob"></div></div><div class="yt-tip" id="yt-tip">0:00</div></div>'+
       '<div class="yt-row">'+
         '<div class="yt-l">'+
-          '<button class="yb yt-hide-sm" id="yt-pp" title="Play / Pause">'+icon('play')+'</button>'+
-          '<span class="yt-volwrap"><button class="yb yt-hide-sm" id="yt-mute" title="Mute">'+icon('vol')+'</button><input class="yt-vol" id="yt-vol" type="range" min="0" max="1" step="0.05" value="1"></span>'+
+          '<button class="yb yt-hide-sm" id="yt-pp" title="Play / Pause">'+icon('play',26)+'</button>'+
+          '<span class="yt-volwrap"><button class="yb yt-hide-sm" id="yt-mute" title="Mute">'+icon('vol',26)+'</button><input class="yt-vol" id="yt-vol" type="range" min="0" max="1" step="0.05" value="1"></span>'+
           '<span class="yt-time" id="yt-time">0:00 / 0:00</span>'+
         '</div>'+
         '<div class="yt-r">'+
-          '<button class="yb" id="yt-list" title="Playlist">'+icon('list')+'</button>'+
-          '<button class="yb" id="yt-dl" title="Download">'+icon('dl')+'</button>'+
-          '<button class="yb" id="yt-lk" title="m3u8 link">'+icon('link')+'</button>'+
-          '<button class="yb" id="yt-set" title="Settings">'+icon('gear')+'</button>'+
-          '<button class="yb" id="yt-fs" title="Fullscreen">'+icon(fsEl()?'exitfs':'fs')+'</button>'+
+          '<button class="yb" id="yt-list" title="Playlist">'+icon('list',26)+'</button>'+
+          '<button class="yb" id="yt-dl" title="Download">'+icon('dl',26)+'</button>'+
+          '<button class="yb" id="yt-lk" title="m3u8 link">'+icon('link',26)+'</button>'+
+          '<button class="yb" id="yt-set" title="Settings">'+icon('gear',26)+'</button>'+
+          '<button class="yb" id="yt-fs" title="Fullscreen">'+icon(fsEl()?'exitfs':'fs',26)+'</button>'+
         '</div>'+
       '</div>'+
     '</div>'+
@@ -279,9 +286,9 @@ function bindVideo(){
 }
 function playingLabel(){if(HLS&&HLS.levels&&HLS.currentLevel>=0&&HLS.levels[HLS.currentLevel]&&HLS.levels[HLS.currentLevel].height)return 'playing · '+HLS.levels[HLS.currentLevel].height+'p';return 'playing';}
 function setBuf(on){var y=g('yt'),s=g('yt-spin');if(!y||!s)return;y.classList.toggle('buf',on);s.classList.toggle('on',on);}
-function syncPlay(){if(!VIDEO||!g('yt-big'))return;var playing=!VIDEO.paused&&!VIDEO.ended;var nm=VIDEO.ended?'replay':(playing?'pause':'play');g('yt-big').innerHTML=icon(nm,40);g('yt-pp').innerHTML=icon(nm);var y=g('yt');if(y)y.classList.toggle('yt-paused',!playing);}
+function syncPlay(){if(!VIDEO||!g('yt-big'))return;var playing=!VIDEO.paused&&!VIDEO.ended;var nm=VIDEO.ended?'replay':(playing?'pause':'play');g('yt-big').innerHTML=icon(nm,44);g('yt-pp').innerHTML=icon(nm,26);var y=g('yt');if(y)y.classList.toggle('yt-paused',!playing);}
 function syncNav(){var p=g('yt-prev'),n=g('yt-next');if(!p||!n)return;p.disabled=!(CURRENT!=null&&CURRENT>0);n.disabled=!(CURRENT!=null&&CURRENT<FLAT.length-1);}
-function syncVol(){if(!VIDEO||!g('yt-mute'))return;MUTED=VIDEO.muted;if(!VIDEO.muted&&VIDEO.volume>0)VOL=VIDEO.volume;var eff=VIDEO.muted?0:VIDEO.volume;g('yt-mute').innerHTML=icon(eff===0?'mute':'vol');var s=g('yt-vol');if(!s)return;s.value=eff;var p=Math.round(eff*100);s.style.background='linear-gradient(90deg,#fff '+p+'%,rgba(255,255,255,.3) '+p+'%)';}
+function syncVol(){if(!VIDEO||!g('yt-mute'))return;MUTED=VIDEO.muted;if(!VIDEO.muted&&VIDEO.volume>0)VOL=VIDEO.volume;var eff=VIDEO.muted?0:VIDEO.volume;g('yt-mute').innerHTML=icon(eff===0?'mute':'vol',26);var s=g('yt-vol');if(!s)return;s.value=eff;var p=Math.round(eff*100);s.style.background='linear-gradient(90deg,#fff '+p+'%,rgba(255,255,255,.3) '+p+'%)';}
 function showUI(){var y=g('yt');if(!y)return;y.classList.add('show');clearTimeout(UI_T);if(VIDEO&&!VIDEO.paused&&!SCRUB&&!MENU_VIEW&&!HOLDING){UI_T=setTimeout(hideUI,3200);}}
 function hideUI(){var y=g('yt');if(!y||!VIDEO||VIDEO.paused||SCRUB||MENU_VIEW)return;y.classList.remove('show');}
 function dur(){var d=VIDEO&&VIDEO.duration;return (d&&isFinite(d))?d:0;}
@@ -373,6 +380,7 @@ function showRipple(side,acc){
   ripT=setTimeout(function(){el.classList.remove('on');},650);
 }
 
+/* ===== wistia ===== */
 function playWistia(sourceid){
   var master='https://fast.wistia.com/embed/medias/'+sourceid+'.m3u8';
   buildPlayerUI();
@@ -395,18 +403,20 @@ function attachAutoNext(){
   VIDEO.addEventListener('ended',function(){if(CURRENT!=null&&CURRENT<FLAT.length-1){setStatus('auto-playing next…');playUnit(CURRENT+1);}});
 }
 
+/* ===== pdf ===== */
 function playPdf(titleId,unitId){
   g('player-wrap').innerHTML='<div class="player-empty">loading PDF…</div>';
   fetch('/api/pdf/'+encodeURIComponent(titleId)+'/'+encodeURIComponent(unitId)).then(function(r){return r.json();}).then(function(info){
     if(info.error){g('player-wrap').innerHTML='<div class="player-empty"><p>PDF error: '+esc(info.error)+'</p></div>';return;}
     window._pdfInfo=info;
-    g('player-wrap').innerHTML='<div class="pdf-viewer"><div class="pdf-toolbar"><span class="name">'+icon('file',16)+' '+esc(info.display||info.filename)+'</span><div class="pdf-actions"><a href="'+esc(info.redirectUrl)+'" download="'+esc(info.filename)+'" target="_blank" class="primary">'+icon('dl',14)+' download</a><button onclick="pdfCopyUrl(this)">'+icon('link',14)+' copy</button><button onclick="pdfNewTab()">↗ new tab</button></div></div><iframe class="pdf-frame" src="'+esc(info.redirectUrl)+'"></iframe></div>';
+    g('player-wrap').innerHTML='<div class="pdf-viewer"><div class="pdf-toolbar"><span class="name">'+icon('file',20)+' '+esc(info.display||info.filename)+'</span><div class="pdf-actions"><a href="'+esc(info.redirectUrl)+'" download="'+esc(info.filename)+'" target="_blank" class="primary">'+icon('dl',16)+' download</a><button onclick="pdfCopyUrl(this)">'+icon('link',16)+' copy</button><button onclick="pdfNewTab()">↗ new tab</button></div></div><iframe class="pdf-frame" src="'+esc(info.redirectUrl)+'"></iframe></div>';
     setStatus('pdf','status ok');
   });
 }
 window.pdfNewTab=function(){if(window._pdfInfo&&window._pdfInfo.redirectUrl)window.open(window._pdfInfo.redirectUrl,'_blank');};
 window.pdfCopyUrl=function(btn){var item=FLAT[CURRENT];fetch('/api/pdf/'+encodeURIComponent(ACTIVE)+'/'+encodeURIComponent(item.unit.id)).then(function(r){return r.json();}).then(function(info){if(info.redirectUrl){navigator.clipboard.writeText(info.redirectUrl);var o=btn.textContent;btn.textContent='✓';setTimeout(function(){btn.textContent=o;},1200);}});};
 
+/* ===== controls ===== */
 window.togglePlay=function(){if(!VIDEO)return;if(VIDEO.paused||VIDEO.ended){var p=VIDEO.play();if(p&&p.catch)p.catch(function(){});}else VIDEO.pause();};
 window.toggleMute=function(){if(VIDEO){VIDEO.muted=!VIDEO.muted;if(!VIDEO.muted&&VIDEO.volume===0)VIDEO.volume=VOL||1;}};
 window.playNext=function(){if(CURRENT!=null&&CURRENT<FLAT.length-1)playUnit(CURRENT+1);};
@@ -424,10 +434,11 @@ window.toggleFS=function(){
     if(p&&p.then)p.then(function(){try{if(window.innerWidth<=900&&screen.orientation&&screen.orientation.lock)screen.orientation.lock('landscape').catch(function(){});}catch(e){}}).catch(function(){});
   }else leaveFS();
 };
-function onFsChange(){var b=g('yt-fs');if(b)b.innerHTML=icon(fsEl()?'exitfs':'fs');if(!fsEl()){try{if(screen.orientation&&screen.orientation.unlock)screen.orientation.unlock();}catch(e){}}}
+function onFsChange(){var b=g('yt-fs');if(b)b.innerHTML=icon(fsEl()?'exitfs':'fs',26);if(!fsEl()){try{if(screen.orientation&&screen.orientation.unlock)screen.orientation.unlock();}catch(e){}}}
 document.addEventListener('fullscreenchange',onFsChange);
 document.addEventListener('webkitfullscreenchange',onFsChange);
 
+/* ===== download / link modals ===== */
 window.openDownload=function(){
   if(!CURRENT_INFO)return;
   if(CURRENT_INFO.type==='pdf'){var a=document.querySelector('.pdf-actions a.primary');if(a)a.click();return;}
@@ -538,7 +549,7 @@ function renderAssessment(){
     if(!b){renderAssessmentReview();return;}
     var bd=b.blockData||b.data||{};var qHtml=asBlockHtml(b);
     if(!qHtml||!qHtml.trim()){
-      g('player-wrap').innerHTML='<div class="as-coming"><div class="as-icon">'+icon('clock',32)+'</div><h2>Coming Soon</h2><p>This test isn\'t available yet. The question content hasn\'t been published. Please check back later.</p></div>';
+      g('player-wrap').innerHTML='<div class="as-coming"><div class="as-icon">'+icon('clock',36)+'</div><h2>Coming Soon</h2><p>This test isn\'t available yet. The question content hasn\'t been published. Please check back later.</p></div>';
       setStatus('coming soon');return;
     }
     var opts=bd.options||[];var curAns=AS.answers[bid];var optsHtml='';
@@ -549,10 +560,10 @@ function renderAssessment(){
       +'<div class="as-head"><h1>'+esc(a.title||'Assessment')+'</h1><div class="as-sub">Question '+(curIdx+1)+' of '+AS.total+' · '+answered+' answered</div><div class="as-progress"><div style="width:'+pct+'%"></div></div></div>'
       +'<div class="as-q"><div class="as-q-num">Question '+(curIdx+1)+' / '+AS.total+'</div><div class="as-q-text">'+qHtml+'</div><div class="as-opts">'+optsHtml+'</div></div>'
       +'<div class="as-actions">'
-      +'<button class="as-btn" id="as-prev" '+(curIdx===0?'disabled':'')+'>'+icon('chevleft',16)+' Prev</button>'
+      +'<button class="as-btn" id="as-prev" '+(curIdx===0?'disabled':'')+'>'+icon('chevleft',18)+' Prev</button>'
       +'<div style="display:flex;gap:10px">'
-      +'<button class="as-btn" id="as-save">'+icon('check',16)+' Save</button>'
-      +(curIdx<AS.total-1?'<button class="as-btn primary" id="as-next">Next '+icon('chevright',16)+'</button>':'<button class="as-btn danger" id="as-submit">Submit</button>')
+      +'<button class="as-btn" id="as-save">'+icon('check',18)+' Save</button>'
+      +(curIdx<AS.total-1?'<button class="as-btn primary" id="as-next">Next '+icon('chevright',18)+'</button>':'<button class="as-btn danger" id="as-submit">Submit</button>')
       +'</div></div></div></div>';
     g('player-wrap').innerHTML=html;
     setStatus('assessment · Q'+(curIdx+1),'status ok');
@@ -624,7 +635,7 @@ function renderAssessmentReview(){
       for(var oi=0;oi<opts.length;oi++){var o=opts[oi];var cls='as-opt',tag='';if(userAns===o.id){if(gg2&&gg2.correct===true){cls+=' correct';tag='<span class="as-tag ok">✓</span>';}else if(gg2&&gg2.correct===false){cls+=' wrong';tag='<span class="as-tag no">✗</span>';}}else if(correctId&&o.id===correctId){cls+=' correct';tag='<span class="as-tag ok">✓ answer</span>';}optsHtml+='<div class="'+cls+'"><div class="as-radio"></div><div class="as-opt-body">'+asOptHtml(o)+'</div>'+tag+'</div>';}
       html+='<div class="as-review"><div class="as-q-num">Question '+(qi2+1)+' / '+AS.total+'</div><div class="as-q-text">'+qHtml+'</div><div class="as-opts">'+optsHtml+'</div></div>';
     }
-    html+='<div class="as-actions"><button class="as-btn" id="as-back-btn">'+icon('arrowleft',16)+' Back</button><div style="display:flex;gap:10px"><button class="as-btn" id="as-refresh-btn">'+icon('refresh',16)+' Refresh</button><button class="as-btn primary" id="as-retake-btn">Retake</button></div></div>';
+    html+='<div class="as-actions"><button class="as-btn" id="as-back-btn">'+icon('arrowleft',18)+' Back</button><div style="display:flex;gap:10px"><button class="as-btn" id="as-refresh-btn">'+icon('refresh',18)+' Refresh</button><button class="as-btn primary" id="as-retake-btn">Retake</button></div></div>';
     html+='</div></div>';
     g('player-wrap').innerHTML=html;
     setStatus('assessment · submitted','status ok');
@@ -634,6 +645,7 @@ function renderAssessmentReview(){
   }catch(e){g('player-wrap').innerHTML='<div class="as-err">review error: '+esc(e.message||e)+'</div>';}
 }
 
+/* ===== bootstrap ===== */
 g('search').addEventListener('input',renderTOC);
 g('batch-search').addEventListener('input',renderBatches);
 renderThemePicker();
