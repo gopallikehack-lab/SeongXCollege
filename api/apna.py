@@ -146,7 +146,6 @@ class ApnaSession:
             try:
                 sections = d.get("course", {}).get("sections", {}) or {}
                 objects = d.get("course", {}).get("objects", {}) or {}
-                # patch Untitled assessment units before caching + returning
                 self._patch_assessment_titles(sections, objects)
                 compact = {
                     "id": d.get("course", {}).get("id"),
@@ -236,10 +235,18 @@ class ApnaSession:
     # ---------- assessment endpoints ----------
 
     def fetch_assessment_state(self, title_id, unit_id):
+        """Fetch assessment state.
+
+        GET /api/assessment/state returns skeleton blocks (id + type only)
+        for users who have never started the assessment. In that case we
+        auto-init via POST /api/assessment/submission/init to get the full
+        blockData (widgets + options) and create the submission.
+        """
+        ref = f"{BASE}/path-player?courseid={title_id}&unit={unit_id}Unit"
         try:
             r = self.s.get(f"{BASE}/api/assessment/state",
                 params={"sourceType": "unit", "objectId": unit_id},
-                headers=self.h(f"{BASE}/path-player?courseid={title_id}&unit={unit_id}Unit"),
+                headers=self.h(ref),
                 timeout=TIMEOUT)
             if r.status_code != 200:
                 return {"error": f"status {r.status_code}"}
@@ -248,6 +255,38 @@ class ApnaSession:
                 errs = j.get("errors") or []
                 msg = errs[0].get("message") if errs and isinstance(errs[0], dict) else "assessment error"
                 return {"error": msg}
+
+            # detect skeleton blocks (no blockData anywhere)
+            needs_init = False
+            secs = ((j.get("assessment") or {}).get("sections")) or []
+            for sec in secs:
+                for blk in (sec.get("blocks") or []):
+                    if "blockData" not in blk:
+                        needs_init = True
+                        break
+                if needs_init:
+                    break
+
+            has_sub = bool(j.get("latestSubmission"))
+
+            if needs_init and not has_sub:
+                try:
+                    ri = self.s.post(
+                        f"{BASE}/api/assessment/submission/init",
+                        json={
+                            "sourceType": "unit",
+                            "objectId": unit_id,
+                            "courseTitleId": title_id,
+                        },
+                        headers=self.h(ref),
+                        timeout=TIMEOUT)
+                    if ri.status_code == 200:
+                        ji = ri.json()
+                        if ji.get("success", True) and ji.get("assessment"):
+                            return ji
+                except Exception:
+                    pass
+
             return j
         except Exception as e:
             return {"error": f"{type(e).__name__}: {e}"}
