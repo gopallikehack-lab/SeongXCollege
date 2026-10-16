@@ -63,6 +63,14 @@ a{color:var(--accent);text-decoration:none}
 .hero .h-title{font-size:16px;font-weight:800;letter-spacing:.4px;line-height:1.2}
 .hero .h-sub{font-size:11.5px;color:var(--muted);margin-top:2px}
 .hero .h-sub a{color:var(--accent);font-weight:700}
+.hero .total-pill{flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 16px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:12px;color:#fff;box-shadow:0 8px 24px rgba(92,141,255,.28);min-width:88px}
+.hero .total-pill .num{font-size:24px;font-weight:800;line-height:1;letter-spacing:.4px}
+.hero .total-pill .lbl{font-size:9.5px;text-transform:uppercase;letter-spacing:.8px;margin-top:4px;font-weight:700;opacity:.9}
+@media (max-width:520px){
+  .hero .total-pill{padding:8px 12px;min-width:72px}
+  .hero .total-pill .num{font-size:20px}
+  .hero .total-pill .lbl{font-size:8.5px}
+}
 .search-wrap{padding:10px 0;position:sticky;top:0;background:var(--bg);z-index:5}
 .search-wrap input{width:100%;padding:12px 14px;background:var(--panel);border:1px solid var(--line);color:var(--txt);font:inherit;border-radius:10px;min-height:46px;font-size:14px}
 .batch-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;padding-bottom:40px}
@@ -94,7 +102,6 @@ a{color:var(--accent);text-decoration:none}
 .status{padding:3px 10px;background:var(--panel2);border-radius:12px;color:var(--accent);font-weight:600;font-size:11px}
 .status.ok{color:var(--good)}
 .status.err{color:#ff7a7a}
-
 .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px;margin-bottom:14px}
 .card h2{margin:0 0 12px;font-size:16px;font-weight:700;color:var(--txt);display:flex;align-items:center;gap:12px}
 .card h2 img{width:32px;height:32px;object-fit:contain;display:block}
@@ -178,6 +185,10 @@ __PLAYER_CSS__
         <div class="h-text">
           <div class="h-title brand-gradient">𝐀𝐩𝐧𝐚 𝐂𝐨𝐥𝐥𝐞𝐠𝐞</div>
           <div class="h-sub">All batches · Free forever · <a href="https://t.me/SeongEraStudy" target="_blank">t.me/SeongEraStudy</a></div>
+        </div>
+        <div class="total-pill" id="total-pill">
+          <span class="num" id="total-batches">—</span>
+          <span class="lbl">batches</span>
         </div>
       </div>
       <div class="search-wrap"><input id="batch-search" placeholder="🔍 Search batches…"></div>
