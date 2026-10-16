@@ -6,7 +6,7 @@ CHATBOT_HTML = r"""
   <img src="https://i.8upload.com/thumbnail/d252db6ffe117d55/6240190351691944107-120.jpg" alt="SEONG AI">
   <span class="sa-dot"></span>
   <div id="sa-toast" class="sa-toast">
-    <span class="sa-toast-text">Heyy👋I'm ✦ 𝑺𝒆𝒐𝒏𝒈 𝑨𝒊 ✦, can I help you?</span>
+    <span class="sa-toast-text">Heyy👋I'm ✦ 𝑺𝒆𝒐𝒏𝒈 𝑨𝒊 ✦</span>
   </div>
 </div>
 
