@@ -10,7 +10,6 @@ live_bp = Blueprint("live", __name__)
 
 @live_bp.route("/api/live/stats")
 def api_live_stats():
-    """Total unique batches available across every account in the store."""
     seen = {}
     for acct in STORE.get_accounts():
         try:
@@ -24,7 +23,4 @@ def api_live_stats():
                     }
         except Exception:
             continue
-    return jsonify(
-        total=len(seen),
-        batches=list(seen.values()),
-    )
+    return jsonify(total=len(seen), batches=list(seen.values()))
