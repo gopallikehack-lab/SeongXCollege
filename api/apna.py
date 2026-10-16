@@ -28,9 +28,19 @@ class ApnaSession:
         self._primed = False
 
     def _prime(self):
-        """Hit /start once to pick up slim_session + _cfuvid cookies."""
+        """Hit /start once to pick up slim_session + _cfuvid, preserving lw_tokens."""
         if self._primed:
             return
+        saved_lw = None
+        saved_slim = None
+        try:
+            for c in self.s.cookies.jar:
+                if c.name == "lw_tokens":
+                    saved_lw = c.value
+                elif c.name == "slim_session":
+                    saved_slim = c.value
+        except Exception:
+            pass
         try:
             self.s.get(f"{BASE}/start",
                 headers={
@@ -40,9 +50,14 @@ class ApnaSession:
                     "token": self.token or "",
                 },
                 timeout=TIMEOUT)
-            self._primed = True
         except Exception:
             pass
+        try:
+            if saved_lw:
+                self.s.cookies.set("lw_tokens", saved_lw, domain="www.apnacollege.in")
+        except Exception:
+            pass
+        self._primed = True
 
     def h(self, referer=None):
         return {"Accept": "application/json", "Content-Type": "application/json",
@@ -61,7 +76,7 @@ class ApnaSession:
             return False, f"{type(e).__name__}"
 
     def fetch_image_map(self):
-        self._prime()
+        """Hit /start and parse the SITE_AFFILIATES blob — no priming needed."""
         try:
             r = self.s.get(f"{BASE}/start",
                 headers={
@@ -88,7 +103,7 @@ class ApnaSession:
             return {}
 
     def fetch_batches(self):
-        self._prime()
+        """GET owned courses — no priming, uses lw_tokens directly."""
         body = {
             "type": "course",
             "access": "public,private-enroll,soon,view-locked",
