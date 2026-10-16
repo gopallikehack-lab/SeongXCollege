@@ -275,7 +275,13 @@ function bindVideo(){
   v.addEventListener('durationchange',updateTime);
   v.addEventListener('loadedmetadata',function(){if(!HOLDING)v.playbackRate=CUR_SPEED;updateTime();});
   v.addEventListener('play',function(){syncPlay();showUI();});
-  v.addEventListener('pause',function(){if(!VIDEO)return;syncPlay();showUI();setStatus('paused');});
+  v.addEventListener('pause',function(){
+  if(!VIDEO)return;
+  syncPlay(); showUI(); setStatus('paused');
+  // after 5s of pause, hide the UI (until user moves mouse / taps)
+  clearTimeout(UI_T);
+  UI_T=setTimeout(hideUI, 5000);
+});
   v.addEventListener('playing',function(){if(!VIDEO)return;setBuf(false);syncPlay();setStatus(playingLabel(),'status ok');showUI();});
   v.addEventListener('waiting',function(){if(!VIDEO)return;setBuf(true);setStatus('buffering…');});
   v.addEventListener('canplay',function(){setBuf(false);});
@@ -283,7 +289,6 @@ function bindVideo(){
   v.addEventListener('ended',function(){syncPlay();showUI();});
   v.addEventListener('volumechange',syncVol);
   v.addEventListener('error',function(){if(!VIDEO)return;setBuf(false);setStatus('video error','status err');});
-}
 function playingLabel(){if(HLS&&HLS.levels&&HLS.currentLevel>=0&&HLS.levels[HLS.currentLevel]&&HLS.levels[HLS.currentLevel].height)return 'playing · '+HLS.levels[HLS.currentLevel].height+'p';return 'playing';}
 function setBuf(on){var y=g('yt'),s=g('yt-spin');if(!y||!s)return;y.classList.toggle('buf',on);s.classList.toggle('on',on);}
 function syncPlay(){if(!VIDEO||!g('yt-big'))return;var playing=!VIDEO.paused&&!VIDEO.ended;var nm=VIDEO.ended?'replay':(playing?'pause':'play');g('yt-big').innerHTML=icon(nm,44);g('yt-pp').innerHTML=icon(nm,26);var y=g('yt');if(y)y.classList.toggle('yt-paused',!playing);}
