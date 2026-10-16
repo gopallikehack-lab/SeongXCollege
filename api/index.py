@@ -6,6 +6,7 @@ from .routes.admin import admin_bp
 from .routes.live import live_bp
 from .routes.maintenance import maintenance_bp
 from .protection import protection_bp
+from .chatbot import chat_bp
 from .debug_image import register as register_debug
 
 
@@ -15,6 +16,7 @@ app.register_blueprint(admin_bp)
 app.register_blueprint(live_bp)
 app.register_blueprint(maintenance_bp)
 app.register_blueprint(protection_bp)
+app.register_blueprint(chat_bp)
 register_debug(app)
 
 
