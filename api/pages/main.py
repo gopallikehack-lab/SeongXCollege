@@ -231,7 +231,13 @@ __PLAYER_CSS__
     </div>
 
     <div class="page" id="page-developer">
-      <div class="dev-hero"><div class="avatar">GP</div><h2 class="brand-gradient">Gopal Parmar</h2><div class="tag">Reverse Engineer · Developer · Bug Bounty Hunter</div></div>
+      <div class="dev-hero">
+  <video class="avatar-vid" autoplay muted loop playsinline webkit-playsinline preload="metadata" poster="">
+    <source src="https://huggingface.co/datasets/gopallikehack/Seong_Study/resolve/main/b-261016-losy60.mp4" type="video/mp4">
+  </video>
+  <h2 class="brand-gradient">Gopal Parmar</h2>
+  <div class="tag">Reverse Engineer · Developer · Bug Bounty Hunter</div>
+</div>
       <div class="card"><h2><img src="https://i.8upload.com/thumbnail/693b952ab1e1f305/725f1f70a44256cc2e3eebf3c36b129e9ce9bca10738be057ba50c1af2b1f87c.png" alt=""> Developer Info</h2><p><b>Name:</b> Gopal Parmar</p><p><b>Skills:</b> Reverse Engineering · Coding · Exploiting · Bug Bounty</p><p><b>Age:</b> Why?? you want to know 🥹🥸🥲</p><p><b>State:</b> Rajasthan 🫶❤️‍🩹</p><p><b>Telegram:</b> <a href="https://t.me/SeongEra">@SeongEra</a></p><div class="btn-row"><a class="btn-link" href="https://t.me/SeongEra" target="_blank">💬 Message @SeongEra</a><a class="btn-ghost" href="https://t.me/SeongEraStudy" target="_blank">📢 Study Channel</a></div></div>
       <div class="card"><h2>About the project</h2><p>𝐒𝐞𝐨𝐧𝐠𝐒𝐭𝐮𝐝𝐲𝐄𝐫𝐚 is a free study platform built for students. No ads, no paywall, no signup.</p><p style="color:var(--muted);font-size:12px">Made with care in Rajasthan.</p></div>
     </div>
