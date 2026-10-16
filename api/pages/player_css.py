@@ -25,8 +25,7 @@ PLAYER_CSS = r"""
 .yt-big{width:86px;height:86px;padding:0;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
 .yt-big>svg{width:44px!important;height:44px!important}
 .yt-big:hover{transform:scale(1.1);background:rgba(0,0,0,.72)}
-.yt-paused .yt-big{animation:yt-pulse 1.8s ease-in-out infinite}
-@keyframes yt-pulse{0%,100%{box-shadow:0 6px 24px rgba(0,0,0,.4),0 0 0 0 rgba(255,255,255,.28)}50%{box-shadow:0 6px 24px rgba(0,0,0,.4),0 0 0 20px rgba(255,255,255,0)}}
+/* NOTE: pulsing ring around play button on pause — REMOVED */
 .yt-bottom{position:absolute;left:0;right:0;bottom:0;z-index:4;padding:44px 14px 12px;background:linear-gradient(0deg,rgba(0,0,0,.9),rgba(0,0,0,.4) 55%,transparent);opacity:0;transform:translateY(8px);transition:opacity .3s cubic-bezier(.22,.9,.28,1),transform .3s cubic-bezier(.22,.9,.28,1);pointer-events:none}
 .yt.show .yt-bottom{opacity:1;transform:translateY(0);pointer-events:auto}
 .yt.buf .yt-big{opacity:0}
