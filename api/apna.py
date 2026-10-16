@@ -15,6 +15,9 @@ from .config import (
 )
 from .store import STORE
 
+SITE_ID = "62a6cd5e1e9e2fbf212d608d"
+IMAGE_BASE = f"https://lwfiles.mycourse.app/{SITE_ID}-public"
+
 
 class ApnaSession:
     def __init__(self, email, token):
@@ -42,31 +45,15 @@ class ApnaSession:
         except Exception as e:
             return False, f"{type(e).__name__}"
 
-    def fetch_image_map(self):
-        try:
-            r = self.s.get(f"{BASE}/start",
-                headers={
-                    "Accept": "text/html,application/xhtml+xml",
-                    "Origin": BASE,
-                    "Referer": f"{BASE}/start",
-                    "token": self.token or "",
-                },
-                timeout=TIMEOUT)
-            if r.status_code != 200:
-                return {}
-            m = re.search(r'var SITE_AFFILIATES=(\{.*?\});', r.text, re.DOTALL)
-            if not m:
-                return {}
-            data = json.loads(m.group(1))
-            out = {}
-            for p in data.get("products-migration-v4", []) or []:
-                tid = p.get("titleId")
-                img = p.get("image")
-                if tid and img:
-                    out[tid] = img
-            return out
-        except Exception:
-            return {}
+    @staticmethod
+    def _build_image_url(path):
+        if not path:
+            return ""
+        if isinstance(path, str) and path.startswith("http"):
+            return path
+        if not path.startswith("/"):
+            path = "/" + path
+        return IMAGE_BASE + path
 
     def fetch_batches(self):
         body = {
@@ -86,26 +73,22 @@ class ApnaSession:
             print(f"[!] fetch_batches {self.email}: {type(e).__name__}")
             return []
 
-        data = d.get("data") or []
-        image_map = self.fetch_image_map()
-
         out = []
-        for c in data:
+        for c in (d.get("data") or []):
             tid, ttl = c.get("titleId"), c.get("title")
             if not tid or not ttl:
                 continue
-            img = ""
-            if tid in image_map:
-                img = image_map[tid]
-            else:
-                ci = c.get("courseImage") or c.get("image") or {}
-                if isinstance(ci, dict):
-                    img = ci.get("url") or ci.get("src") or ""
-                elif isinstance(ci, str):
-                    img = ci
-                if img and "course-default-img" in img:
-                    img = ""
-            out.append({"titleId": tid, "label": ttl, "image": img})
+            st = c.get("settings") or {}
+            img = self._build_image_url(st.get("image"))
+            prog = c.get("progress") or {}
+            pct = prog.get("percentage") if isinstance(prog, dict) else 0
+            out.append({
+                "titleId": tid,
+                "label": ttl,
+                "image": img,
+                "bgcolor": st.get("bgcolor") or "",
+                "progress": pct or 0,
+            })
         return out
 
     @staticmethod
@@ -121,7 +104,7 @@ class ApnaSession:
                         _u["unitTitle"] = _real
 
     def fetch_curriculum(self, titleId):
-        cache_key = f"curric:v3:{self.email}:{titleId}"
+        cache_key = f"curric:v4:{self.email}:{titleId}"
         cached = STORE.cache_get(cache_key)
         if cached:
             try:
