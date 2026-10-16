@@ -65,18 +65,10 @@ def api_batches():
                     "titleId": tid,
                     "label": b.get("label", tid),
                     "image": b.get("image", ""),
+                    "progress": b.get("progress", 0),
                 }
     return jsonify(batches=list(seen.values()))
-    
-@public_bp.route("/api/batch-info/<titleId>")
-def api_batch_info(titleId):
-    s = find_session_for(titleId)
-    if not s:
-        return jsonify(error="no account has access"), 404
-    info = s.fetch_course_info(titleId)
-    if not info:
-        return jsonify(error="failed to fetch info"), 500
-    return jsonify(info)
+
 
 @public_bp.route("/api/sections/<titleId>")
 def api_sections(titleId):
@@ -123,6 +115,19 @@ def api_variants(sourceid):
         s = ApnaSession(accts[0]["email"], accts[0].get("token", ""))
         return jsonify(variants=s.wistia_variants(sourceid))
     return jsonify(variants={})
+
+
+# ---------- batch info ----------
+
+@public_bp.route("/api/batch-info/<titleId>")
+def api_batch_info(titleId):
+    s = find_session_for(titleId)
+    if not s:
+        return jsonify(error="no account has access"), 404
+    info = s.fetch_course_info(titleId)
+    if not info:
+        return jsonify(error="failed to fetch info"), 500
+    return jsonify(info)
 
 
 # ---------- assessment ----------
