@@ -567,7 +567,7 @@ function playAssessment(titleId,unitId,info){
         if(j.error){g('player-wrap').innerHTML='<div class="as-err">'+esc(j.error)+'</div>';setStatus('error','status err');return;}
         AS.state=j;
         var a=j.assessment||{};
-        var sub=j.latestSubmission||{};
+        var sub=j.latestSubmission||j.submission||{};
         AS.submissionId=sub.id||null;
         var pre=(sub.answers||[]);
         for(var i=0;i<pre.length;i++){
