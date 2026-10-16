@@ -27,16 +27,18 @@ a{color:var(--accent);text-decoration:none}
 .brand-gradient{background:linear-gradient(90deg,var(--accent),var(--accent2) 60%,#b35cff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
 .topnav{display:flex;align-items:center;gap:10px;padding:10px 16px;background:linear-gradient(180deg,rgba(20,26,34,.5),rgba(10,14,20,.9));border-bottom:1px solid var(--line);flex-shrink:0;position:relative;z-index:20}
 [data-theme="day"] .topnav{background:linear-gradient(180deg,#ffffff,#f5f6f9)}
-.menu-btn{padding:8px 10px;background:var(--panel2);border:1px solid var(--line);color:var(--txt);border-radius:9px;cursor:pointer;min-width:44px;min-height:44px;display:inline-flex;align-items:center;justify-content:center}
-.menu-btn:hover{border-color:var(--accent);color:var(--accent)}
+.icon-btn{padding:8px;background:var(--panel2);border:1px solid var(--line);color:var(--txt);border-radius:9px;cursor:pointer;min-width:44px;min-height:44px;display:inline-flex;align-items:center;justify-content:center}
+.icon-btn:hover{border-color:var(--accent)}
+.icon-btn img{width:22px;height:22px;object-fit:contain;pointer-events:none;filter:var(--icon-filter,none)}
+[data-theme="day"] .icon-btn img{filter:none}
+.icon-btn svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .brand{flex:1;min-width:0;display:flex;align-items:center;gap:10px}
 .brand-logo{width:34px;height:34px;border-radius:9px;object-fit:cover;border:1px solid var(--line);background:#000;flex-shrink:0}
 .brand-text{min-width:0;display:flex;flex-direction:column;justify-content:center}
 .brand-title{margin:0;font-size:15px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:.3px;line-height:1.15}
 .brand-sub{font-size:10px;color:var(--muted);display:block;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:600}
 .brand-sub a{color:var(--accent);font-weight:700}
-.theme-btn{padding:8px;background:var(--panel2);border:1px solid var(--line);color:var(--txt);border-radius:9px;cursor:pointer;min-width:44px;min-height:44px;display:inline-flex;align-items:center;justify-content:center}
-.theme-btn:hover{border-color:var(--accent);color:var(--accent)}
+
 .drawer-bg{position:fixed;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(4px);z-index:200;opacity:0;pointer-events:none;transition:opacity .22s}
 .drawer-bg.open{opacity:1;pointer-events:auto}
 .drawer{position:fixed;top:0;left:0;bottom:0;width:280px;max-width:85vw;background:var(--panel);border-right:1px solid var(--line);z-index:201;transform:translateX(-100%);transition:transform .22s;display:flex;flex-direction:column;overflow-y:auto}
@@ -49,7 +51,9 @@ a{color:var(--accent);text-decoration:none}
 .drawer-head .tg a{color:var(--accent);font-weight:700}
 .drawer-item{display:flex;align-items:center;gap:12px;padding:14px 18px;cursor:pointer;color:var(--txt);border-left:3px solid transparent;font-weight:600;font-size:13.5px;text-decoration:none}
 .drawer-item.active{background:linear-gradient(90deg,rgba(92,141,255,.12),transparent);border-left-color:var(--accent);color:var(--accent)}
-.drawer-item svg{flex-shrink:0}
+.drawer-item .ico{width:24px;height:24px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+.drawer-item .ico img{width:20px;height:20px;object-fit:contain}
+.drawer-item .ico svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .drawer-foot{margin-top:auto;padding:16px 18px;font-size:10.5px;color:var(--muted);border-top:1px solid var(--line);line-height:1.6}
 .drawer-foot a{color:var(--accent)}
 .content{flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0;position:relative}
@@ -64,8 +68,6 @@ a{color:var(--accent);text-decoration:none}
 .hero .h-sub a{color:var(--accent);font-weight:700}
 .search-wrap{padding:10px 0;position:sticky;top:0;background:var(--bg);z-index:5}
 .search-wrap input{width:100%;padding:12px 14px;background:var(--panel);border:1px solid var(--line);color:var(--txt);font:inherit;border-radius:10px;min-height:46px;font-size:14px}
-
-/* NEW batch layout */
 .batch-list{display:flex;flex-direction:column;gap:14px;padding-bottom:40px}
 @media (min-width:800px){.batch-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr))}}
 .bcard{display:flex;gap:14px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px;transition:all .2s cubic-bezier(.22,.9,.28,1);cursor:pointer;position:relative;overflow:hidden}
@@ -82,39 +84,93 @@ a{color:var(--accent);text-decoration:none}
 .bcard-prog{margin-top:6px;height:4px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden}
 [data-theme="day"] .bcard-prog{background:rgba(0,0,0,.06)}
 .bcard-prog > div{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));width:0}
-.bcard-arrow{color:var(--muted);padding-right:6px;transition:transform .2s}
-.bcard:hover .bcard-arrow{color:var(--accent);transform:translateX(3px)}
+.bcard-arrow{color:var(--muted);padding-right:6px;display:flex;align-items:center}
+.bcard:hover .bcard-arrow{color:var(--accent)}
 
-/* viewer */
+/* viewer with permanent playlist */
 .viewer{display:flex;flex-direction:column;height:100%;min-height:0}
 .viewer-head{display:flex;align-items:center;gap:10px;padding:10px 16px;background:var(--panel);border-bottom:1px solid var(--line);flex-shrink:0}
 .viewer-head .back{padding:8px 10px;background:var(--panel2);border:1px solid var(--line);color:var(--txt);border-radius:8px;cursor:pointer;min-height:40px;min-width:40px;display:inline-flex;align-items:center;justify-content:center}
-.viewer-head .back:hover{border-color:var(--accent);color:var(--accent)}
+.viewer-head .back:hover{border-color:var(--accent)}
+.viewer-head .back svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .viewer-head .title{font-size:14px;font-weight:600;color:var(--txt);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.viewer-body{flex:1;display:flex;overflow:hidden;min-height:0}
+.playlist-panel{width:380px;flex-shrink:0;background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column;overflow:hidden}
+.playlist-panel .pl-head{padding:12px 14px;border-bottom:1px solid var(--line);flex-shrink:0;display:flex;align-items:center;gap:8px}
+.playlist-panel .pl-head .cnt{margin-left:auto;padding:3px 10px;background:var(--panel2);border:1px solid var(--line);border-radius:12px;font-size:11px;color:var(--muted);font-weight:600}
+.playlist-panel .pl-search{padding:10px 14px;border-bottom:1px solid var(--line);flex-shrink:0}
+.playlist-panel .pl-search input{width:100%;padding:10px 12px;background:var(--bg);border:1px solid var(--line);color:var(--txt);font:inherit;border-radius:9px;min-height:42px;font-size:13.5px;outline:none}
+.playlist-panel .pl-search input:focus{border-color:var(--accent)}
+.toc{flex:1;overflow-y:auto}
+.toc-sec{border-bottom:1px solid var(--line)}
+.toc-head{padding:13px 14px;display:flex;align-items:center;gap:12px;cursor:pointer;user-select:none;transition:background .15s}
+.toc-head:hover{background:rgba(255,255,255,.025)}
+.toc-head.open{background:linear-gradient(90deg,rgba(92,141,255,.08),transparent)}
+.toc-num{width:34px;height:34px;border-radius:10px;background:var(--panel2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:var(--accent);flex-shrink:0}
+.toc-head.open .toc-num{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border-color:transparent}
+.toc-info{flex:1;min-width:0}
+.toc-title{font-size:13.5px;font-weight:600;color:var(--txt);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.3}
+.toc-sub{font-size:11px;color:var(--muted);margin-top:2px}
+.toc-arrow{color:var(--muted);flex-shrink:0;display:flex;align-items:center;transition:transform .2s}
+.toc-head.open .toc-arrow{transform:rotate(90deg);color:var(--accent)}
+.toc-arrow svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.toc-body{display:none}
+.toc-body.open{display:block;background:rgba(0,0,0,.15)}
+.toc-unit{padding:11px 14px 11px 60px;display:flex;align-items:center;gap:10px;cursor:pointer;border-top:1px solid rgba(255,255,255,.03);min-height:44px;transition:background .15s}
+.toc-unit:hover{background:rgba(255,255,255,.04)}
+.toc-unit.active{background:linear-gradient(90deg,rgba(92,141,255,.16),transparent)}
+.toc-unit .t{flex:1;font-size:13px;color:#b0bccb;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.3}
+.toc-unit.active .t{color:var(--accent);font-weight:600}
+.toc-unit .type{padding:3px 8px;border-radius:6px;font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;flex-shrink:0;display:inline-flex;align-items:center;gap:4px}
+.toc-unit .type svg{width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.toc-unit .type.ivideo{background:rgba(92,141,255,.15);color:#7ea8ff}
+.toc-unit .type.pdf{background:rgba(46,204,113,.15);color:#4ddc8e}
+.toc-unit .type.assessmentV2{background:rgba(179,92,255,.15);color:#c88cff}
+.toc-unit .type.youtube{background:rgba(255,92,92,.15);color:#ff8b8b}
+.toc-unit .type.scorm{background:rgba(246,183,60,.15);color:#f6c46b}
+.toc-unit .type.embed,.toc-unit .type.url{background:rgba(124,134,151,.18);color:#a8b3c2}
+.toc-unit .type.quizFormal,.toc-unit .type.selfAssessment{background:rgba(179,92,255,.15);color:#c88cff}
+
 .player-main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0;position:relative}
 .player-wrap{flex:1;background:#000;display:flex;align-items:center;justify-content:center;position:relative;min-height:0;overflow:hidden;cursor:pointer}
 .player-empty{color:var(--muted);text-align:center;padding:32px;max-width:560px;line-height:1.8}
 .player-empty h2{font-size:26px;margin:0 0 16px;font-weight:800}
+.player-empty svg{width:52px;height:52px;stroke:currentColor;fill:none;stroke-width:1.5;opacity:.4;margin-bottom:20px}
 .player-wrap video{width:100%;height:100%;background:#000;object-fit:contain}
 .player-wrap iframe{width:100%;height:100%;border:0;background:#fff}
-.controls{background:var(--panel);border-top:1px solid var(--line);padding:10px 14px;flex-shrink:0}
 .bottombar{padding:8px 14px;background:var(--panel);border-top:1px solid var(--line);flex-shrink:0;font-size:11.5px;color:var(--muted);display:flex;justify-content:space-between;gap:10px}
 .status{padding:3px 10px;background:var(--panel2);border-radius:12px;color:var(--accent);font-weight:600;font-size:11px}
 .status.ok{color:var(--good)}
 .status.err{color:#ff7a7a}
 
+/* fullscreen: hide playlist panel by default, toggle via list button */
+.player-wrap:fullscreen .playlist-panel,
+.player-wrap:-webkit-full-screen .playlist-panel{position:absolute;top:0;left:0;bottom:0;width:min(400px,50vw);z-index:60;transform:translateX(-100%);transition:transform .28s cubic-bezier(.22,.9,.28,1);box-shadow:16px 0 40px rgba(0,0,0,.55)}
+.player-wrap:fullscreen .playlist-panel.open,
+.player-wrap:-webkit-full-screen .playlist-panel.open{transform:translateX(0)}
+.player-wrap:fullscreen .bottombar,
+.player-wrap:-webkit-full-screen .bottombar{display:none}
+
+/* mobile: stack player on top, playlist below, both visible */
+@media (max-width:900px){
+  .viewer-body{flex-direction:column}
+  .playlist-panel{width:100%;border-right:0;border-top:1px solid var(--line);max-height:48vh}
+  .player-main{min-height:52vh}
+}
+
 /* pdf viewer */
 .pdf-viewer{width:100%;height:100%;display:flex;flex-direction:column;background:#0a0a0a}
 .pdf-toolbar{padding:10px 14px;background:var(--panel2);border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap}
-.pdf-toolbar .name{color:var(--txt);font-weight:600;font-size:12.5px;flex:1;min-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pdf-toolbar .name{color:var(--txt);font-weight:600;font-size:12.5px;flex:1;min-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-flex;align-items:center;gap:6px}
 .pdf-actions{display:flex;gap:6px;flex-wrap:wrap}
 .pdf-actions a,.pdf-actions button{padding:8px 12px;background:var(--panel2);color:var(--txt);border:1px solid var(--line);border-radius:8px;font:inherit;font-weight:600;font-size:12px;cursor:pointer;min-height:38px;display:inline-flex;align-items:center;gap:5px;text-decoration:none}
 .pdf-actions .primary{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;border-color:transparent}
 .pdf-frame{flex:1;border:0;background:#fff}
 
-/* cards for about/request/etc */
+/* cards for static pages */
 .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px;margin-bottom:14px}
 .card h2{margin:0 0 12px;font-size:16px;font-weight:700;color:var(--txt);display:flex;align-items:center;gap:10px}
+.card h2 img{width:20px;height:20px;object-fit:contain}
 .card p{color:var(--muted);line-height:1.7;margin:8px 0;font-size:13.5px}
 .card p b{color:var(--txt)}
 .card .btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
@@ -150,14 +206,12 @@ a{color:var(--accent);text-decoration:none}
 .theme-swatch:hover{border-color:var(--accent);transform:translateY(-1px)}
 .theme-swatch.cur{border-color:var(--accent);background:rgba(92,141,255,.08)}
 .theme-swatch .dot{width:20px;height:20px;border-radius:50%;flex-shrink:0;border:1px solid rgba(255,255,255,.15)}
-
-@media (max-width:900px){.sections-overlay{width:88vw}}
 </style>
 </head>
 <body>
 <div style="height:100vh;height:100dvh;display:flex;flex-direction:column">
   <div class="topnav">
-    <button class="menu-btn" onclick="openDrawer()" id="menu-btn" title="Menu"></button>
+    <button class="icon-btn" onclick="openDrawer()" title="Menu"><img src="https://i.ibb.co/9HHvtm9Y/file-0000000028dc8211891f9065b33fc4d0.png" alt=""></button>
     <div class="brand">
       <img class="brand-logo" src="https://i.ibb.co/GQvZNJ5x/file-00000000a2d082088bb8b30c95b7d8b9.png" alt="logo">
       <div class="brand-text">
@@ -165,7 +219,7 @@ a{color:var(--accent);text-decoration:none}
         <span class="brand-sub">📚 Free Study · <a href="https://t.me/SeongEraStudy" target="_blank">t.me/SeongEraStudy</a></span>
       </div>
     </div>
-    <button class="theme-btn" onclick="toggleThemePicker()" id="palette-btn" title="Themes"></button>
+    <button class="icon-btn" onclick="toggleThemePicker()" title="Themes"><img src="https://i.ibb.co/GvM2j28r/file-0000000097ac81fa9566b8530974918d.png" alt=""></button>
   </div>
 
   <div class="theme-picker" id="theme-picker">
@@ -182,12 +236,12 @@ a{color:var(--accent);text-decoration:none}
         <span class="tg">📚 Free study · Made By <a href="https://t.me/Seong_Era" target="_blank">@Seong_Era</a></span>
       </div>
     </div>
-    <div class="drawer-item active" data-page="batches" onclick="goPage('batches')"><span class="ico" data-icon="book"></span><span>All Batches</span></div>
-    <div class="drawer-item" data-page="request" onclick="goPage('request')"><span class="ico" data-icon="plus"></span><span>Request a Batch</span></div>
-    <a class="drawer-item" href="https://t.me/SeongEraStudy" target="_blank"><span class="ico" data-icon="message"></span><span>Join Telegram</span></a>
-    <div class="drawer-item" data-page="contact" onclick="goPage('contact')"><span class="ico" data-icon="mail"></span><span>Contact Us</span></div>
-    <div class="drawer-item" data-page="donate" onclick="goPage('donate')"><span class="ico" data-icon="heart"></span><span>Donate</span></div>
-    <div class="drawer-item" data-page="developer" onclick="goPage('developer')"><span class="ico" data-icon="code"></span><span>Developer Info</span></div>
+    <div class="drawer-item active" data-page="batches" onclick="goPage('batches')"><span class="ico"><img src="https://i.ibb.co/fdZVrZJZ/file-00000000bc4881faa022f841b9f420d7.png" alt=""></span><span>All Batches</span></div>
+    <div class="drawer-item" data-page="request" onclick="goPage('request')"><span class="ico"><img src="https://i.ibb.co/fd0mQM2N/file-0000000042d081f8b8f1dfeab8d5c56b.png" alt=""></span><span>Request a Batch</span></div>
+    <a class="drawer-item" href="https://t.me/SeongEraStudy" target="_blank"><span class="ico"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span><span>Join Telegram</span></a>
+    <div class="drawer-item" data-page="contact" onclick="goPage('contact')"><span class="ico"><svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="22,6 12,13 2,6"/></svg></span><span>Contact Us</span></div>
+    <div class="drawer-item" data-page="donate" onclick="goPage('donate')"><span class="ico"><img src="https://i.8upload.com/thumbnail/075d2a01f70a99ee/file-000000004c5481fab490646052af760d.png" alt=""></span><span>Donate</span></div>
+    <div class="drawer-item" data-page="developer" onclick="goPage('developer')"><span class="ico"><img src="https://i.8upload.com/thumbnail/693b952ab1e1f305/725f1f70a44256cc2e3eebf3c36b129e9ce9bca10738be057ba50c1af2b1f87c.png" alt=""></span><span>Developer Info</span></div>
     <div class="drawer-foot">Made By <a href="https://t.me/Seong_Era" target="_blank">@Seong_Era</a><br>Channel: <a href="https://t.me/SeongEraStudy" target="_blank">t.me/SeongEraStudy</a></div>
   </div>
 
@@ -207,54 +261,53 @@ a{color:var(--accent);text-decoration:none}
     <div class="page" id="page-viewer">
       <div class="viewer">
         <div class="viewer-head">
-          <button class="back" onclick="closeBatch()" data-icon="arrow-left"></button>
-          <button class="back" onclick="toggleSections()" data-icon="list" title="playlist"></button>
+          <button class="back" onclick="closeBatch()" title="Back"><svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg></button>
           <div class="title" id="viewer-title">Batch</div>
         </div>
-        <div class="player-main">
-          <div class="player-wrap" id="player-wrap">
-            <div class="player-empty">
-              <h2 class="brand-gradient">Pick a lecture</h2>
-              <p>Open the playlist panel with the list icon to browse lectures.</p>
+        <div class="viewer-body">
+          <div class="playlist-panel" id="playlist-panel">
+            <div class="pl-head">
+              <strong style="font-size:13px">Playlist</strong>
+              <span class="cnt" id="pcount">—</span>
             </div>
+            <div class="pl-search"><input id="search" placeholder="🔍 search units…"></div>
+            <div class="toc" id="toc"></div>
           </div>
-          <div class="controls" id="controls" style="display:none"></div>
-          <div class="bottombar">
-            <span class="status" id="status">ready</span>
-            <span id="nowplaying"></span>
+          <div class="player-main">
+            <div class="player-wrap" id="player-wrap">
+              <div class="player-empty">
+                <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                <h2 class="brand-gradient">Pick a lecture</h2>
+                <p>Pick any unit from the playlist on the left.</p>
+              </div>
+            </div>
+            <div class="bottombar">
+              <span class="status" id="status">ready</span>
+              <span id="nowplaying"></span>
+            </div>
           </div>
         </div>
       </div>
     </div>
 
-    <div class="page" id="page-request"><div class="card"><h2><span data-icon="plus"></span> Request a Batch</h2><p>Want a new batch added? Message me on Telegram with the batch name or link.</p><div class="btn-row"><a class="btn-link" href="https://t.me/Seong_Era" target="_blank">💬 Message @Seong_Era</a><a class="btn-ghost" href="https://t.me/SeongEraStudy" target="_blank">📢 Join Channel</a></div></div></div>
+    <div class="page" id="page-request"><div class="card"><h2><img src="https://i.ibb.co/fd0mQM2N/file-0000000042d081f8b8f1dfeab8d5c56b.png" alt=""> Request a Batch</h2><p>Want a new batch added? Message me on Telegram with the batch name or link.</p><div class="btn-row"><a class="btn-link" href="https://t.me/Seong_Era" target="_blank">💬 Message @Seong_Era</a><a class="btn-ghost" href="https://t.me/SeongEraStudy" target="_blank">📢 Join Channel</a></div></div></div>
 
     <div class="page" id="page-contact">
-      <div class="card"><h2><span data-icon="mail"></span> Contact Us</h2><p>Any issue or feedback — reach out on Telegram.</p><div class="btn-row"><a class="btn-link" href="https://t.me/Seong_Era" target="_blank">💬 @Seong_Era</a><a class="btn-ghost" href="https://t.me/SeongEraStudy" target="_blank">📢 Study Channel</a></div></div>
+      <div class="card"><h2><svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2"><rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="22,6 12,13 2,6"/></svg> Contact Us</h2><p>Any issue or feedback — reach out on Telegram.</p><div class="btn-row"><a class="btn-link" href="https://t.me/Seong_Era" target="_blank">💬 @Seong_Era</a><a class="btn-ghost" href="https://t.me/SeongEraStudy" target="_blank">📢 Study Channel</a></div></div>
       <div class="card"><h2>Common stuff</h2><p><b>Video won't load:</b> reload.</p><p><b>Wrong quality:</b> pick a lower resolution.</p><p><b>Download:</b> hit the download icon in the player.</p></div>
     </div>
 
     <div class="page" id="page-donate">
-      <div class="card"><h2><span data-icon="heart"></span> Support 𝐒𝐞𝐨𝐧𝐠𝐒𝐭𝐮𝐝𝐲𝐄𝐫𝐚</h2><p>If this helped you, even a small amount keeps it alive for everyone.</p><p><b>Thank you for the support — it means a lot. 🙏</b></p><img class="qr-img" src="__QR_IMAGE__" alt="UPI QR"><div class="upi-box"><span class="id" id="upi-id">__UPI_ID__</span><button onclick="copyUpi(this)">📋 copy UPI ID</button></div><p style="margin-top:16px;color:var(--warn);font-weight:600">📸 After donation, kindly send the payment screenshot to the owner on Telegram.</p><div class="btn-row"><a class="btn-link" href="https://t.me/SeongEra" target="_blank">💬 Send Screenshot</a></div></div>
+      <div class="card"><h2><img src="https://i.8upload.com/thumbnail/075d2a01f70a99ee/file-000000004c5481fab490646052af760d.png" alt=""> Support 𝐒𝐞𝐨𝐧𝐠𝐒𝐭𝐮𝐝𝐲𝐄𝐫𝐚</h2><p>If this helped you, even a small amount keeps it alive for everyone.</p><p><b>Thank you for the support — it means a lot. 🙏</b></p><img class="qr-img" src="__QR_IMAGE__" alt="UPI QR"><div class="upi-box"><span class="id" id="upi-id">__UPI_ID__</span><button onclick="copyUpi(this)">📋 copy UPI ID</button></div><p style="margin-top:16px;color:var(--warn);font-weight:600">📸 After donation, kindly send the payment screenshot to the owner on Telegram.</p><div class="btn-row"><a class="btn-link" href="https://t.me/SeongEra" target="_blank">💬 Send Screenshot</a></div></div>
       <div class="card"><h2>Where it goes</h2><p>• Server + domain costs</p><p>• New batches, more lectures</p><p>• Keeping it free for everyone</p></div>
     </div>
 
     <div class="page" id="page-developer">
       <div class="dev-hero"><div class="avatar">GP</div><h2 class="brand-gradient">Gopal Parmar</h2><div class="tag">Reverse Engineer · Developer · Bug Bounty Hunter</div></div>
-      <div class="card"><h2><span data-icon="code"></span> Developer Info</h2><p><b>Name:</b> Gopal Parmar</p><p><b>Skills:</b> Reverse Engineering · Coding · Exploiting · Bug Bounty</p><p><b>Age:</b> Why?? you want to know 🥹🥸🥲</p><p><b>State:</b> Rajasthan 🫶❤️‍🩹</p><p><b>Telegram:</b> <a href="https://t.me/SeongEra">@SeongEra</a></p><div class="btn-row"><a class="btn-link" href="https://t.me/SeongEra" target="_blank">💬 Message @SeongEra</a><a class="btn-ghost" href="https://t.me/SeongEraStudy" target="_blank">📢 Study Channel</a></div></div>
+      <div class="card"><h2><img src="https://i.8upload.com/thumbnail/693b952ab1e1f305/725f1f70a44256cc2e3eebf3c36b129e9ce9bca10738be057ba50c1af2b1f87c.png" alt=""> Developer Info</h2><p><b>Name:</b> Gopal Parmar</p><p><b>Skills:</b> Reverse Engineering · Coding · Exploiting · Bug Bounty</p><p><b>Age:</b> Why?? you want to know 🥹🥸🥲</p><p><b>State:</b> Rajasthan 🫶❤️‍🩹</p><p><b>Telegram:</b> <a href="https://t.me/SeongEra">@SeongEra</a></p><div class="btn-row"><a class="btn-link" href="https://t.me/SeongEra" target="_blank">💬 Message @SeongEra</a><a class="btn-ghost" href="https://t.me/SeongEraStudy" target="_blank">📢 Study Channel</a></div></div>
       <div class="card"><h2>About the project</h2><p>𝐒𝐞𝐨𝐧𝐠𝐒𝐭𝐮𝐝𝐲𝐄𝐫𝐚 is a free study platform built for students. No ads, no paywall, no signup.</p><p style="color:var(--muted);font-size:12px">Made with care in Rajasthan.</p></div>
     </div>
   </div>
-</div>
-
-<div class="sections-overlay" id="sections-overlay">
-  <div class="sections-head">
-    <img src="https://i.ibb.co/GQvZNJ5x/file-00000000a2d082088bb8b30c95b7d8b9.png" alt="logo" style="width:28px;height:28px;border-radius:8px;background:#000;border:1px solid var(--line)">
-    <h3 id="sections-title">Sections</h3>
-    <button class="close-sec" onclick="toggleSections()" data-icon="x"></button>
-  </div>
-  <div class="search2"><input id="search" placeholder="search units…"></div>
-  <div class="toc" id="toc"></div>
 </div>
 
 <div class="modal" id="modal-dl"><div class="box"><button class="close" onclick="closeModal('modal-dl')">×</button><h2>Download</h2><div class="sub">Downloads directly to your device</div><div class="variants" id="dl-variants"></div></div></div>
