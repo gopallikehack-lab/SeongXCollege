@@ -3,12 +3,14 @@ from flask import Flask
 
 from .routes.public import public_bp
 from .routes.admin import admin_bp
+from .routes.live import live_bp
 from .debug_image import register as register_debug
 
 
 app = Flask(__name__)
 app.register_blueprint(public_bp)
 app.register_blueprint(admin_bp)
+app.register_blueprint(live_bp)
 register_debug(app)
 
 
