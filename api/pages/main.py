@@ -1,6 +1,7 @@
 """MAIN_PAGE — HTML shell + CSS + JS."""
 from .player_css import PLAYER_CSS
 from .player_js import PLAYER_JS
+from .chatbot import CHATBOT_HTML
 
 _MAIN_HTML = r"""<!DOCTYPE html>
 <html lang="en" data-theme="default">
