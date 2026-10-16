@@ -25,14 +25,34 @@ class ApnaSession:
             "access_token": token, "token_type": "Bearer", "expires_in": TOKEN_TTL,
         }))
         self.s.cookies.set("lw_tokens", cookie_val, domain="www.apnacollege.in")
+        self._primed = False
+
+    def _prime(self):
+        """Hit /start once to pick up slim_session + _cfuvid cookies."""
+        if self._primed:
+            return
+        try:
+            self.s.get(f"{BASE}/start",
+                headers={
+                    "Accept": "text/html,application/xhtml+xml",
+                    "Origin": BASE,
+                    "Referer": f"{BASE}/start",
+                    "token": self.token or "",
+                },
+                timeout=TIMEOUT)
+            self._primed = True
+        except Exception:
+            pass
 
     def h(self, referer=None):
+        self._prime()
         return {"Accept": "application/json", "Content-Type": "application/json",
                 "Origin": BASE, "Referer": referer or f"{BASE}/start",
                 "token": self.token or ""}
 
     def verify(self):
         try:
+            self._prime()
             r = self.s.get(f"{BASE}/api/user/me", headers=self.h(), timeout=TIMEOUT)
             if r.status_code != 200:
                 return False, f"status {r.status_code}"
@@ -43,8 +63,8 @@ class ApnaSession:
             return False, f"{type(e).__name__}"
 
     def fetch_image_map(self):
-        """Parse /start page HTML for batch cover images."""
         try:
+            self._prime()
             r = self.s.get(f"{BASE}/start",
                 headers={
                     "Accept": "text/html,application/xhtml+xml",
@@ -54,11 +74,9 @@ class ApnaSession:
                 },
                 timeout=TIMEOUT)
             if r.status_code != 200:
-                print(f"[!] image_map status {r.status_code}")
                 return {}
             m = re.search(r'var SITE_AFFILIATES=(\{.*?\});', r.text, re.DOTALL)
             if not m:
-                print("[!] SITE_AFFILIATES not found")
                 return {}
             data = json.loads(m.group(1))
             out = {}
@@ -67,10 +85,8 @@ class ApnaSession:
                 img = p.get("image")
                 if tid and img:
                     out[tid] = img
-            print(f"[+] image_map {self.email}: {len(out)} images")
             return out
-        except Exception as e:
-            print(f"[!] fetch_image_map: {type(e).__name__}: {e}")
+        except Exception:
             return {}
 
     def fetch_batches(self):
@@ -115,21 +131,18 @@ class ApnaSession:
 
     @staticmethod
     def _patch_assessment_titles(sections, objects):
-        """For assessmentV2 units whose unitTitle is 'Untitled', use the
-        object's real title from the objects map."""
         if not sections or not objects:
             return
         for _sid, _sec in sections.items():
             for _u in (_sec.get("learningPath") or []):
-                _ut = (_u.get("type") or "")
-                if _ut == "assessmentV2":
+                if (_u.get("type") or "") == "assessmentV2":
                     _obj = objects.get(_u.get("id")) or {}
                     _real = _obj.get("title")
                     if _real and _real != "Untitled":
                         _u["unitTitle"] = _real
 
     def fetch_curriculum(self, titleId):
-        cache_key = f"curric:v2:{self.email}:{titleId}"
+        cache_key = f"curric:v3:{self.email}:{titleId}"
         cached = STORE.cache_get(cache_key)
         if cached:
             try:
@@ -137,6 +150,7 @@ class ApnaSession:
             except Exception:
                 pass
         try:
+            self._prime()
             r = self.s.get(f"{BASE}/api/course/{titleId}?contents&path-player",
                            headers=self.h(f"{BASE}/path-player?courseid={titleId}"),
                            timeout=TIMEOUT)
@@ -171,6 +185,10 @@ class ApnaSession:
         cid = self.course_internal_id(titleId)
         if not cid:
             return {"error": "no course id"}
+        # check for assessmentV2 first
+        a = self._assessment_meta(titleId, unit_id)
+        if a:
+            return a
         try:
             r = self.s.get(f"{BASE}/api/video/{cid}/{unit_id}",
                 headers=self.h(f"{BASE}/path-player?courseid={titleId}&unit={unit_id}Unit"),
@@ -187,9 +205,6 @@ class ApnaSession:
             if fname:
                 return {"unit_id": unit_id, "title": disp or fname,
                         "type": "pdf", "pdf": fname, "batch": titleId}
-            a = self._assessment_meta(titleId, unit_id)
-            if a:
-                return a
         if v.get("type") == "wistia":
             return {
                 "unit_id": unit_id,
@@ -199,9 +214,6 @@ class ApnaSession:
                 "duration": v.get("duration"),
                 "batch": titleId,
             }
-        a = self._assessment_meta(titleId, unit_id)
-        if a:
-            return a
         return {
             "unit_id": unit_id,
             "title": v.get("title"),
@@ -220,8 +232,7 @@ class ApnaSession:
         obj = objs.get(unit_id)
         if not obj:
             return None
-        otype = obj.get("objectType") or ""
-        if otype != "assessmentV2":
+        if (obj.get("objectType") or "") != "assessmentV2":
             return None
         data = obj.get("data") or {}
         return {
@@ -232,22 +243,30 @@ class ApnaSession:
             "batch": title_id,
         }
 
-    # ---------- assessment endpoints ----------
+    # ---------- assessment ----------
 
-    def fetch_assessment_state(self, title_id, unit_id):
-        """Fetch assessment state.
-
-        GET /api/assessment/state returns skeleton blocks (id + type only)
-        for users who have never started the assessment. In that case we
-        auto-init via POST /api/assessment/submission/init to get the full
-        blockData (widgets + options) and create the submission.
-        """
+    def fetch_assessment_state(self, title_id, unit_id, force_new=False):
+        """GET /state (auto-init if skeleton) or POST /init (if force_new)."""
+        self._prime()
         ref = f"{BASE}/path-player?courseid={title_id}&unit={unit_id}Unit"
+
+        if force_new:
+            try:
+                ri = self.s.post(f"{BASE}/api/assessment/submission/init",
+                    json={"sourceType": "unit", "objectId": unit_id,
+                          "courseTitleId": title_id},
+                    headers=self.h(ref), timeout=TIMEOUT)
+                if ri.status_code == 200:
+                    ji = ri.json()
+                    if ji.get("assessment"):
+                        return ji
+            except Exception as e:
+                print(f"[!] force init: {e}")
+
         try:
             r = self.s.get(f"{BASE}/api/assessment/state",
                 params={"sourceType": "unit", "objectId": unit_id},
-                headers=self.h(ref),
-                timeout=TIMEOUT)
+                headers=self.h(ref), timeout=TIMEOUT)
             if r.status_code != 200:
                 return {"error": f"status {r.status_code}"}
             j = r.json()
@@ -256,7 +275,6 @@ class ApnaSession:
                 msg = errs[0].get("message") if errs and isinstance(errs[0], dict) else "assessment error"
                 return {"error": msg}
 
-            # detect skeleton blocks (no blockData anywhere)
             needs_init = False
             secs = ((j.get("assessment") or {}).get("sections")) or []
             for sec in secs:
@@ -266,20 +284,14 @@ class ApnaSession:
                         break
                 if needs_init:
                     break
-
             has_sub = bool(j.get("latestSubmission"))
 
             if needs_init and not has_sub:
                 try:
-                    ri = self.s.post(
-                        f"{BASE}/api/assessment/submission/init",
-                        json={
-                            "sourceType": "unit",
-                            "objectId": unit_id,
-                            "courseTitleId": title_id,
-                        },
-                        headers=self.h(ref),
-                        timeout=TIMEOUT)
+                    ri = self.s.post(f"{BASE}/api/assessment/submission/init",
+                        json={"sourceType": "unit", "objectId": unit_id,
+                              "courseTitleId": title_id},
+                        headers=self.h(ref), timeout=TIMEOUT)
                     if ri.status_code == 200:
                         ji = ri.json()
                         if ji.get("success", True) and ji.get("assessment"):
