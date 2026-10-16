@@ -9,17 +9,13 @@ TOKEN_TTL = 60 * 60 * 24 * 7
 ADMIN_TTL = 60 * 60 * 4
 BATCH_CACHE_TTL = 300
 
-SECRET_KEY = os.environ.get("SECRET_KEY", "seongera-study-change-me-in-prod")
-ENROLL_COOKIE = "se_enrolled"
-ENROLL_TTL = 60 * 60 * 24 * 365   # 1 year
-
 BRAND = "SeongEra_Study 📚✏"
 TG_LINK = "https://t.me/SeongEraStudy"
-TG_ADMIN = "https://t.me/Seong_Era"
+TG_ADMIN = "https://t.me/SeongEra"
 
 ADMIN_CODE = os.environ.get("ADMIN_CODE", "12345678")
 SUPABASE_URL = (os.environ.get("SUPABASE_URL") or "").rstrip("/")
 SUPABASE_KEY = os.environ.get("SUPABASE_KEY") or ""
 
-UPI_ID = "yourupi@upi"
+UPI_ID = "gopal92008@fam"
 QR_IMAGE = "https://i.ibb.co/1Ghndgcb/IMG-20261015-162405-562.jpg"
