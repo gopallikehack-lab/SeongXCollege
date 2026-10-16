@@ -1,15 +1,13 @@
 """Cloudflare Turnstile gate — protection page + verification route."""
 import secrets
-import urllib.parse
 
 import requests as plain_requests
-from flask import Blueprint, jsonify, redirect, request
+from flask import Blueprint, jsonify, request
 
-from .config import BASE, TIMEOUT
 from .store import STORE
 
 # ============================================================
-#   TURNSTILE KEYS  —  paste your real keys here
+#   TURNSTILE KEYS  —  your real keys
 # ============================================================
 TURNSTILE_SITE_KEY   = "0x4AAAAAAFYknbdvZc3cInpx"
 TURNSTILE_SECRET_KEY = "0x4AAAAAAFYknSDQkm5oAl0PmaPIhSb1BgE"
@@ -21,8 +19,6 @@ VERIFY_URL    = "https://challenges.cloudflare.com/turnstile/v0/siteverify"
 
 protection_bp = Blueprint("protection", __name__)
 
-
-# ---------- cookie helpers ----------
 
 def _verified():
     tok = request.cookies.get(VERIFY_COOKIE)
@@ -41,8 +37,6 @@ def _mark_verified(tok):
         pass
 
 
-# ---------- verification call to Cloudflare ----------
-
 def _siteverify(token, ip):
     try:
         r = plain_requests.post(
@@ -59,8 +53,6 @@ def _siteverify(token, ip):
         return {"success": False, "error-codes": [f"network:{e}"]}
 
 
-# ---------- public route the frontend calls ----------
-
 @protection_bp.route("/api/verify", methods=["POST"])
 def api_verify():
     body = request.get_json(silent=True) or {}
@@ -68,11 +60,13 @@ def api_verify():
     if not token:
         return jsonify(ok=False, error="missing token")
 
-    ip = request.headers.get("x-forwarded-for", "").split(",")[0].strip() or request.remote_addr
+    ip = (request.headers.get("x-forwarded-for", "").split(",")[0].strip()
+          or request.remote_addr)
     result = _siteverify(token, ip)
 
     if not result.get("success"):
-        return jsonify(ok=False, error="challenge failed", detail=result.get("error-codes", []))
+        return jsonify(ok=False, error="challenge failed",
+                       detail=result.get("error-codes", []))
 
     tok = secrets.token_urlsafe(24)
     _mark_verified(tok)
