@@ -108,6 +108,58 @@ def admin_accounts():
         return jsonify(ok=ok)
 
 
+@admin_bp.route("/api/admin/accounts/bulk", methods=["POST"])
+@_require_admin
+def admin_accounts_bulk():
+    body = request.get_json(silent=True) or {}
+    accounts = body.get("accounts") or []
+    if not isinstance(accounts, list):
+        return jsonify(error="accounts must be a list")
+
+    added, exists, failed = [], [], []
+
+    # get existing emails once to avoid DB hit per row
+    existing_emails = {a["email"].lower() for a in STORE.get_accounts()}
+
+    for item in accounts:
+        email = (item.get("email") or "").strip().lower()
+        token = (item.get("token") or "").strip()
+        label = item.get("label") or ""
+        if not email or not token:
+            failed.append({"email": email or "?", "reason": "missing email or token"})
+            continue
+        if email in existing_emails:
+            exists.append(email)
+            continue
+
+        # verify before adding
+        s = ApnaSession(email, token)
+        ok, detail = s.verify()
+        if not ok:
+            failed.append({"email": email, "reason": f"invalid token: {detail}"})
+            continue
+
+        ok2, msg = STORE.add_account(email, token, label)
+        if ok2:
+            added.append(email)
+            existing_emails.add(email)  # dedup within this upload
+        else:
+            failed.append({"email": email, "reason": msg})
+
+    if added:
+        clear_batch_cache()
+
+    return jsonify(
+        ok=True,
+        added=added,
+        exists=exists,
+        failed=failed,
+        total_added=len(added),
+        total_exists=len(exists),
+        total_failed=len(failed),
+    )
+
+
 @admin_bp.route("/api/admin/test")
 @_require_admin
 def admin_test():
