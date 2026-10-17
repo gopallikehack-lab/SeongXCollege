@@ -202,16 +202,16 @@ window.openBatch=function(titleId,label){
     renderTOC();
     if(window.innerWidth>900)g('sections-overlay').classList.add('open');
 
-// Check if 100% complete and show cert button
-var batchObj = BATCHES.find(function(b){return b.titleId === titleId;});
-if(batchObj && batchObj.progress === 100) {
-  var certUrl = '/certificate?course='+encodeURIComponent(label);
-  g('player-wrap').innerHTML = '<div class="player-empty" style="background:radial-gradient(circle at center, rgba(46,204,113,.1), transparent);">'
-    +'<h2 class="brand-gradient" style="font-size:32px;">🎉 Batch Completed!</h2>'
-    +'<p style="color:var(--muted);margin-bottom:24px;">You have successfully finished all lectures in this batch.</p>'
-    +'<a href="'+certUrl+'" target="_blank" class="as-btn primary" style="text-decoration:none;font-size:16px;padding:16px 32px;">🎓 Get Certificate</a>'
-    +'</div>';
-}
+    // Check if 100% complete and show cert button
+    var batchObj = BATCHES.find(function(b){return b.titleId === titleId;});
+    if(batchObj && batchObj.progress === 100) {
+      var certUrl = '/certificate?course='+encodeURIComponent(label);
+      g('player-wrap').innerHTML = '<div class="player-empty" style="background:radial-gradient(circle at center, rgba(46,204,113,.1), transparent);">'
+        +'<h2 class="brand-gradient" style="font-size:32px;">🎉 Batch Completed!</h2>'
+        +'<p style="color:var(--muted);margin-bottom:24px;">You have successfully finished all lectures in this batch.</p>'
+        +'<a href="'+certUrl+'" target="_blank" class="as-btn primary" style="text-decoration:none;font-size:16px;padding:16px 32px;">🎓 Get Certificate</a>'
+        +'</div>';
+    }
   }).catch(function(e){g('toc').innerHTML='<div style="padding:20px;color:#ff7a7a">error: '+esc(e.message||e)+'</div>';});
 };
 window.closeBatch=function(){destroyPlayer();ACTIVE=null;g('sections-overlay').classList.remove('open');showPage('batches');};
