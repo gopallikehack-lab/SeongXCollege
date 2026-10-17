@@ -751,15 +751,19 @@ function loadAll(){
   var grid=g('batch-grid');
   if(!grid) return;
   
-  // Show skeleton cards instantly
-  var skel = '';
-  for(var i=0; i<6; i++){
-    skel += '<div class="batch-card" style="opacity:0.6; animation: ytpulse 1.5s infinite;">'
-      + '<div class="thumb" style="background:var(--panel2); aspect-ratio:16/9"></div>'
-      + '<div class="meta"><div style="height:16px;width:70%;background:var(--panel2);border-radius:4px;margin-bottom:8px"></div>'
-      + '<div style="height:12px;width:40%;background:var(--panel2);border-radius:4px"></div></div></div>';
+  // 1. Show Skeleton animation instantly
+  var skelHtml = '<div class="loading-text"><div class="spinner"></div><div>Loading batches…<br><span style="font-size:11px;opacity:0.7">(This may take up to 1 minute on first load)</span></div></div>';
+  for(var i=0; i<4; i++){
+    skelHtml += '<div class="skeleton-card">' +
+      '<div class="skeleton-thumb"></div>' +
+      '<div class="skeleton-meta">' +
+        '<div class="skeleton-line" style="width:80%"></div>' +
+        '<div class="skeleton-line short"></div>' +
+      '</div>' +
+    '</div>';
   }
-  grid.innerHTML = skel;
+  grid.innerHTML = skelHtml;
+
   var t0 = Date.now();
   fetch('/api/batches')
     .then(function(r){return r.json();})
