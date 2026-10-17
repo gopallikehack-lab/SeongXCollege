@@ -13,7 +13,10 @@ h1{margin:0;font-size:18px;background:linear-gradient(90deg,#5c8dff,#7c5cff);-we
 .nav{display:flex;gap:8px}
 .btn{padding:10px 16px;background:#141a22;border:1px solid #1e2630;color:#e6e9ee;border-radius:9px;font:inherit;font-weight:600;font-size:12.5px;cursor:pointer;min-height:40px;display:inline-flex;align-items:center;text-decoration:none}
 .btn:hover{border-color:#5c8dff;color:#5c8dff}
-.btn.danger:hover{border-color:#ff5c5c;color:#ff5c5c}
+.btn.danger{border-color:rgba(255,92,92,.35);color:#ff8b8b}
+.btn.danger:hover{border-color:#ff5c5c;color:#ff5c5c;background:rgba(255,92,92,.1)}
+.btn.danger-solid{background:linear-gradient(135deg,#ff5c5c,#b35cff);color:#fff;border:0}
+.btn.danger-solid:hover{filter:brightness(1.1)}
 .wrap{max-width:900px;margin:0 auto;padding:24px 20px 60px}
 .card{background:#0e1218;border:1px solid #1e2630;border-radius:14px;padding:24px;margin-bottom:20px}
 .card h2{margin:0 0 16px;font-size:16px}
@@ -22,9 +25,10 @@ input,textarea{width:100%;padding:12px 14px;background:#07090c;border:1px solid 
 textarea{font:12px monospace;min-height:80px}
 input:focus,textarea:focus{outline:none;border-color:#5c8dff}
 .btn-primary{margin-top:14px;padding:12px 22px;background:linear-gradient(90deg,#5c8dff,#7c5cff);color:#fff;border:0;border-radius:10px;font:inherit;font-weight:700;cursor:pointer;min-height:46px;font-size:14px;display:inline-flex;align-items:center;gap:6px}
-.btn-primary:hover{filter:brightness(1.1)}
 .row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px;background:#07090c;border:1px solid #1e2630;border-radius:10px;margin-bottom:10px;flex-wrap:wrap}
-.info{display:flex;flex-direction:column;gap:4px;min-width:0;flex:1}
+.row.sel{border-color:#5c8dff;background:rgba(92,141,255,.06)}
+.info{display:flex;flex-direction:column;gap:4px;min-width:0;flex:1;padding-left:10px}
+.chk{width:18px;height:18px;accent-color:#5c8dff;cursor:pointer;flex-shrink:0}
 .em{color:#dfe6f0;font-weight:600;word-break:break-all;font-size:13px}
 .lb{color:#7c8697;font-size:11.5px}
 .tk{color:#9fb8ff;font:11px monospace;word-break:break-all}
@@ -38,6 +42,11 @@ input:focus,textarea:focus{outline:none;border-color:#5c8dff}
 .msg.err{background:rgba(255,92,92,.1);color:#ff8b8b}
 .help{padding:14px;background:#07090c;border-radius:10px;font-size:12px;color:#7c8697;line-height:1.7;margin-top:12px}
 .help code{background:#141a22;padding:2px 6px;border-radius:4px;color:#9fb8ff;font-size:11px}
+.bulk-bar{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 14px;background:linear-gradient(90deg,rgba(92,141,255,.12),rgba(124,92,255,.06));border:1px solid rgba(92,141,255,.28);border-radius:10px;margin-bottom:12px;flex-wrap:wrap}
+.bulk-bar .sel-info{font-size:12.5px;color:#dfe6f0;font-weight:600}
+.bulk-bar .sel-info b{color:#5c8dff}
+.bulk-actions{display:flex;gap:8px;flex-wrap:wrap}
+@media (max-width:520px){.row{flex-direction:column;align-items:flex-start}.chk{align-self:flex-start}}
 </style></head><body>
 <div class="header">
   <div class="hd">
@@ -54,7 +63,7 @@ input:focus,textarea:focus{outline:none;border-color:#5c8dff}
   <div class="card">
     <h2>Site Status</h2>
     <div class="row" style="justify-content:space-between;align-items:center">
-      <div class="info">
+      <div class="info" style="padding-left:0">
         <span class="em">Maintenance mode</span>
         <span class="lb">When ON, everyone except admin sees a maintenance page.</span>
       </div>
@@ -104,6 +113,17 @@ input:focus,textarea:focus{outline:none;border-color:#5c8dff}
 
   <div class="card">
     <h2>Accounts (<span id="count">0</span>)</h2>
+
+    <!-- BULK BAR -->
+    <div class="bulk-bar">
+      <div class="sel-info"><b id="sel-count">0</b> selected of <span id="total-count">0</span></div>
+      <div class="bulk-actions">
+        <button class="btn" onclick="toggleSelectAll()" id="btn-selall">Select All</button>
+        <button class="btn danger" onclick="removeSelected()" id="btn-rem-sel" disabled>🗑 Remove Selected</button>
+        <button class="btn danger-solid" onclick="removeAll()">⚠️ Remove All</button>
+      </div>
+    </div>
+
     <div id="list"></div>
     <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap">
       <button class="btn" onclick="testAll()">Test All</button>
@@ -114,15 +134,34 @@ input:focus,textarea:focus{outline:none;border-color:#5c8dff}
   </div>
 </div>
 <script>
+var SELECTED = new Set();
+var ALL_EMAILS = [];
+var ALL_SELECTED_FLAG = false;
+
 async function reload(){
   const r=await fetch('/api/admin/accounts');
   const j=await r.json();
   const list=document.getElementById('list');
   const accts=j.accounts||[];
+  ALL_EMAILS = accts.map(a=>a.email);
   document.getElementById('count').textContent=accts.length;
-  if(!accts.length){list.innerHTML='<p style="color:#7c8697">No accounts.</p>';return;}
-  list.innerHTML=accts.map(a=>`
-    <div class="row">
+  document.getElementById('total-count').textContent=accts.length;
+
+  // prune stale selections
+  SELECTED = new Set([...SELECTED].filter(e => ALL_EMAILS.includes(e)));
+
+  if(!accts.length){
+    list.innerHTML='<p style="color:#7c8697;text-align:center;padding:20px">No accounts.</p>';
+    updateSelUI();
+    return;
+  }
+
+  list.innerHTML=accts.map(a=>{
+    const checked = SELECTED.has(a.email) ? 'checked' : '';
+    const rowCls = SELECTED.has(a.email) ? 'row sel' : 'row';
+    return `
+    <div class="${rowCls}" id="row-${btoa(a.email)}">
+      <input type="checkbox" class="chk" data-email="${a.email}" ${checked} onchange="toggleOne(this)">
       <div class="info">
         <span class="em">${a.display}</span>
         <span class="lb">${a.label||''} · ${a.added_ago||''}</span>
@@ -130,13 +169,80 @@ async function reload(){
       </div>
       <span class="token-status ${a.status_class}">${a.status_text}</span>
       <button class="btn danger" onclick="removeAcct('${a.email}')">Remove</button>
-    </div>`).join('');
+    </div>`;
+  }).join('');
+
+  updateSelUI();
+}
+
+function toggleOne(el){
+  const email = el.dataset.email;
+  if(el.checked) SELECTED.add(email); else SELECTED.delete(email);
+  const row = document.getElementById('row-'+btoa(email));
+  if(row) row.classList.toggle('sel', el.checked);
+  updateSelUI();
+}
+
+function toggleSelectAll(){
+  if(SELECTED.size === ALL_EMAILS.length && ALL_EMAILS.length > 0){
+    SELECTED.clear();
+  } else {
+    SELECTED = new Set(ALL_EMAILS);
+  }
+  reload();
+}
+
+function updateSelUI(){
+  const n = SELECTED.size;
+  document.getElementById('sel-count').textContent = n;
+  const btnRem = document.getElementById('btn-rem-sel');
+  const btnAll = document.getElementById('btn-selall');
+  if(btnRem) btnRem.disabled = n === 0;
+  if(btnAll){
+    if(n === ALL_EMAILS.length && ALL_EMAILS.length > 0){
+      btnAll.textContent = 'Deselect All';
+    } else {
+      btnAll.textContent = 'Select All';
+    }
+  }
+}
+
+async function removeSelected(){
+  const n = SELECTED.size;
+  if(!n) return;
+  if(!confirm(`Remove ${n} selected account(s)?`)) return;
+
+  const r = await fetch('/api/admin/accounts/bulk_delete', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ emails: [...SELECTED] })
+  });
+  const j = await r.json();
+  if(j.error){ alert('Error: '+j.error); return; }
+  SELECTED.clear();
+  await reload();
+}
+
+async function removeAll(){
+  if(!ALL_EMAILS.length){ alert('No accounts to remove.'); return; }
+  if(!confirm(`⚠️ Are you sure? This will remove ALL ${ALL_EMAILS.length} accounts.\n\nThis cannot be undone.`)) return;
+  if(!confirm('Last confirmation — delete every account from the database?')) return;
+
+  const r = await fetch('/api/admin/accounts/bulk_delete', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ all: true })
+  });
+  const j = await r.json();
+  if(j.error){ alert('Error: '+j.error); return; }
+  SELECTED.clear();
+  await reload();
+  alert(`Removed ${j.total} accounts.`);
 }
 
 async function startBulk(input) {
   const file = input.files[0];
   if (!file) return;
-
   const prog = document.getElementById('bulk-progress');
   const status = document.getElementById('bulk-status');
   const bar = document.getElementById('bulk-bar');
@@ -151,11 +257,7 @@ async function startBulk(input) {
   try {
     const text = await file.text();
     const data = JSON.parse(text);
-    
-    if (!Array.isArray(data)) {
-      throw new Error("JSON must be an array of objects (email, token)");
-    }
-
+    if (!Array.isArray(data)) throw new Error("JSON must be an array of objects (email, token)");
     status.textContent = `Processing ${data.length} accounts…`;
     bar.style.width = '30%';
 
@@ -164,7 +266,6 @@ async function startBulk(input) {
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({ accounts: data })
     });
-    
     const res = await r.json();
     if (res.error) throw new Error(res.error);
 
@@ -183,20 +284,15 @@ async function startBulk(input) {
       res.failed.forEach(f => html += `${f.email} — ${f.reason}<br>`);
       html += `</div>`;
     }
-    
     if (!html) html = '<span style="color:#7c8697">No accounts found in file.</span>';
-    
     report.innerHTML = html;
-    reload(); // refresh the accounts list below
-
+    reload();
   } catch (e) {
     bar.style.width = '100%';
     bar.style.background = '#ff5c5c';
     status.textContent = '❌ Error';
     report.innerHTML = `<span style="color:#ff5c5c">${e.message}</span>`;
   }
-  
-  // Reset input
   input.value = '';
 }
 
@@ -213,6 +309,7 @@ async function addAcct(e){
 async function removeAcct(email){
   if(!confirm('Remove '+email+'?'))return;
   await fetch('/api/admin/accounts',{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({email})});
+  SELECTED.delete(email);
   reload();
 }
 async function testAll(){
