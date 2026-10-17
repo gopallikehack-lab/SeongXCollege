@@ -1,12 +1,14 @@
 """Admin routes."""
 import secrets
 import time
+from concurrent.futures import ThreadPoolExecutor
 
 from flask import Blueprint, jsonify, make_response, redirect, render_template_string, request
 
-from ..apna import ApnaSession, clear_batch_cache
+from ..apna import ApnaSession, clear_batch_cache, get_batches_cached
 from ..config import ADMIN_CODE, ADMIN_COOKIE, ADMIN_TTL
 from ..pages import ADMIN_PAGE, LOGIN_PAGE
+from ..pages.admin_batches import ADMIN_BATCHES_PAGE
 from ..store import STORE
 
 
@@ -44,6 +46,13 @@ def admin_route():
     resp = make_response(redirect("/admin"))
     resp.set_cookie(ADMIN_COOKIE, token, httponly=True, samesite="Lax", max_age=ADMIN_TTL)
     return resp
+
+
+@admin_bp.route("/admin/batches")
+def admin_batches_page():
+    if not _current_admin():
+        return redirect("/admin")
+    return render_template_string(ADMIN_BATCHES_PAGE)
 
 
 @admin_bp.route("/logout", methods=["POST", "GET"])
@@ -160,7 +169,6 @@ def admin_accounts_bulk():
 @admin_bp.route("/api/admin/accounts/bulk_delete", methods=["POST"])
 @_require_admin
 def admin_accounts_bulk_delete():
-    """Bulk remove accounts. If emails list is empty -> delete ALL."""
     body = request.get_json(silent=True) or {}
     emails = body.get("emails") or []
     delete_all = bool(body.get("all"))
@@ -186,6 +194,52 @@ def admin_accounts_bulk_delete():
     if removed:
         clear_batch_cache()
     return jsonify(ok=True, removed=removed, failed=failed, total=len(removed))
+
+
+@admin_bp.route("/api/admin/batches-stats")
+@_require_admin
+def admin_batches_stats():
+    accts = STORE.get_accounts()
+
+    def fetch(acct):
+        try:
+            batches = get_batches_cached(acct)
+            return (acct, batches)
+        except:
+            return (acct, [])
+
+    results = []
+    if accts:
+        with ThreadPoolExecutor(max_workers=10) as pool:
+            results = list(pool.map(fetch, accts))
+
+    batch_map = {}
+    total_tokens = len(accts)
+
+    for acct, batches in results:
+        email = acct.get("email", "unknown")
+        label = acct.get("label") or "token"
+
+        for b in batches:
+            title = b.get("label") or b.get("titleId") or "Unknown"
+            tid = b.get("titleId")
+
+            if tid not in batch_map:
+                batch_map[tid] = {"title": title, "titleId": tid, "users": []}
+
+            if not any(u["email"] == email for u in batch_map[tid]["users"]):
+                batch_map[tid]["users"].append({
+                    "email": email,
+                    "label": label
+                })
+
+    batches_list = sorted(list(batch_map.values()), key=lambda x: x["title"].lower())
+
+    return jsonify(
+        batches=batches_list,
+        total_tokens=total_tokens,
+        total_batches=len(batches_list)
+    )
 
 
 @admin_bp.route("/api/admin/test")
