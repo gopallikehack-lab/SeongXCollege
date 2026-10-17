@@ -117,8 +117,6 @@ def admin_accounts_bulk():
         return jsonify(error="accounts must be a list")
 
     added, exists, failed = [], [], []
-
-    # get existing emails once to avoid DB hit per row
     existing_emails = {a["email"].lower() for a in STORE.get_accounts()}
 
     for item in accounts:
@@ -132,7 +130,6 @@ def admin_accounts_bulk():
             exists.append(email)
             continue
 
-        # verify before adding
         s = ApnaSession(email, token)
         ok, detail = s.verify()
         if not ok:
@@ -142,7 +139,7 @@ def admin_accounts_bulk():
         ok2, msg = STORE.add_account(email, token, label)
         if ok2:
             added.append(email)
-            existing_emails.add(email)  # dedup within this upload
+            existing_emails.add(email)
         else:
             failed.append({"email": email, "reason": msg})
 
@@ -158,6 +155,37 @@ def admin_accounts_bulk():
         total_exists=len(exists),
         total_failed=len(failed),
     )
+
+
+@admin_bp.route("/api/admin/accounts/bulk_delete", methods=["POST"])
+@_require_admin
+def admin_accounts_bulk_delete():
+    """Bulk remove accounts. If emails list is empty -> delete ALL."""
+    body = request.get_json(silent=True) or {}
+    emails = body.get("emails") or []
+    delete_all = bool(body.get("all"))
+
+    if delete_all:
+        existing = [a["email"] for a in STORE.get_accounts()]
+        removed = []
+        for e in existing:
+            if STORE.remove_account(e):
+                removed.append(e)
+        clear_batch_cache()
+        return jsonify(ok=True, removed=removed, total=len(removed))
+
+    if not isinstance(emails, list) or not emails:
+        return jsonify(error="emails required")
+
+    removed, failed = [], []
+    for e in emails:
+        if STORE.remove_account(e):
+            removed.append(e)
+        else:
+            failed.append(e)
+    if removed:
+        clear_batch_cache()
+    return jsonify(ok=True, removed=removed, failed=failed, total=len(removed))
 
 
 @admin_bp.route("/api/admin/test")
