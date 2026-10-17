@@ -210,11 +210,24 @@ class ApnaSession:
         if not cid:
             return {"error": "no course id"}
         a = self._assessment_meta(titleId, unit_id)
-        if a:
-            return a
-        try:
-            r = self.s.get(f"{BASE}/api/video/{cid}/{unit_id}",
-                headers=self.h(f"{BASE}/path-player?courseid={titleId}&unit={unit_id}Unit"),
+if a:
+    return a
+
+# Check if it's a certificate
+d = self.fetch_curriculum(titleId)
+if d:
+    objs = ((d.get("course") or {}).get("objects")) or d.get("objects") or {}
+    obj = objs.get(unit_id)
+    if obj and (obj.get("objectType") == "certificateV2"):
+        return {
+            "unit_id": unit_id,
+            "title": obj.get("title") or "Certificate",
+            "type": "certificate",
+            "batch": titleId
+        }
+        
+try:
+    r = self.s.get(f"{BASE}/api/video/{cid}/{unit_id}",
                 timeout=TIMEOUT)
             if r.status_code != 200:
                 return {"error": f"status {r.status_code}"}
