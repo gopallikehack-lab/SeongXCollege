@@ -67,9 +67,22 @@ def certificate():
 
 @public_bp.route("/api/batches")
 def api_batches():
+    from concurrent.futures import ThreadPoolExecutor
+    accts = STORE.get_accounts()
+    
+    def fetch(acct):
+        try: return get_batches_cached(acct)
+        except: return []
+        
+    # Fetch all accounts in parallel (1-2 seconds max)
+    all_results = []
+    if accts:
+        with ThreadPoolExecutor(max_workers=5) as pool:
+            all_results = list(pool.map(fetch, accts))
+            
     seen = {}
-    for acct in STORE.get_accounts():
-        for b in get_batches_cached(acct):
+    for batches in all_results:
+        for b in batches:
             tid = b.get("titleId")
             if tid and tid not in seen:
                 seen[tid] = {
