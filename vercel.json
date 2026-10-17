@@ -9,5 +9,11 @@
   ],
   "routes": [
     { "src": "/(.*)", "dest": "api/index.py" }
+  ],
+  "crons": [
+    {
+      "path": "/api/wakeup",
+      "schedule": "*/5 * * * *"
+    }
   ]
 }
