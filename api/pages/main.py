@@ -139,6 +139,15 @@ a{color:var(--accent);text-decoration:none}
 .theme-swatch.cur{border-color:var(--accent);background:rgba(92,141,255,.08)}
 .theme-swatch .dot{width:22px;height:22px;border-radius:50%;flex-shrink:0;border:1px solid rgba(255,255,255,.15)}
 @media (max-width:900px){.sections-overlay{width:88vw}}
+/* Skeleton Loader */
+.skeleton-card{background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden;display:flex;flex-direction:column}
+.skeleton-thumb{aspect-ratio:16/9;background:linear-gradient(90deg, var(--panel2) 25%, var(--line) 50%, var(--panel2) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite}
+.skeleton-meta{padding:14px;display:flex;flex-direction:column;gap:8px}
+.skeleton-line{height:14px;border-radius:4px;background:linear-gradient(90deg, var(--panel2) 25%, var(--line) 50%, var(--panel2) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite}
+.skeleton-line.short{width:50%;height:10px}
+.loading-text{grid-column:1/-1;text-align:center;padding:20px 0;color:var(--muted);font-size:13px;display:flex;flex-direction:column;align-items:center;gap:10px}
+.spinner{width:24px;height:24px;border:3px solid var(--panel2);border-top-color:var(--accent);border-radius:50%;animation:ytspin 0.8s linear infinite}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
 __PLAYER_CSS__
 </style>
 </head>
