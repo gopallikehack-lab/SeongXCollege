@@ -430,7 +430,16 @@ def find_session_for(titleId):
     for acct in STORE.get_accounts():
         batches = get_batches_cached(acct)
         if any(b.get("titleId") == titleId for b in batches):
-            return ApnaSession(acct["email"], acct.get("token", ""))
+            s = ApnaSession(acct["email"], acct.get("token", ""))
+            
+            # TEST if this account works before returning it
+            cid = s.course_internal_id(titleId)
+            if cid:
+                return s
+            else:
+                print(f"[!] Token dead for {acct['email']} on {titleId}, rotating to next user...")
+                continue # Try the next account
+                
     return None
 
 
