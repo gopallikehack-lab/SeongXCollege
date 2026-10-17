@@ -750,7 +750,16 @@ function setTotalPill(n){
 function loadAll(){
   var grid=g('batch-grid');
   if(!grid) return;
-  grid.innerHTML='<div style="padding:24px;color:var(--muted);text-align:center;grid-column:1/-1">loading…</div>';
+  
+  // Show skeleton cards instantly
+  var skel = '';
+  for(var i=0; i<6; i++){
+    skel += '<div class="batch-card" style="opacity:0.6; animation: ytpulse 1.5s infinite;">'
+      + '<div class="thumb" style="background:var(--panel2); aspect-ratio:16/9"></div>'
+      + '<div class="meta"><div style="height:16px;width:70%;background:var(--panel2);border-radius:4px;margin-bottom:8px"></div>'
+      + '<div style="height:12px;width:40%;background:var(--panel2);border-radius:4px"></div></div></div>';
+  }
+  grid.innerHTML = skel;
   var t0 = Date.now();
   fetch('/api/batches')
     .then(function(r){return r.json();})
