@@ -52,7 +52,17 @@ def index():
             .replace("__UPI_ID__", UPI_ID)
             .replace("__QR_IMAGE__", QR_IMAGE))
     return render_template_string(html)
+    
+  from ..pages.certificate import CERTIFICATE_PAGE
 
+@public_bp.route("/certificate")
+def certificate():
+    course = request.args.get("course", "Unknown Course")
+    name = request.args.get("name", "Student")
+    html = (CERTIFICATE_PAGE
+            .replace("__COURSE_NAME__", course)
+            .replace("__USER_NAME__", name))
+    return render_template_string(html)
 
 @public_bp.route("/api/batches")
 def api_batches():
