@@ -425,19 +425,43 @@ def get_batches_cached(acct):
     email = (acct.get("email") or "").lower()
     if not email:
         return []
+    
     import time as _t
     now = _t.time()
+    cache_key = f"batches:{email}"
+
+    # 1. Check local memory cache (instant)
     cached = _BATCH_CACHE.get(email)
     if cached and now - cached[0] < _BATCH_CACHE_TTL_LOCAL:
         return cached[1]
+
+    # 2. Check Supabase cache (fast, survives cold starts)
+    db_cached = STORE.cache_get(cache_key)
+    if db_cached:
+        try:
+            data = json.loads(db_cached)
+            if data.get("ts", 0) + BATCH_CACHE_TTL > now:
+                _BATCH_CACHE[email] = (data["ts"], data["batches"])
+                return data["batches"]
+        except Exception:
+            pass
+
+    # 3. Fetch fresh from ApnaCollege
     try:
         s = ApnaSession(acct["email"], acct.get("token", ""))
         batches = s.fetch_batches()
         if batches:
             _BATCH_CACHE[email] = (now, batches)
-        return batches if batches else (cached[1] if cached else [])
+            # Save to Supabase
+            try:
+                STORE.cache_set(cache_key, json.dumps({"ts": now, "batches": batches}), ttl=BATCH_CACHE_TTL)
+            except Exception:
+                pass
+            return batches
+        # If failed, return whatever cache we had
+        return (cached[1] if cached else [])
     except Exception:
-        return cached[1] if cached else []
+        return (cached[1] if cached else [])
 
 
 def find_session_for(titleId):
