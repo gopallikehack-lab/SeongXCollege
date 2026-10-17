@@ -36,7 +36,7 @@ var ICON_PATHS = {
   book:'<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>'
 };
 function icon(n,s){s=s||20;var p=ICON_PATHS[n]||ICON_PATHS.book;return '<svg xmlns="http://www.w3.org/2000/svg" width="'+s+'" height="'+s+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+p+'</svg>';}
-function unitTypeIcon(t){t=(t||'').toLowerCase();if(t==='ivideo')return 'video';if(t==='pdf')return 'file';if(t==='assessmentv2'||t==='assessment')return 'clipboard';if(t==='youtube')return 'youtube';if(t==='scorm')return 'package';if(t==='embed')return 'embed';if(t==='url')return 'link';if(t==='quizformal'||t==='selfassessment')return 'help';return 'book';}
+function unitTypeIcon(t){t=(t||'').toLowerCase();if(t==='ivideo')return 'video';if(t==='pdf')return 'file';if(t==='assessmentv2'||t==='assessment')return 'clipboard';if(t==='certificatev2')return 'book';if(t==='youtube')return 'youtube';if(t==='scorm')return 'package';if(t==='embed')return 'embed';if(t==='url')return 'link';if(t==='quizformal'||t==='selfassessment')return 'help';return 'book';}
 
 /* ===== themes ===== */
 var THEMES = [
@@ -192,7 +192,11 @@ window.openBatch=function(titleId,label){
   g('sections-title').textContent=label;
   g('search').value='';
   g('toc').innerHTML='<div style="padding:20px;color:var(--muted)">loading sections…</div>';
-  g('player-wrap').innerHTML='<div class="player-empty"><svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg><h2 class="brand-gradient">Pick a lecture</h2><p>Open the playlist with the list button.</p></div>';
+  
+  // Show empty state with a certificate button
+  var certUrl = '/certificate?course='+encodeURIComponent(label);
+  g('player-wrap').innerHTML='<div class="player-empty"><svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg><h2 class="brand-gradient">Pick a lecture</h2><p style="margin-bottom:18px">Open the playlist with the list button, or grab your certificate.</p><a href="'+certUrl+'" target="_blank" class="as-btn primary" style="text-decoration:none;display:inline-flex;">🎓 View Certificate</a></div>';
+  
   g('nowplaying').textContent='';
   destroyPlayer();
   showPage('viewer');
@@ -201,17 +205,6 @@ window.openBatch=function(titleId,label){
     window._sections=j.sections;
     renderTOC();
     if(window.innerWidth>900)g('sections-overlay').classList.add('open');
-
-    // Check if 100% complete and show cert button
-    var batchObj = BATCHES.find(function(b){return b.titleId === titleId;});
-    if(batchObj && batchObj.progress === 100) {
-      var certUrl = '/certificate?course='+encodeURIComponent(label);
-      g('player-wrap').innerHTML = '<div class="player-empty" style="background:radial-gradient(circle at center, rgba(46,204,113,.1), transparent);">'
-        +'<h2 class="brand-gradient" style="font-size:32px;">🎉 Batch Completed!</h2>'
-        +'<p style="color:var(--muted);margin-bottom:24px;">You have successfully finished all lectures in this batch.</p>'
-        +'<a href="'+certUrl+'" target="_blank" class="as-btn primary" style="text-decoration:none;font-size:16px;padding:16px 32px;">🎓 Get Certificate</a>'
-        +'</div>';
-    }
   }).catch(function(e){g('toc').innerHTML='<div style="padding:20px;color:#ff7a7a">error: '+esc(e.message||e)+'</div>';});
 };
 window.closeBatch=function(){destroyPlayer();ACTIVE=null;g('sections-overlay').classList.remove('open');showPage('batches');};
@@ -265,6 +258,11 @@ function playUnit(idx){
     if(j.type==='wistia'&&j.sourceid){playWistia(j.sourceid);}
     else if(j.type==='pdf'){playPdf(ACTIVE,u.id);}
     else if(j.type==='assessment'){playAssessment(ACTIVE,u.id,false);}
+    else if(j.type==='certificate'){
+        var certUrl = '/certificate?course='+encodeURIComponent(ACTIVE);
+        window.open(certUrl, '_blank');
+        setStatus('certificate opened','status ok');
+    }
     else{g('player-wrap').innerHTML='<div class="player-empty"><p>unsupported: '+esc(j.type||'?')+'</p></div>';}
     if(window.innerWidth<=900)g('sections-overlay').classList.remove('open');
   }).catch(function(e){g('player-wrap').innerHTML='<div class="player-empty"><p>error: '+esc(e.message||e)+'</p></div>';});
