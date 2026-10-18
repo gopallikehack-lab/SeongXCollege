@@ -103,6 +103,7 @@ a{color:var(--accent);text-decoration:none}
 .status{padding:3px 10px;background:var(--panel2);border-radius:12px;color:var(--accent);font-weight:600;font-size:11px}
 .status.ok{color:var(--good)}
 .status.err{color:#ff7a7a}
+
 .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px;margin-bottom:14px}
 .card h2{margin:0 0 12px;font-size:16px;font-weight:700;color:var(--txt);display:flex;align-items:center;gap:12px}
 .card h2 img{width:32px;height:32px;object-fit:contain;display:block}
@@ -117,7 +118,7 @@ a{color:var(--accent);text-decoration:none}
 .upi-box .id{font:13px monospace;color:var(--accent);word-break:break-all;flex:1;min-width:120px}
 .upi-box button{padding:10px 16px;background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;border:0;border-radius:9px;font:inherit;font-weight:600;font-size:12.5px;cursor:pointer;min-height:40px}
 .dev-hero{text-align:center;padding:20px;background:linear-gradient(180deg,rgba(92,141,255,.1),transparent);border-radius:14px;margin-bottom:14px}
-.dev-hero .avatar-vid{width:120px;height:120px;border-radius:50%;object-fit:cover;object-position:center;display:block;margin:0 auto 14px;border:3px solid var(--accent);box-shadow:0 12px 40px rgba(92,141,255,.35);background:#000;overflow:hidden}
+.dev-hero .avatar{width:96px;height:96px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:inline-flex;align-items:center;justify-content:center;font-size:42px;font-weight:800;color:#fff;margin-bottom:14px}
 .dev-hero h2{margin:0 0 6px;font-size:20px;color:var(--txt)}
 .dev-hero .tag{color:var(--muted);font-size:12.5px}
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.82);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;z-index:999;padding:16px}
@@ -139,7 +140,8 @@ a{color:var(--accent);text-decoration:none}
 .theme-swatch.cur{border-color:var(--accent);background:rgba(92,141,255,.08)}
 .theme-swatch .dot{width:22px;height:22px;border-radius:50%;flex-shrink:0;border:1px solid rgba(255,255,255,.15)}
 @media (max-width:900px){.sections-overlay{width:88vw}}
-/* Skeleton Loader */
+
+/* Skeleton Loaders */
 .skeleton-card{background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden;display:flex;flex-direction:column}
 .skeleton-thumb{aspect-ratio:16/9;background:linear-gradient(90deg, var(--panel2) 25%, var(--line) 50%, var(--panel2) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite}
 .skeleton-meta{padding:14px;display:flex;flex-direction:column;gap:8px}
@@ -148,6 +150,7 @@ a{color:var(--accent);text-decoration:none}
 .loading-text{grid-column:1/-1;text-align:center;padding:20px 0;color:var(--muted);font-size:13px;display:flex;flex-direction:column;align-items:center;gap:10px}
 .spinner{width:24px;height:24px;border:3px solid var(--panel2);border-top-color:var(--accent);border-radius:50%;animation:ytspin 0.8s linear infinite}
 @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+@keyframes ytpulse{0%,100%{opacity:0.6}50%{opacity:1}}
 __PLAYER_CSS__
 </style>
 </head>
@@ -201,7 +204,7 @@ __PLAYER_CSS__
           <span class="lbl">batches</span>
         </div>
       </div>
-      <div class="search-wrap"><input id="batch-search" placeholder= "⚡︎☕︎ Search batches…"></div>
+      <div class="search-wrap"><input id="batch-search" placeholder="🔍 Search batches…"></div>
       <div class="batch-grid" id="batch-grid"><div style="padding:24px;color:var(--muted);text-align:center;grid-column:1/-1">loading…</div></div>
     </div>
 
@@ -239,24 +242,11 @@ __PLAYER_CSS__
       <div class="card"><h2><img src="https://i.8upload.com/thumbnail/075d2a01f70a99ee/file-000000004c5481fab490646052af760d.png" alt=""> Support 𝐒𝐞𝐨𝐧𝐠𝐒𝐭𝐮𝐝𝐲𝐄𝐫𝐚</h2><p>If this helped you, even a small amount keeps it alive for everyone.</p><p><b>Thank you for the support — it means a lot. 🙏</b></p><img class="qr-img" src="__QR_IMAGE__" alt="UPI QR"><div class="upi-box"><span class="id" id="upi-id">__UPI_ID__</span><button onclick="copyUpi(this)">📋 copy UPI ID</button></div><p style="margin-top:16px;color:var(--warn);font-weight:600">📸 After donation, kindly send the payment screenshot to the owner on Telegram.</p><div class="btn-row"><a class="btn-link" href="https://t.me/SeongEra" target="_blank">💬 Send Screenshot</a></div></div>
       <div class="card"><h2>Where it goes</h2><p>• Server + domain costs</p><p>• New batches, more lectures</p><p>• Keeping it free for everyone</p></div>
     </div>
-    
-    <div class="modal" id="modal-info">
-  <div class="box" style="max-width:520px;padding:0;overflow:hidden">
-    <button class="close" onclick="closeModal('modal-info')" style="position:absolute;top:10px;right:10px;z-index:2;background:rgba(0,0,0,.55);border-radius:50%;width:36px;height:36px;color:#fff">×</button>
-    <div id="info-body"></div>
-  </div>
-</div>
 
     <div class="page" id="page-developer">
-      <div class="dev-hero">
-  <video class="avatar-vid" autoplay muted loop playsinline webkit-playsinline preload="metadata" poster="">
-    <source src="https://huggingface.co/datasets/gopallikehack/Seong_Study/resolve/main/b-261016-losy60.mp4" type="video/mp4">
-  </video>
-  <h2 class="brand-gradient">𝑮𝒊𝒖𝒎 𝑺𝒆𝒐𝒏𝒈 𝑱𝒆𝒆</h2>
-  <div class="tag">Reverse Engineer · Developer · Bug Bounty Hunter</div>
-</div>
-      <div class="card"><h2><img src="https://i.8upload.com/thumbnail/693b952ab1e1f305/725f1f70a44256cc2e3eebf3c36b129e9ce9bca10738be057ba50c1af2b1f87c.png" alt=""> Developer Info</h2><p><b>Name:</b> 𝑮𝒊𝒖𝒎 𝑺𝒆𝒐𝒏𝒈 𝑱𝒆𝒆 </p><p><b>Skills:</b> Reverse Engineering · Coding · Exploiting · Bug Bounty</p><p><b>Age:</b> Why?? you want to know 🥹🥸🥲</p><p><b>State:</b> Rajasthan 🫶❤️‍🩹</p><p><b>Telegram:</b> <a href="https://t.me/SeongEra">@SeongEra</a></p><div class="btn-row"><a class="btn-link" href="https://t.me/SeongEra" target="_blank">💬 Message @SeongEra</a><a class="btn-ghost" href="https://t.me/SeongEraStudy" target="_blank">📢 Study Channel</a></div></div>
-      <div class="card"><h2>About the project</h2><p>𝐒𝐞𝐨𝐧𝐠𝐒𝐭𝐮𝐝𝐲𝐄𝐫𝐚 is a free study platform built for students. No ads, no paywall, no signup.</p><p style="color:var(--muted);font-size:12px">Made with care in India 🇮🇳.</p></div>
+      <div class="dev-hero"><div class="avatar">GP</div><h2 class="brand-gradient">𝑮𝒊𝒖𝒎 𝑺𝒆𝒐𝒏𝒈 𝑱𝒆𝒆</h2><div class="tag">Reverse Engineer · Developer · Bug Bounty Hunter</div></div>
+      <div class="card"><h2><img src="https://i.8upload.com/thumbnail/693b952ab1e1f305/725f1f70a44256cc2e3eebf3c36b129e9ce9bca10738be057ba50c1af2b1f87c.png" alt=""> Developer Info</h2><p><b>Name:</b> 𝑮𝒊𝒖𝒎 𝑺𝒆𝒐𝒏𝒈 𝑱𝒆𝒆</p><p><b>Skills:</b> Reverse Engineering · Coding · Exploiting · Bug Bounty</p><p><b>Age:</b> Why?? you want to know 🥹🥸🥲</p><p><b>State:</b> Rajasthan 🫶❤️‍🩹</p><p><b>Telegram:</b> <a href="https://t.me/SeongEra">@SeongEra</a></p><div class="btn-row"><a class="btn-link" href="https://t.me/SeongEra" target="_blank">💬 Message @SeongEra</a><a class="btn-ghost" href="https://t.me/SeongEraStudy" target="_blank">📢 Study Channel</a></div></div>
+      <div class="card"><h2>About the project</h2><p>𝐒𝐞𝐨𝐧𝐠𝐒𝐭𝐮𝐝𝐲𝐄𝐫𝐚 is a free study platform built for students. No ads, no paywall, no signup.</p><p style="color:var(--muted);font-size:12px">Made with care in Rajasthan.</p></div>
     </div>
   </div>
 </div>
@@ -273,14 +263,21 @@ __PLAYER_CSS__
 
 <div class="modal" id="modal-dl"><div class="box"><button class="close" onclick="closeModal('modal-dl')">×</button><h2>Download</h2><div class="sub">Downloads directly to your device</div><div class="variants" id="dl-variants"></div></div></div>
 <div class="modal" id="modal-link"><div class="box"><button class="close" onclick="closeModal('modal-link')">×</button><h2>Direct m3u8 links</h2><div class="sub">Paste into VLC, mpv, yt-dlp</div><input id="link-master" readonly onclick="this.select()"><button onclick="copyField('link-master',this)" style="padding:12px 18px;background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;border:0;border-radius:10px;font:inherit;font-weight:600;cursor:pointer;margin-bottom:16px;width:100%">copy master</button><div class="variants" id="link-variants"></div></div></div>
+<div class="modal" id="modal-info">
+  <div class="box" style="max-width:520px;padding:0;overflow:hidden;position:relative">
+    <button class="close" onclick="closeModal('modal-info')" style="position:absolute;top:10px;right:10px;z-index:2;background:rgba(0,0,0,.55);border-radius:50%;width:36px;height:36px;color:#fff;padding:0;line-height:1">×</button>
+    <div id="info-body"></div>
+  </div>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1"></script>
 <script>
 __PLAYER_JS__
 </script>
+__CHATBOT_HTML__
 </body></html>"""
 
 MAIN_PAGE = (_MAIN_HTML
              .replace("__PLAYER_CSS__", PLAYER_CSS)
              .replace("__PLAYER_JS__", PLAYER_JS)
-             .replace("</body>", CHATBOT_HTML + "\n</body>"))
+             .replace("__CHATBOT_HTML__", CHATBOT_HTML))
