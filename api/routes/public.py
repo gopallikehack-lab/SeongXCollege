@@ -2,7 +2,7 @@
 from flask import Blueprint, jsonify, redirect, render_template_string, request
 
 from ..apna import (
-    ApnaSession, get_batches_cached, find_session_for,
+    ApnaSession, get_batches_cached, find_session_for, _BATCH_CACHE
 )
 from ..config import UPI_ID, QR_IMAGE, ADMIN_COOKIE
 from ..pages import MAIN_PAGE
@@ -38,9 +38,7 @@ def _is_admin():
 @public_bp.route("/")
 def index():
     if _is_admin():
-        html = (MAIN_PAGE
-                .replace("__UPI_ID__", UPI_ID)
-                .replace("__QR_IMAGE__", QR_IMAGE))
+        html = (MAIN_PAGE.replace("__UPI_ID__", UPI_ID).replace("__QR_IMAGE__", QR_IMAGE))
         return render_template_string(html)
 
     if not _verified():
@@ -49,9 +47,24 @@ def index():
     if maint_on():
         return render_template_string(MAINTENANCE_PAGE)
 
-    html = (MAIN_PAGE
-            .replace("__UPI_ID__", UPI_ID)
-            .replace("__QR_IMAGE__", QR_IMAGE))
+    html = (MAIN_PAGE.replace("__UPI_ID__", UPI_ID).replace("__QR_IMAGE__", QR_IMAGE))
+    return render_template_string(html)
+
+
+@public_bp.route("/batch/<titleId>")
+def batch_direct(titleId):
+    if _is_admin():
+        html = (MAIN_PAGE.replace("__UPI_ID__", UPI_ID).replace("__QR_IMAGE__", QR_IMAGE))
+    elif not _verified():
+        return render_template_string(PROTECTION_PAGE)
+    elif maint_on():
+        return render_template_string(MAINTENANCE_PAGE)
+    else:
+        html = (MAIN_PAGE.replace("__UPI_ID__", UPI_ID).replace("__QR_IMAGE__", QR_IMAGE))
+
+    # Inject JS to auto-open the batch
+    inject = f"<script>setTimeout(function(){{ if(typeof openBatch === 'function') openBatch('{titleId}', '{titleId}'); }}, 500);</script>"
+    html = html.replace("</body>", inject + "</body>")
     return render_template_string(html)
 
 
@@ -67,30 +80,41 @@ def certificate():
 
 @public_bp.route("/api/batches")
 def api_batches():
-    from concurrent.futures import ThreadPoolExecutor
     accts = STORE.get_accounts()
-    
-    def fetch(acct):
-        try: return get_batches_cached(acct)
-        except: return []
-        
-    # Fetch all accounts in parallel (1-2 seconds max)
-    all_results = []
-    if accts:
-        with ThreadPoolExecutor(max_workers=5) as pool:
-            all_results = list(pool.map(fetch, accts))
-            
     seen = {}
-    for batches in all_results:
-        for b in batches:
-            tid = b.get("titleId")
-            if tid and tid not in seen:
-                seen[tid] = {
-                    "titleId": tid,
-                    "label": b.get("label", tid),
-                    "image": b.get("image", ""),
-                    "progress": b.get("progress", 0),
-                }
+    
+    # Fast path: load from memory cache
+    for acct in accts:
+        email = acct.get("email", "").lower()
+        if email in _BATCH_CACHE:
+            batches = _BATCH_CACHE[email][1]
+            for b in batches:
+                tid = b.get("titleId")
+                if tid and tid not in seen:
+                    seen[tid] = {
+                        "titleId": tid,
+                        "label": b.get("label", tid),
+                        "image": b.get("image", ""),
+                        "progress": b.get("progress", 0),
+                    }
+    
+    # Cold start: fetch from just ONE account to load instantly
+    if not seen and accts:
+        try:
+            s = ApnaSession(accts[0]["email"], accts[0].get("token", ""))
+            batches = s.fetch_batches()
+            for b in batches:
+                tid = b.get("titleId")
+                if tid:
+                    seen[tid] = {
+                        "titleId": tid,
+                        "label": b.get("label", tid),
+                        "image": b.get("image", ""),
+                        "progress": b.get("progress", 0),
+                    }
+        except:
+            pass
+
     return jsonify(batches=list(seen.values()))
 
 
@@ -141,8 +165,6 @@ def api_variants(sourceid):
     return jsonify(variants={})
 
 
-# ---------- batch info ----------
-
 @public_bp.route("/api/batch-info/<titleId>")
 def api_batch_info(titleId):
     s = find_session_for(titleId)
@@ -153,8 +175,6 @@ def api_batch_info(titleId):
         return jsonify(error="failed to fetch info"), 500
     return jsonify(info)
 
-
-# ---------- assessment ----------
 
 @public_bp.route("/api/assessment/<titleId>/<unit_id>")
 def api_assessment_state(titleId, unit_id):
