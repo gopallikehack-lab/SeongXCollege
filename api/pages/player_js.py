@@ -112,7 +112,10 @@ function renderBatches(){
         +'<div class="meta"><span class="t">'+esc(b.label)+'</span><span class="s">tap for info</span></div>'
         +'<button class="study-btn">▶ Study</button>';
       card.querySelector('.thumb').addEventListener('click',function(){openBatchInfo(b.titleId,b.label);});
-      card.querySelector('.study-btn').addEventListener('click',function(){openBatch(b.titleId,b.label);});
+      card.querySelector('.study-btn').addEventListener('click',function(){
+        history.pushState({}, '', '/batch/' + b.titleId);
+        openBatch(b.titleId,b.label);
+      });
       grid.appendChild(card);
     })(filtered[i]);
   }
@@ -181,6 +184,7 @@ function renderBatchInfo(info){
   var sb=g('info-study-btn');
   if(sb) sb.addEventListener('click', function(){
     closeModal('modal-info');
+    history.pushState({}, '', '/batch/' + info.titleId);
     openBatch(info.titleId, info.title || '');
   });
 }
@@ -222,7 +226,13 @@ window.openBatch=function(titleId,label,autoPlayIdx){
     }
   }).catch(function(e){g('toc').innerHTML='<div style="padding:20px;color:#ff7a7a">error: '+esc(e.message||e)+'</div>';});
 };
-window.closeBatch=function(){destroyPlayer();ACTIVE=null;g('sections-overlay').classList.remove('open');showPage('batches');};
+window.closeBatch=function(){
+  destroyPlayer();
+  ACTIVE=null;
+  g('sections-overlay').classList.remove('open');
+  showPage('batches');
+  history.pushState({}, '', '/');
+};
 window.toggleSections=function(){g('sections-overlay').classList.toggle('open');};
 
 function renderTOC(){
@@ -801,6 +811,14 @@ function loadAll(){
       try{console.log('[batches] loaded', BATCHES.length, 'in', (Date.now()-t0)+'ms');}catch(e){}
       renderBatches();
       setTotalPill(BATCHES.length);
+      
+      // Auto-open batch if in URL
+      var path = window.location.pathname;
+      if(path.startsWith('/batch/')) {
+         var tid = path.split('/')[2];
+         var found = BATCHES.find(function(b){return b.titleId === tid;});
+         if(found) openBatch(found.titleId, found.label);
+      }
     })
     .catch(function(e){
       try{console.error('[batches] error', e);}catch(_){}
