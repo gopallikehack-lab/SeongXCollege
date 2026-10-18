@@ -119,25 +119,42 @@ function renderBatches(){
 }
 
 /* ===== batch info popup ===== */
-function openBatchInfo(titleId,label){
-  var body=g('info-body');
-  if(!body) return;
-  body.innerHTML='<div style="padding:60px 24px;text-align:center;color:var(--muted);font-size:13px">'
-    +'<div style="width:32px;height:32px;margin:0 auto 14px;border:3px solid var(--panel2);border-top-color:var(--accent);border-radius:50%;animation:ytspin .85s linear infinite"></div>'
-    +'loading info…</div>';
-  g('modal-info').classList.add('open');
-  fetch('/api/batch-info/'+encodeURIComponent(titleId))
-    .then(function(r){return r.json();})
-    .then(function(j){
-      if(!j||j.error){
-        body.innerHTML='<div style="padding:40px 24px;text-align:center;color:#ff7a7a;font-size:13px">'+esc((j&&j.error)||'failed')+'</div>';
-        return;
+window.openBatch=function(titleId,label,autoPlayIdx){
+  ACTIVE=titleId;
+  g('viewer-title').textContent=label;
+  g('sections-title').textContent=label;
+  g('search').value='';
+  
+  // Skeleton for Playlist
+  var tocSkel = '<div style="padding:14px">';
+  for(var i=0; i<5; i++){
+    tocSkel += '<div style="height:36px;background:linear-gradient(90deg,var(--panel2) 25%,var(--line) 50%,var(--panel2) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:8px;margin-bottom:10px;opacity:0.6"></div>';
+  }
+  tocSkel += '</div>';
+  g('toc').innerHTML = tocSkel;
+  
+  var certUrl = '/certificate?course='+encodeURIComponent(label);
+  g('player-wrap').innerHTML='<div class="player-empty"><svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg><h2 class="brand-gradient">Pick a lecture</h2><p style="margin-bottom:18px">Open the playlist with the list button, or grab your certificate.</p><a href="'+certUrl+'" target="_blank" class="as-btn primary" style="text-decoration:none;display:inline-flex;">🎓 View Certificate</a></div>';
+  
+  g('nowplaying').textContent='';
+  destroyPlayer();
+  showPage('viewer');
+  fetch('/api/sections/'+encodeURIComponent(titleId)).then(function(r){return r.json();}).then(function(j){
+    if(!j||!j.sections){g('toc').innerHTML='<div style="padding:20px;color:#ff7a7a">'+esc((j&&j.error)||'failed')+'</div>';return;}
+    window._sections=j.sections;
+    renderTOC();
+    if(window.innerWidth>900)g('sections-overlay').classList.add('open');
+
+    if (autoPlayIdx !== undefined && autoPlayIdx !== null && autoPlayIdx >= 0 && autoPlayIdx < FLAT.length) {
+      setTimeout(function(){ playUnit(autoPlayIdx); }, 300);
+    } else {
+      var lastIdx = localStorage.getItem('last_watched_'+titleId);
+      if (lastIdx && lastIdx < FLAT.length) {
+         setTimeout(function(){ playUnit(parseInt(lastIdx)); }, 300);
       }
-      renderBatchInfo(j);
-    })
-    .catch(function(e){
-      body.innerHTML='<div style="padding:40px 24px;text-align:center;color:#ff7a7a;font-size:13px">error: '+esc(e.message||e)+'</div>';
-    });
+    }
+  }).catch(function(e){g('toc').innerHTML='<div style="padding:20px;color:#ff7a7a">error: '+esc(e.message||e)+'</div>';});
+};
 }
 function renderBatchInfo(info){
   var body=g('info-body');
