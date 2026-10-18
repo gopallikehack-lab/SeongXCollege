@@ -186,7 +186,7 @@ function renderBatchInfo(info){
 }
 
 /* ===== viewer ===== */
-window.openBatch=function(titleId,label){
+window.openBatch=function(titleId,label,autoPlayIdx){
   ACTIVE=titleId;
   g('viewer-title').textContent=label;
   g('sections-title').textContent=label;
@@ -205,6 +205,17 @@ window.openBatch=function(titleId,label){
     window._sections=j.sections;
     renderTOC();
     if(window.innerWidth>900)g('sections-overlay').classList.add('open');
+
+    // Auto-resume or Auto-play
+    if (autoPlayIdx !== undefined && autoPlayIdx !== null && autoPlayIdx >= 0 && autoPlayIdx < FLAT.length) {
+      setTimeout(function(){ playUnit(autoPlayIdx); }, 300);
+    } else {
+      // Check localStorage for last watched
+      var lastIdx = localStorage.getItem('last_watched_'+titleId);
+      if (lastIdx && lastIdx < FLAT.length) {
+         setTimeout(function(){ playUnit(parseInt(lastIdx)); }, 300);
+      }
+    }
   }).catch(function(e){g('toc').innerHTML='<div style="padding:20px;color:#ff7a7a">error: '+esc(e.message||e)+'</div>';});
 };
 window.closeBatch=function(){destroyPlayer();ACTIVE=null;g('sections-overlay').classList.remove('open');showPage('batches');};
@@ -244,7 +255,11 @@ function renderTOC(){
 /* ===== unit playback ===== */
 function playUnit(idx){
   if(idx<0||idx>=FLAT.length)return;
-  CURRENT=idx;var item=FLAT[idx];var u=item.unit;
+  CURRENT=idx;
+  // Save to local storage
+  if(ACTIVE) localStorage.setItem('last_watched_'+ACTIVE, idx);
+
+  var item=FLAT[idx];var u=item.unit;
   var units=document.querySelectorAll('.toc-unit.active');
   for(var i=0;i<units.length;i++)units[i].classList.remove('active');
   var el=document.querySelector('.toc-unit[data-idx="'+idx+'"]');
@@ -491,7 +506,13 @@ function playWistia(sourceid){
 }
 function attachAutoNext(){
   if(!VIDEO)return;
-  VIDEO.addEventListener('ended',function(){if(CURRENT!=null&&CURRENT<FLAT.length-1){setStatus('auto-playing next…');playUnit(CURRENT+1);}});
+  VIDEO.addEventListener('ended',function(){
+    if(CURRENT!=null&&CURRENT<FLAT.length-1){
+      setStatus('auto-playing next…');
+      var nextIdx = CURRENT+1;
+      setTimeout(function(){ playUnit(nextIdx); }, 500); // Small delay so UI updates cleanly
+    }
+  });
 }
 
 /* ===== pdf ===== */
@@ -751,7 +772,6 @@ function loadAll(){
   var grid=g('batch-grid');
   if(!grid) return;
   
-  // 1. Show Skeleton animation instantly
   var skelHtml = '<div class="loading-text"><div class="spinner"></div><div>Loading batches…<br><span style="font-size:11px;opacity:0.7">(This may take up to 1 minute on first load)</span></div></div>';
   for(var i=0; i<4; i++){
     skelHtml += '<div class="skeleton-card">' +
