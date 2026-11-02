@@ -172,7 +172,7 @@ footer strong{font-family:var(--serif);font-size:1.15rem;color:var(--gold-soft);
     <h1>Education is free for everyone.</h1>
     <p class="lead">SeongEraStudy is a free study portal for every student. Open it, pick a class and start learning today. No fees, no gates.</p>
     <div class="cta-row">
-      <a class="btn gold" href="https://devel-novelty-cayman-clearance.trycloudflare.com/" target="_blank" rel="noopener">
+      <a class="btn gold" href="https://lauren-partnership-mini-coaches.trycloudflare.com" target="_blank" rel="noopener">
         Start learning
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
       </a>
@@ -198,17 +198,17 @@ footer strong{font-family:var(--serif);font-size:1.15rem;color:var(--gold-soft);
         <p class="sub">Open the portal and learn at your own pace, from any phone or laptop.</p>
       </div>
       <div class="rows">
-        <a class="row" href="https://devel-novelty-cayman-clearance.trycloudflare.com/" target="_blank" rel="noopener">
+        <a class="row" href="https://lauren-partnership-mini-coaches.trycloudflare.com" target="_blank" rel="noopener">
           <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="m10 9.5 5 2.5-5 2.5z" fill="currentColor"/></svg></span>
           <span><h3>Video lectures</h3><p>Watch classes with a smooth, easy player.</p></span>
           <span class="go">→</span>
         </a>
-        <a class="row" href="https://devel-novelty-cayman-clearance.trycloudflare.com/" target="_blank" rel="noopener">
+        <a class="row" href="https://lauren-partnership-mini-coaches.trycloudflare.com" target="_blank" rel="noopener">
           <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h7"/></svg></span>
           <span><h3>Notes and PDFs</h3><p>Clear study material you can open any time.</p></span>
           <span class="go">→</span>
         </a>
-        <a class="row" href="https://devel-novelty-cayman-clearance.trycloudflare.com/" target="_blank" rel="noopener">
+        <a class="row" href="https://lauren-partnership-mini-coaches.trycloudflare.com" target="_blank" rel="noopener">
           <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9"/></svg></span>
           <span><h3>Practice and tests</h3><p>Check what you learned and keep improving.</p></span>
           <span class="go">→</span>
@@ -246,7 +246,7 @@ footer strong{font-family:var(--serif);font-size:1.15rem;color:var(--gold-soft);
       <h2>Your next class starts here.</h2>
       <p class="sub">Open the portal to begin, and follow the Telegram channel for every new update.</p>
       <div class="cta-row">
-        <a class="btn gold" href="https://devel-novelty-cayman-clearance.trycloudflare.com/" target="_blank" rel="noopener">Open the portal</a>
+        <a class="btn gold" href="https://lauren-partnership-mini-coaches.trycloudflare.com" target="_blank" rel="noopener">Open the portal</a>
         <a class="btn ghost" href="https://t.me/SeongEraStudy" target="_blank" rel="noopener">@SeongEraStudy</a>
       </div>
       <p class="owner">Questions? Message the owner <a href="https://t.me/SeongEra" target="_blank" rel="noopener">@SeongEra</a> on Telegram.</p>
