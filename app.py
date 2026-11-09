@@ -37,11 +37,12 @@ a{color:inherit;text-decoration:none}
 
 /* ---------- Backdrop ---------- */
 .bg{position:fixed;inset:0;z-index:-2;background:radial-gradient(90% 70% at 80% 10%,#3a1450 0%,var(--bg) 70%)}
-.bg video{width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity 1.6s ease}
-.bg video.ready{opacity:1}
+.bg video{position:absolute;inset:0;width:100%;height:100%}
+.bg #bgb{object-fit:cover;filter:blur(34px) brightness(.55) saturate(1.2);transform:scale(1.18);z-index:1}
+.bg #bgf{object-fit:contain;z-index:2}
 .shade{position:fixed;inset:0;z-index:-1;pointer-events:none;
   background:
-    radial-gradient(70% 60% at 50% 40%,rgba(7,5,11,.35),rgba(7,5,11,.82) 100%),
+    radial-gradient(70% 60% at 50% 40%,rgba(7,5,11,.18),rgba(7,5,11,.7) 100%),
     linear-gradient(180deg,rgba(7,5,11,.5),rgba(7,5,11,.2) 35%,rgba(7,5,11,.92) 100%)}
 
 /* ---------- Floating nav ---------- */
@@ -160,7 +161,9 @@ footer strong{color:var(--ink);font-family:var(--head)}
 <body>
 
 <div class="bg">
-  <video id="bgv" autoplay muted loop playsinline preload="auto"
+  <video id="bgb" muted loop playsinline preload="auto" aria-hidden="true"
+    src="https://huggingface.co/datasets/gopallikehack/Seong_Study/resolve/main/n-261027-9rgev0.mp4"></video>
+  <video id="bgf" autoplay muted loop playsinline preload="auto"
     src="https://huggingface.co/datasets/gopallikehack/Seong_Study/resolve/main/n-261027-9rgev0.mp4"></video>
 </div>
 <div class="shade"></div>
@@ -274,20 +277,41 @@ footer strong{color:var(--ink);font-family:var(--head)}
 
 <script>
 (function(){
-  var v=document.getElementById('bgv'),
+  var v=document.getElementById('bgf'),
+      w=document.getElementById('bgb'),
       b=document.getElementById('snd'),
       l=document.getElementById('sndl');
-  v.addEventListener('canplay',function(){v.classList.add('ready')});
-  v.addEventListener('loadeddata',function(){v.classList.add('ready')});
-  var p=v.play(); if(p&&p.catch)p.catch(function(){});
+
+  function safe(p){ if(p&&p.catch)p.catch(function(){}); }
+  function play(){ safe(v.play()); safe(w.play()); }
+  function stop(){ v.pause(); w.pause(); }
+
+  /* start from the very first frame */
+  try{ v.currentTime=0; w.currentTime=0; }catch(e){}
+  play();
+
+  /* keep the blurred filler in sync with the main video */
+  v.addEventListener('timeupdate',function(){
+    if(Math.abs(w.currentTime-v.currentTime)>.4){ w.currentTime=v.currentTime; }
+  });
+
+  /* user leaves the tab/site: stop video and music. Back again: continue */
+  document.addEventListener('visibilitychange',function(){
+    if(document.hidden){ stop(); } else { play(); }
+  });
+  window.addEventListener('pagehide',stop);
+  window.addEventListener('pageshow',function(){ if(!document.hidden){ play(); } });
+
   b.addEventListener('click',function(){
     var on=v.muted;
     v.muted=!on;
-    if(on){v.volume=.8;var q=v.play();if(q&&q.catch)q.catch(function(){})}
+    if(on){ v.volume=.8; }
+    play();
     b.setAttribute('aria-pressed',on);
     b.setAttribute('aria-label',on?'Turn music off':'Turn music on');
     l.textContent=on?'Music on':'Music off';
   });
+
   document.getElementById('yr').textContent=new Date().getFullYear();
 })();
 </script>
