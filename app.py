@@ -34,7 +34,7 @@ HTML = r"""<!DOCTYPE html>
   --a2:#ff3f86;
   --a3:#7a5cff;
   --grad:linear-gradient(120deg,var(--a1),var(--a2) 55%,var(--a3));
-  --glass:rgba(255,255,255,.07);
+  --glass:rgba(16,10,26,.58);
   --edge:rgba(255,255,255,.15);
   --head:"Sora",system-ui,sans-serif;
   --body:"DM Sans",system-ui,sans-serif;
@@ -49,25 +49,17 @@ a{color:inherit;text-decoration:none}
 
 /* ---------- Backdrop ---------- */
 .bg{position:fixed;inset:0;z-index:-3;background:radial-gradient(90% 70% at 80% 10%,#3a1450 0%,var(--bg) 70%)}
-.bg video{position:absolute;inset:0;width:100%;height:100%}
-.bg #bgb{object-fit:cover;filter:blur(34px) brightness(.55) saturate(1.2);transform:scale(1.18);z-index:1}
-.bg #bgf{object-fit:contain;z-index:2}
+.bg video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;transform:translateZ(0);will-change:transform;backface-visibility:hidden}
 .shade{position:fixed;inset:0;z-index:-2;pointer-events:none;
   background:
     radial-gradient(70% 60% at 50% 40%,rgba(7,5,11,.2),rgba(7,5,11,.72) 100%),
     linear-gradient(180deg,rgba(7,5,11,.5),rgba(7,5,11,.15) 35%,rgba(7,5,11,.92) 100%)}
-.orb{position:fixed;z-index:-1;pointer-events:none;border-radius:50%;filter:blur(90px);opacity:.32;mix-blend-mode:screen}
-.o1{width:46vmax;height:46vmax;left:-14vmax;top:-10vmax;background:var(--a2);animation:d1 22s ease-in-out infinite alternate}
-.o2{width:40vmax;height:40vmax;right:-12vmax;top:30vh;background:var(--a3);animation:d2 26s ease-in-out infinite alternate}
-.o3{width:34vmax;height:34vmax;left:25vw;bottom:-16vmax;background:var(--a1);opacity:.2;animation:d1 30s ease-in-out infinite alternate-reverse}
-@keyframes d1{to{transform:translate(8vmax,6vmax) scale(1.15)}}
-@keyframes d2{to{transform:translate(-9vmax,-5vmax) scale(.9)}}
 .prog{position:fixed;top:0;left:0;height:3px;width:0;z-index:60;background:var(--grad);box-shadow:0 0 14px rgba(255,63,134,.7)}
 
 /* ---------- Nav ---------- */
 .nav{position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:40;width:min(960px,calc(100% - 28px));
   display:flex;align-items:center;justify-content:space-between;gap:14px;padding:10px 10px 10px 22px;border-radius:999px;
-  background:rgba(14,9,22,.62);border:1px solid var(--edge);backdrop-filter:blur(18px)}
+  background:rgba(14,9,22,.62);border:1px solid var(--edge);}
 .logo{font-family:var(--head);font-weight:800;font-size:1.05rem;letter-spacing:-.01em}
 .logo b{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
 .links{display:flex;gap:26px;font-size:.9rem;font-weight:500;color:var(--mut)}
@@ -82,13 +74,13 @@ a{color:inherit;text-decoration:none}
 @keyframes shine{0%,55%{left:-60%}100%{left:130%}}
 .pill:hover{transform:translateY(-2px);box-shadow:0 14px 34px -8px rgba(255,63,134,.75)}
 .pill.big{padding:17px 34px;font-size:1rem}
-.ghost{display:inline-flex;align-items:center;gap:10px;padding:16px 30px;border-radius:999px;border:1px solid var(--edge);background:var(--glass);backdrop-filter:blur(12px);font-weight:600;transition:background .2s,border-color .2s,transform .2s}
+.ghost{display:inline-flex;align-items:center;gap:10px;padding:16px 30px;border-radius:999px;border:1px solid var(--edge);background:var(--glass);font-weight:600;transition:background .2s,border-color .2s,transform .2s}
 .ghost:hover{background:rgba(255,255,255,.13);border-color:rgba(255,255,255,.34);transform:translateY(-2px)}
 .pill svg,.ghost svg{width:18px;height:18px}
 
 /* ---------- Hero ---------- */
 .hero{min-height:100svh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:130px 22px 100px}
-.badge{position:relative;display:inline-flex;align-items:center;gap:10px;padding:9px 20px;border-radius:999px;background:rgba(14,9,22,.6);backdrop-filter:blur(10px);font-size:.85rem;font-weight:600;color:var(--mut);isolation:isolate}
+.badge{position:relative;display:inline-flex;align-items:center;gap:10px;padding:9px 20px;border-radius:999px;background:rgba(14,9,22,.6);font-size:.85rem;font-weight:600;color:var(--mut);isolation:isolate}
 .badge::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.5px;background:conic-gradient(from var(--ang,0deg),var(--a1),var(--a2),var(--a3),var(--a1));-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;animation:spin 5s linear infinite;z-index:-1}
 @property --ang{syntax:"<angle>";initial-value:0deg;inherits:false}
 @keyframes spin{to{--ang:360deg}}
@@ -110,7 +102,7 @@ a{color:inherit;text-decoration:none}
 @keyframes up{to{opacity:1;transform:none}}
 
 /* ---------- Ticker ---------- */
-.ticker{overflow:hidden;white-space:nowrap;border-block:1px solid var(--edge);background:rgba(7,5,11,.62);backdrop-filter:blur(10px)}
+.ticker{overflow:hidden;white-space:nowrap;border-block:1px solid var(--edge);background:rgba(7,5,11,.62);}
 .ticker div{display:inline-flex;animation:scroll 38s linear infinite;padding:20px 0}
 .ticker span{font-family:var(--head);font-weight:700;font-size:1.35rem;padding-right:48px;color:rgba(251,246,255,.92)}
 .ticker span::after{content:"•";padding-left:48px;color:var(--a2)}
@@ -127,7 +119,7 @@ h2{margin-top:12px;font-family:var(--head);font-weight:800;font-size:clamp(2rem,
 
 /* Bento */
 .bento{display:grid;grid-template-columns:repeat(6,1fr);gap:16px;margin-top:50px}
-.card{position:relative;display:flex;flex-direction:column;justify-content:space-between;gap:30px;padding:30px;border-radius:28px;background:var(--glass);border:1px solid var(--edge);backdrop-filter:blur(16px);overflow:hidden;transition:transform .3s,border-color .3s}
+.card{position:relative;display:flex;flex-direction:column;justify-content:space-between;gap:30px;padding:30px;border-radius:28px;background:var(--glass);border:1px solid var(--edge);overflow:hidden;transition:transform .3s,border-color .3s}
 .card::before{content:"";position:absolute;inset:auto -20% -60% auto;width:260px;height:260px;border-radius:50%;background:var(--grad);opacity:0;filter:blur(70px);transition:opacity .4s}
 .card::after{content:"";position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .3s;background:radial-gradient(380px circle at var(--x,50%) var(--y,0%),rgba(255,255,255,.13),transparent 60%)}
 .card:hover{transform:translateY(-5px);border-color:rgba(255,255,255,.34)}
@@ -154,7 +146,7 @@ h2{margin-top:12px;font-family:var(--head);font-weight:800;font-size:clamp(2rem,
 /* Character */
 .hero2{display:grid;grid-template-columns:1fr 1.1fr;gap:34px;align-items:center}
 @media(max-width:820px){.hero2{grid-template-columns:1fr}}
-.kr{position:relative;display:grid;place-items:center;min-height:300px;border-radius:34px;border:1px solid var(--edge);background:linear-gradient(135deg,rgba(255,162,61,.14),rgba(255,63,134,.1) 45%,rgba(122,92,255,.18));backdrop-filter:blur(16px);overflow:hidden}
+.kr{position:relative;display:grid;place-items:center;min-height:300px;border-radius:34px;border:1px solid var(--edge);background:linear-gradient(135deg,rgba(255,162,61,.14),rgba(255,63,134,.1) 45%,rgba(122,92,255,.18));overflow:hidden}
 .kr strong{font-family:var(--kr);font-weight:800;font-size:clamp(3rem,9vw,6rem);line-height:1.05;text-align:center;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
 .kr em{position:absolute;left:22px;bottom:16px;font-style:normal;font-size:.75rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--mut)}
 .nm{margin-top:12px;font-family:var(--head);font-weight:800;font-size:clamp(2.2rem,5vw,3.8rem);line-height:1.05;letter-spacing:-.03em}
@@ -176,7 +168,7 @@ h2{margin-top:12px;font-family:var(--head);font-weight:800;font-size:clamp(2rem,
 .quote blockquote em{font-style:normal;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
 
 /* Owner */
-.owner{display:grid;grid-template-columns:1.1fr 1fr;gap:34px;align-items:center;padding:clamp(28px,5vw,56px);border-radius:34px;background:linear-gradient(135deg,rgba(255,162,61,.16),rgba(255,63,134,.12) 45%,rgba(122,92,255,.18));border:1px solid var(--edge);backdrop-filter:blur(18px)}
+.owner{display:grid;grid-template-columns:1.1fr 1fr;gap:34px;align-items:center;padding:clamp(28px,5vw,56px);border-radius:34px;background:linear-gradient(135deg,rgba(255,162,61,.16),rgba(255,63,134,.12) 45%,rgba(122,92,255,.18));border:1px solid var(--edge);}
 @media(max-width:800px){.owner{grid-template-columns:1fr}}
 .owner h2{font-size:clamp(1.7rem,3.8vw,2.7rem);max-width:none;line-height:1.2;letter-spacing:-.01em;word-break:break-word}
 .owner .role{margin-top:14px;color:var(--mut)}
@@ -192,7 +184,7 @@ footer small{display:block;margin-top:6px;opacity:.6;font-size:.78rem}
 
 /* ---------- Sound ---------- */
 .sound{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:50;display:flex;align-items:center;gap:12px;padding:12px 22px 12px 16px;border-radius:999px;
-  background:rgba(14,9,22,.72);border:1px solid var(--edge);backdrop-filter:blur(18px);color:var(--ink);font:600 .88rem var(--body);cursor:pointer;transition:border-color .2s,transform .2s,background .2s}
+  background:rgba(14,9,22,.72);border:1px solid var(--edge);color:var(--ink);font:600 .88rem var(--body);cursor:pointer;transition:border-color .2s,transform .2s,background .2s}
 .sound:hover{border-color:rgba(255,255,255,.36);transform:translateX(-50%) translateY(-2px)}
 .sound[aria-pressed="true"]{border-color:var(--a2);background:rgba(255,63,134,.2)}
 .eq{display:flex;align-items:flex-end;gap:3px;width:22px;height:18px}
@@ -215,11 +207,9 @@ footer small{display:block;margin-top:6px;opacity:.6;font-size:.78rem}
 
 <div class="prog" id="prog"></div>
 <div class="bg">
-  <video id="bgb" muted loop playsinline preload="auto" aria-hidden="true" src="{{VIDEO}}"></video>
-  <video id="bgf" autoplay muted loop playsinline preload="auto" src="{{VIDEO}}"></video>
+  <video id="bgf" autoplay muted loop playsinline preload="auto" disablepictureinpicture src="{{VIDEO}}"></video>
 </div>
 <div class="shade"></div>
-<div class="orb o1"></div><div class="orb o2"></div><div class="orb o3"></div>
 
 <nav class="nav">
   <a class="logo" href="#top">Seong<b>Era</b>Study</a>
@@ -357,20 +347,15 @@ footer small{display:block;margin-top:6px;opacity:.6;font-size:.78rem}
 <script>
 (function(){
   var v=document.getElementById('bgf'),
-      w=document.getElementById('bgb'),
       b=document.getElementById('snd'),
       l=document.getElementById('sndl');
 
   function safe(p){ if(p&&p.catch)p.catch(function(){}); }
-  function play(){ safe(v.play()); safe(w.play()); }
-  function stop(){ v.pause(); w.pause(); }
+  function play(){ safe(v.play()); }
+  function stop(){ v.pause(); }
 
-  try{ v.currentTime=0; w.currentTime=0; }catch(e){}
+  try{ v.currentTime=0; }catch(e){}
   play();
-
-  v.addEventListener('timeupdate',function(){
-    if(Math.abs(w.currentTime-v.currentTime)>.4){ w.currentTime=v.currentTime; }
-  });
 
   document.addEventListener('visibilitychange',function(){
     if(document.hidden){ stop(); } else { play(); }
