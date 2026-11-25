@@ -7,17 +7,31 @@ OWNER_LINK      = "https://t.me/SeongEra"
 OWNER_NAME      = "夔🌑 𝑺𝒆𝒐𝒏𝒈-𝒋𝒆 ⋆ 𝑂𝑓𝑓𝑙𝑖𝑛𝑒"
 
 VIDEO_URL       = "https://huggingface.co/datasets/gopallikehack/Seong_Study/resolve/main/n-261124-kcctgu.mp4"
-OWNER_VIDEO_URL = "https://huggingface.co/datasets/gopallikehack/Seong_Study/resolve/main/nz-261124-k60suu.mp4"
+OWNER_VIDEO_URL = "https://huggingface.co/datasets/gopallikehack/Seong_Study/resolve/main/a-261025-y6jc8x.mp4"
 
-LOGO_URL        = "https://i.ibb.co/0VhQSvCg/file-00000000649482079925d320aeb3e88b.png"
+LOGO_URL        = "https://huggingface.co/datasets/gopallikehack/AiLearning/resolve/main/file_00000000649482079925d320aeb3e88b.png"
 TREE_URL        = "https://i.ibb.co/nsrmkCn9/file-0000000077c48207807f7e09f0f8d150.png"
 GIFTS_URL       = "https://i.ibb.co/Z0LjjGw/file-00000000cfe0820799c102c961ea1c5b.png"
 SNOWMAN_URL     = "https://i.ibb.co/20kfKnLj/file-00000000755882079d6cb681905d59cb.png"
 HAT_URL         = "https://i.ibb.co/gMfnHdn4/Note-GPT-Image-20261125084956.png"
+SANTA_URL       = "https://i.ibb.co/206Z4PZK/1795566285922.png"
 SNOWBG_URL      = "https://i.ibb.co/4gJQNThb/download.jpg"
+
+# Leave empty to auto-detect your domain. Change the number to force
+# WhatsApp / Telegram to refresh the link preview picture.
+SITE_URL        = ""
+ASSET_VERSION   = "1"
 # =====================================================
 
-from flask import Flask, Response
+import io
+import urllib.request
+
+from flask import Flask, Response, redirect, request
+
+try:
+    from PIL import Image, ImageChops, ImageDraw, ImageFilter, ImageFont
+except Exception:          # Pillow missing: site still works, images load from original links
+    Image = None
 
 app = Flask(__name__)
 
@@ -31,9 +45,19 @@ HTML = r"""<!DOCTYPE html>
 <meta name="theme-color" content="#050b1c">
 <meta property="og:title" content="SeongEraStudy · Education is free for everyone">
 <meta property="og:description" content="Merry Christmas and Happy New Year 2027 from SeongEraStudy.">
-<meta property="og:image" content="{{LOGO}}">
-<link rel="icon" href="{{LOGO}}">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="SeongEraStudy">
+<meta property="og:url" content="{{BASE}}/">
+<meta property="og:image" content="{{BASE}}/og.jpg?v={{V}}">
+<meta property="og:image:type" content="image/jpeg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="{{BASE}}/og.jpg?v={{V}}">
+<link rel="icon" type="image/png" href="{{LOGO}}">
 <link rel="apple-touch-icon" href="{{LOGO}}">
+<link rel="preload" as="image" href="{{LOGO}}">
+<link rel="preconnect" href="https://huggingface.co">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700;9..144,900&family=Mountains+of+Christmas:wght@700&family=Noto+Sans+KR:wght@800&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -55,6 +79,10 @@ HTML = r"""<!DOCTYPE html>
   --body:"Outfit",system-ui,sans-serif;
   --script:"Mountains of Christmas","Fraunces",cursive;
   --kr:"Noto Sans KR",sans-serif;
+  /* Santa hat on the owner circle: change these 4 numbers to move it */
+  --hat-x:8%;--hat-y:-27%;--hat-rot:18deg;--hat-size:44%;
+  /* Santa + reindeer flies left to right. If he faces backwards set this to -1 */
+  --santa-flip:1;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth;scroll-padding-top:100px}
@@ -65,16 +93,6 @@ a{color:inherit;text-decoration:none}
 :focus-visible{outline:2px solid var(--gold);outline-offset:3px;border-radius:8px}
 ::selection{background:var(--red);color:#fff}
 
-/* ---------- Loader ---------- */
-#loader{display:none}
-.js #loader{position:fixed;inset:0;z-index:300;display:grid;place-items:center;align-content:center;gap:20px;background:radial-gradient(80% 60% at 50% 40%,#10234d,var(--night));transition:opacity .7s ease,visibility .7s}
-#loader.done{opacity:0;visibility:hidden}
-#loader img{width:104px;height:104px;object-fit:contain;border-radius:26px;filter:drop-shadow(0 0 22px rgba(191,233,255,.6));animation:lp 1.6s ease-in-out infinite}
-@keyframes lp{50%{transform:scale(1.07)}}
-#loader b{font-family:var(--head);font-weight:900;font-size:1.4rem}
-#loader small{color:var(--mut);font-size:.9rem;letter-spacing:.12em;text-transform:uppercase}
-@keyframes rot{to{transform:rotate(360deg)}}
-
 /* ---------- Backdrop ---------- */
 .bg{position:fixed;inset:0;z-index:-3;background:radial-gradient(90% 70% at 70% 10%,#14306a 0%,var(--night) 70%);overflow:hidden}
 .bg canvas{position:absolute;inset:0;width:100%;height:100%;z-index:1;opacity:.72}
@@ -84,6 +102,7 @@ a{color:inherit;text-decoration:none}
     radial-gradient(75% 65% at 50% 42%,rgba(5,11,28,.12),rgba(5,11,28,.66) 100%),
     linear-gradient(180deg,rgba(5,11,28,.55),rgba(5,11,28,.08) 32%,rgba(5,11,28,.9) 100%)}
 #snow{position:fixed;inset:0;width:100%;height:100%;z-index:90;pointer-events:none}
+body.gated #snow{z-index:106}
 .prog{position:fixed;top:0;left:0;height:3px;width:0;z-index:250;background:var(--grad);box-shadow:0 0 14px rgba(255,207,107,.8)}
 
 /* ---------- Christmas lights ---------- */
@@ -101,9 +120,11 @@ a{color:inherit;text-decoration:none}
 .lights i:nth-child(3n+1)::after{animation-delay:1.2s}
 @keyframes tw{0%,100%{opacity:.12}50%{opacity:.9}}
 
-/* ---------- Santa flyby ---------- */
-.sleigh{position:fixed;top:15%;left:0;z-index:80;font-size:2.2rem;pointer-events:none;white-space:nowrap;animation:fly 70s linear infinite;animation-delay:6s;transform:translateX(-30vw);filter:drop-shadow(0 4px 10px rgba(0,0,0,.5))}
-@keyframes fly{0%{transform:translate(-30vw,0)}6%{transform:translate(55vw,-28px)}12%,100%{transform:translate(125vw,10px)}}
+/* ---------- Santa + reindeer flyby ---------- */
+.sleigh{position:fixed;top:11%;left:0;z-index:107;pointer-events:none;will-change:transform;transform:translate(-45vw,0);animation:fly 64s linear infinite;animation-delay:.5s}
+.sleigh img{display:block;height:clamp(92px,17vw,180px);width:auto;transform:scaleX(var(--santa-flip,1));filter:drop-shadow(0 12px 18px rgba(0,0,0,.55)) drop-shadow(0 0 20px rgba(255,207,107,.4));animation:sbob 1.5s ease-in-out infinite}
+@keyframes sbob{0%,100%{transform:translateY(0) scaleX(var(--santa-flip,1))}50%{transform:translateY(-9px) scaleX(var(--santa-flip,1))}}
+@keyframes fly{0%{transform:translate(-45vw,0)}9%{transform:translate(140vw,-26px)}100%{transform:translate(140vw,-26px)}}
 
 /* ---------- Nav ---------- */
 .nav{position:fixed;top:42px;left:50%;transform:translateX(-50%);z-index:100;width:min(1000px,calc(100% - 28px));
@@ -112,7 +133,7 @@ a{color:inherit;text-decoration:none}
 .logo{display:flex;align-items:center;gap:10px;font-family:var(--head);font-weight:900;font-size:1.1rem;letter-spacing:-.01em}
 .lg{position:relative;flex:none;width:38px;height:38px}
 .lg img.mark{width:38px;height:38px;object-fit:contain;border-radius:11px;display:block}
-.lg img.mini{position:absolute;top:-11px;left:-9px;width:25px;height:auto;transform:rotate(-20deg);pointer-events:none;filter:drop-shadow(0 2px 3px rgba(0,0,0,.5))}
+.lg img.mini{position:absolute;top:-13px;right:-10px;width:27px;height:auto;transform:rotate(22deg);transform-origin:50% 85%;pointer-events:none;filter:drop-shadow(0 2px 3px rgba(0,0,0,.5))}
 .logo b{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
 .links{display:flex;gap:24px;font-size:.92rem;font-weight:500;color:var(--mut)}
 .links a{position:relative;padding:4px 0;transition:color .2s}
@@ -297,10 +318,10 @@ footer small{display:block;margin-top:6px;opacity:.62;font-size:.78rem}
 /* ---------- Music button (vinyl + pulse ring) ---------- */
 .eq{display:flex;align-items:flex-end;gap:3px;width:22px;height:18px}
 .eq i{flex:1;height:28%;border-radius:2px;background:#fff}
-body.music-on .eq i{animation:eq 1s ease-in-out infinite}
-body.music-on .eq i:nth-child(2){animation-delay:.2s}
-body.music-on .eq i:nth-child(3){animation-delay:.4s}
-body.music-on .eq i:nth-child(4){animation-delay:.1s}
+body.music-on .music .eq i,body.owner-on .cbtn .eq i{animation:eq 1s ease-in-out infinite}
+body.music-on .music .eq i:nth-child(2),body.owner-on .cbtn .eq i:nth-child(2){animation-delay:.2s}
+body.music-on .music .eq i:nth-child(3),body.owner-on .cbtn .eq i:nth-child(3){animation-delay:.4s}
+body.music-on .music .eq i:nth-child(4),body.owner-on .cbtn .eq i:nth-child(4){animation-delay:.1s}
 @keyframes eq{0%,100%{height:25%}50%{height:100%}}
 .music{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:110;display:flex;align-items:center;gap:14px;padding:8px 22px 8px 8px;border-radius:999px;
   background:linear-gradient(120deg,#e8283f,#ff6a57);border:1px solid rgba(255,255,255,.38);color:#fff;cursor:pointer;text-align:left;font-family:var(--body);
@@ -328,18 +349,45 @@ body.music-on .music .eq{display:flex}
 .toast{position:fixed;top:112px;left:50%;z-index:130;transform:translate(-50%,-20px);opacity:0;pointer-events:none;padding:12px 24px;border-radius:999px;background:linear-gradient(120deg,var(--red),var(--red2));font-weight:700;box-shadow:0 14px 40px -10px rgba(232,40,63,.9);transition:opacity .35s,transform .35s;white-space:nowrap}
 .toast.show{opacity:1;transform:translate(-50%,0)}
 
-/* ---------- Entry gate ---------- */
+/* ---------- Intro screen (instant, one tap to enter) ---------- */
 .gate{display:none}
-.js .gate{position:fixed;inset:0;z-index:280;display:grid;place-items:center;padding:22px;background:radial-gradient(70% 60% at 50% 40%,rgba(16,35,77,.8),rgba(5,11,28,.95));transition:opacity .5s,visibility .5s}
-.gate.out{opacity:0;visibility:hidden}
-.gcard{max-width:420px;width:100%;text-align:center;padding:34px 26px 24px;border-radius:32px;background:linear-gradient(160deg,rgba(14,32,70,.94),rgba(7,16,38,.97));border:1px solid var(--edge);box-shadow:0 30px 80px -20px rgba(0,0,0,.85);animation:pop .7s cubic-bezier(.2,.9,.3,1.2) both}
-@keyframes pop{from{opacity:0;transform:scale(.88) translateY(20px)}}
-.gcard img{width:92px;height:92px;object-fit:contain;border-radius:22px;margin-bottom:8px}
-.gcard h3{font-family:var(--script);font-size:2.5rem;color:var(--gold);line-height:1;font-weight:700}
-.gcard p{margin:10px 0 22px;color:var(--mut)}
-.gcard .pill{width:100%;justify-content:center}
-.gcard .skip{display:block;margin:14px auto 0;background:none;border:0;color:var(--mut);font:500 .9rem var(--body);cursor:pointer;text-decoration:underline;text-underline-offset:3px}
-.gcard .tip{margin-top:16px;font-size:.78rem;opacity:.65}
+.js .gate{position:fixed;inset:0;z-index:105;display:grid;place-items:center;padding:22px;overflow:hidden;
+  background:radial-gradient(75% 55% at 50% 28%,rgba(28,62,128,.9),rgba(5,11,28,.98) 72%),var(--night);
+  transition:opacity .6s ease,visibility .6s,transform .6s}
+.gate.out{opacity:0;visibility:hidden;transform:scale(1.05)}
+.gate::before{content:"";position:absolute;left:-25%;right:-25%;top:-45%;bottom:-45%;will-change:transform;
+  background:conic-gradient(from 0deg at 50% 50%,transparent 0 18%,rgba(255,207,107,.12) 22%,transparent 27% 52%,rgba(111,208,255,.12) 57%,transparent 62%);animation:rot 22s linear infinite}
+.intro-inner{position:relative;max-width:520px;width:100%;text-align:center}
+.logo-wrap{position:relative;width:138px;height:138px;margin:0 auto 20px;animation:pop .8s cubic-bezier(.2,.9,.3,1.2) both}
+@keyframes pop{from{opacity:0;transform:scale(.8) translateY(16px)}}
+.logo-wrap::before{content:"";position:absolute;inset:-5px;border-radius:36px;background:conic-gradient(#ff3b52,#ffcf6b,#35d69a,#6fd0ff,#ff3b52);animation:rot 6s linear infinite}
+.logo-wrap::after{content:"";position:absolute;inset:-22px;border-radius:50%;background:radial-gradient(circle,rgba(255,207,107,.28),transparent 66%);z-index:-1}
+.logo-wrap .lw{position:absolute;inset:0;border-radius:32px;background:#0a1630;display:grid;place-items:center;overflow:hidden}
+.logo-wrap img{width:84%;height:84%;object-fit:contain}
+.i-script{font-family:var(--script);font-weight:700;font-size:clamp(1.6rem,5vw,2.2rem);color:var(--gold);line-height:1.1;text-shadow:0 0 24px rgba(255,207,107,.5)}
+.i-title{margin-top:6px;font-family:var(--head);font-weight:900;font-size:clamp(2.4rem,9vw,3.6rem);line-height:1;letter-spacing:-.035em}
+.i-title b{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.i-sub{margin-top:10px;color:var(--mut)}
+.i-load{margin:22px auto 4px;max-width:260px}
+.i-load .bar{height:5px;border-radius:5px;background:rgba(255,255,255,.12);overflow:hidden}
+.i-load .bar i{display:block;height:100%;width:6%;border-radius:5px;background:var(--grad);transition:width .35s ease}
+.i-load small{display:block;margin-top:8px;font-size:.7rem;letter-spacing:.18em;text-transform:uppercase;color:var(--mut)}
+.i-btns{margin-top:20px}
+.i-btns .pill{width:100%;max-width:340px;justify-content:center}
+.skip{display:block;margin:14px auto 0;background:none;border:0;color:var(--mut);font:500 .92rem var(--body);cursor:pointer;text-decoration:underline;text-underline-offset:3px;padding:6px 10px}
+.skip:hover{color:var(--ink)}
+.tip{margin-top:16px;font-size:.78rem;opacity:.65}
+@keyframes iup{from{opacity:0;transform:translateY(14px)}}
+.intro-inner > *:not(.logo-wrap){animation:iup .6s cubic-bezier(.2,.7,.2,1) both}
+.intro-inner > :nth-child(2){animation-delay:.1s}
+.intro-inner > :nth-child(3){animation-delay:.18s}
+.intro-inner > :nth-child(4){animation-delay:.26s}
+.intro-inner > :nth-child(5){animation-delay:.34s}
+.intro-inner > :nth-child(6){animation-delay:.42s}
+.intro-inner > :nth-child(7){animation-delay:.5s}
+body.gated .nav,body.gated .music,body.gated .celeb,body.gated .bubble{opacity:0;pointer-events:none}
+body.gated .hero > *{animation-play-state:paused}
+.hint{margin-top:10px;font-size:.8rem;opacity:.65}
 
 /* ---------- Hero tree ---------- */
 .treewrap{display:none;position:absolute;right:-1vw;bottom:6vh;z-index:-1}
@@ -364,15 +412,15 @@ body.music-on .music .eq{display:flex}
 .circle::before{content:"";position:absolute;inset:-8px;border-radius:50%;background:conic-gradient(#ff3b52,#ffcf6b,#35d69a,#6fd0ff,#ff3b52);animation:rot 7s linear infinite}
 .circle .disc{position:absolute;inset:0;border-radius:50%;overflow:hidden;background:#0a1228;border:4px solid var(--night);transition:transform .3s}
 .circle video{width:100%;height:100%;object-fit:cover;display:block}
-.circle .hat{position:absolute;z-index:3;top:-52px;left:-16px;width:46%;height:auto;transform:rotate(-14deg);pointer-events:none;filter:drop-shadow(0 6px 10px rgba(0,0,0,.55))}
+.circle .hat{position:absolute;z-index:3;top:var(--hat-y);right:var(--hat-x);width:var(--hat-size);height:auto;transform:rotate(var(--hat-rot));transform-origin:50% 85%;pointer-events:none;filter:drop-shadow(0 8px 12px rgba(0,0,0,.55))}
 .circle .cbtn{position:absolute;z-index:3;left:50%;bottom:-20px;transform:translateX(-50%);display:flex;align-items:center;gap:10px;padding:11px 20px;border-radius:999px;background:linear-gradient(120deg,var(--red),var(--red2));color:#fff;font-weight:700;font-size:.86rem;white-space:nowrap;box-shadow:0 10px 26px -8px rgba(232,40,63,.95);transition:transform .2s,background .3s}
 .circle .cbtn::before{content:"▶";font-size:.8rem}
 .circle .cbtn .eq{display:none;width:18px;height:14px}
 .circle:hover .cbtn{transform:translateX(-50%) translateY(-3px)}
-body.music-on .circle .cbtn{background:linear-gradient(120deg,#0f9d63,#35d69a)}
-body.music-on .circle .cbtn::before{display:none}
-body.music-on .circle .cbtn .eq{display:flex}
-body.music-on .circle .disc{animation:beat 1.2s ease-in-out infinite}
+body.owner-on .circle .cbtn{background:linear-gradient(120deg,#0f9d63,#35d69a)}
+body.owner-on .circle .cbtn::before{display:none}
+body.owner-on .circle .cbtn .eq{display:flex}
+body.owner-on .circle .disc{animation:beat 1.2s ease-in-out infinite}
 @keyframes beat{50%{transform:scale(1.03)}}
 .ocol h2{margin-top:50px}
 
@@ -393,7 +441,6 @@ footer .fsnow{position:absolute;left:clamp(8px,6vw,90px);bottom:calc(100% - 20px
 </head>
 <body>
 
-<div id="loader"><img src="{{LOGO}}" alt="" width="104" height="104"><b>SeongEraStudy</b><small>Loading Christmas magic…</small></div>
 <div class="prog" id="prog"></div>
 <div class="lights" id="lights" aria-hidden="true"></div>
 
@@ -403,16 +450,20 @@ footer .fsnow{position:absolute;left:clamp(8px,6vw,90px);bottom:calc(100% - 20px
 </div>
 <div class="shade"></div>
 <canvas id="snow" aria-hidden="true"></canvas>
-<div class="sleigh" aria-hidden="true">🦌🦌🛷🎅</div>
+<div class="sleigh" aria-hidden="true"><img src="{{SANTA}}" alt="" width="260" height="170" decoding="async"></div>
 <div class="toast" id="toast" role="status"></div>
 
-<div class="gate" id="gate" role="dialog" aria-modal="true" aria-label="Welcome">
-  <div class="gcard">
-    <img src="{{LOGO}}" alt="SeongEraStudy">
-    <h3>Merry Christmas!</h3>
-    <p>This page sounds best with the music on. One tap and the winter magic begins.</p>
-    <button class="pill big" id="gOn" type="button">🎶 Enter with music</button>
-    <button class="skip" id="gOff" type="button">Continue without sound</button>
+<div class="gate" id="gate" role="dialog" aria-modal="true" aria-label="Welcome to SeongEraStudy">
+  <div class="intro-inner">
+    <div class="logo-wrap"><div class="lw"><img src="{{LOGO}}" alt="SeongEraStudy" width="116" height="116"></div></div>
+    <div class="i-script">Merry Christmas &amp; Happy New Year 2027</div>
+    <div class="i-title">Seong<b>Era</b>Study</div>
+    <p class="i-sub">Education is free for everyone.</p>
+    <div class="i-load"><div class="bar"><i id="ibar"></i></div><small id="istat">Preparing the magic…</small></div>
+    <div class="i-btns">
+      <button class="pill big" id="gOn" type="button">🎶 Enter with music</button>
+      <button class="skip" id="gOff" type="button">Enter without sound</button>
+    </div>
     <div class="tip">Tip: double-tap anywhere to turn the music on or off.</div>
   </div>
 </div>
@@ -582,13 +633,14 @@ footer .fsnow{position:absolute;left:clamp(8px,6vw,90px);bottom:calc(100% - 20px
       <div class="owner rv">
         <div class="ocol">
           <div class="eyebrow">Owner</div>
-          <div class="circle" id="circle" role="button" tabindex="0" aria-label="Owner video. Tap to turn the music on or off">
+          <div class="circle" id="circle" role="button" tabindex="0" aria-label="Owner video. Tap to turn its own sound on or off">
             <img class="hat" src="{{HAT}}" alt="" width="140" height="140" loading="lazy" decoding="async">
-            <div class="disc"><video id="ov" muted loop playsinline preload="metadata" src="{{OVIDEO}}"></video></div>
-            <span class="cbtn"><span class="eq" aria-hidden="true"><i></i><i></i><i></i><i></i></span><b id="cl">Tap for music</b></span>
+            <div class="disc"><video id="ov" muted loop playsinline preload="none" data-src="{{OVIDEO}}"></video></div>
+            <span class="cbtn"><span class="eq" aria-hidden="true"><i></i><i></i><i></i><i></i></span><b id="cl">Tap for sound</b></span>
           </div>
           <h2>{{OWNER_NAME}}</h2>
           <p class="role">Founder of SeongEraStudy. Made by Seong Gium Jee.</p>
+          <p class="hint">Every video has its own sound. Playing one stops the other.</p>
         </div>
         <div class="links2">
           <a class="lnk" href="{{OWNER}}" target="_blank" rel="noopener"><span><small>Owner on Telegram</small><strong>@SeongEra</strong></span><span>→</span></a>
@@ -708,8 +760,9 @@ footer .fsnow{position:absolute;left:clamp(8px,6vw,90px);bottom:calc(100% - 20px
   },{passive:true});
 
   /* ================= PLAY / PAUSE ================= */
-  var ov=$('ov'), ovVis=false;
-  function play(){ safe(v.play()); startFill(); startSnow(); if(ovVis){ safe(ov.play()); } }
+  var ov=$('ov'), ovVis=false, who='';   /* who = which video has sound: '' | 'bg' | 'owner' */
+  function ovReady(){ if(!ov.getAttribute('src')){ ov.src=ov.getAttribute('data-src'); } }
+  function play(){ safe(v.play()); startFill(); startSnow(); if((ovVis||who==='owner')&&ov.getAttribute('src')){ safe(ov.play()); } }
   function stop(){ v.pause(); stopFill(); stopSnow(); ov.pause(); }
   try{ v.currentTime=0; }catch(e){}
   play();
@@ -718,32 +771,45 @@ footer .fsnow{position:absolute;left:clamp(8px,6vw,90px);bottom:calc(100% - 20px
   window.addEventListener('pagehide',stop);
   window.addEventListener('pageshow',function(){ if(!document.hidden){ play(); } });
 
-  /* ================= MUSIC: button, circle card, entry gate, gestures ================= */
-  var sub=$('sndsub'), cl=$('cl'), bub=$('bubble'), mus=false, bubN=0, bubT=0;
+  /* ================= AUDIO: only one video makes sound at a time ================= */
+  var sub=$('sndsub'), cl=$('cl'), bub=$('bubble'), bubN=0, bubT=0;
   function hideBubble(){ bub.classList.remove('show'); }
   function showBubble(){
-    if(mus||bubN>=3||document.hidden||document.body.classList.contains('gated')){ return; }
+    if(who||bubN>=3||document.hidden||document.body.classList.contains('gated')){ return; }
     bubN++; bub.classList.add('show'); clearTimeout(bubT); bubT=setTimeout(hideBubble,6500);
   }
-  function setMusic(on){
-    v.muted=!on; if(on){ v.volume=.85; }
-    mus=on; play();
-    b.setAttribute('aria-pressed',on);
-    b.setAttribute('aria-label',on?'Turn music off':'Turn music on');
-    l.textContent=on?'Music on':'Tap for music';
-    sub.textContent=on?'Tap to mute':'Snowman · Sia';
-    cl.textContent=on?'Music on · tap to mute':'Tap for music';
-    document.body.classList.toggle('music-on',on);
+  function setAudio(w){
+    who=w;
+    if(w==='owner'){ ovReady(); }
+    v.muted=(w!=='bg'); ov.muted=(w!=='owner');
+    if(w==='bg'){ v.volume=.85; }
+    if(w==='owner'){ ov.volume=1; }
+    play();
+    var bgOn=(w==='bg'), owOn=(w==='owner');
+    b.setAttribute('aria-pressed',bgOn);
+    b.setAttribute('aria-label',bgOn?'Turn music off':'Turn music on');
+    l.textContent=bgOn?'Music on':'Tap for music';
+    sub.textContent=bgOn?'Tap to mute':(owOn?'Owner video sound is on':'Snowman \u00b7 Sia');
+    cl.textContent=owOn?'Sound on \u00b7 tap to mute':'Tap for sound';
+    document.body.classList.toggle('music-on',bgOn);
+    document.body.classList.toggle('owner-on',owOn);
     hideBubble();
   }
-  function flip(){ setMusic(!mus); toast(mus?'Music on 🎶':'Music off'); }
+  function flip(){
+    var p=who; setAudio(p==='bg'?'':'bg');
+    toast(who==='bg'?(p==='owner'?'Background music on \u00b7 owner sound stopped':'Music on \ud83c\udfb6'):'Music off');
+  }
+  function flipOwner(){
+    var p=who; setAudio(p==='owner'?'':'owner');
+    toast(who==='owner'?(p==='bg'?'Owner video sound on \u00b7 background music stopped':'Owner video sound on \ud83d\udd0a'):'Sound off');
+  }
   b.addEventListener('click',flip);
   var circle=$('circle');
-  circle.addEventListener('click',flip);
-  circle.addEventListener('keydown',function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); flip(); } });
+  circle.addEventListener('click',flipOwner);
+  circle.addEventListener('keydown',function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); flipOwner(); } });
   setTimeout(showBubble,4500); setInterval(showBubble,35000);
 
-  /* gestures: double-tap / double-click anywhere, or press M */
+  /* gestures: double-tap / double-click anywhere, or press M (background music) */
   function inter(t){ return t&&t.closest&&t.closest('a,button,input,label,summary,details,.circle,.gate'); }
   var lastTap=0,lx=0,ly=0;
   document.addEventListener('touchend',function(e){
@@ -758,37 +824,48 @@ footer .fsnow{position:absolute;left:clamp(8px,6vw,90px);bottom:calc(100% - 20px
     if((e.key==='m'||e.key==='M')&&tg!=='INPUT'&&tg!=='TEXTAREA'){ flip(); }
   });
 
-  /* owner circle video only plays while visible */
+  /* owner video: loads only when close, plays only while visible (or while its sound is on) */
   if('IntersectionObserver' in window){
+    new IntersectionObserver(function(es){ if(es[0].isIntersecting){ ovReady(); } },{rootMargin:'500px 0px'}).observe(circle);
     new IntersectionObserver(function(es){
       ovVis=es[0].isIntersecting;
-      if(ovVis&&!document.hidden){ safe(ov.play()); } else { ov.pause(); }
+      if(!ov.getAttribute('src')){ return; }
+      if((ovVis||who==='owner')&&!document.hidden){ safe(ov.play()); } else { ov.pause(); }
     },{threshold:.25}).observe(circle);
-  } else { ovVis=true; }
+  } else { ovReady(); ovVis=true; }
 
-  /* entry gate: a real tap is what lets browsers play sound */
+  /* ================= INTRO: instant, real progress, one tap ================= */
+  var ibar=$('ibar'), istat=$('istat'), steps=0, TOT=4;
+  function step(){
+    steps++;
+    var pct=Math.min(100,Math.round(steps/TOT*100));
+    if(ibar){ ibar.style.width=pct+'%'; }
+    if(pct>=100&&istat){ istat.textContent='Ready'; }
+  }
+  step();
+  var vdone=false; function vstep(){ if(!vdone){ vdone=true; step(); } }
+  if(v.readyState>=2){ vstep(); } else { v.addEventListener('loadeddata',vstep); }
+  var glogo=document.querySelector('#gate img');
+  if(!glogo||glogo.complete){ step(); } else { glogo.addEventListener('load',step); glogo.addEventListener('error',step); }
+  if(document.readyState==='complete'){ step(); } else { window.addEventListener('load',step); }
+  setTimeout(function(){ if(ibar){ ibar.style.width='100%'; } if(istat){ istat.textContent='Ready'; } },2600);
+
   var gate=$('gate');
   function closeGate(){
     if(!gate){ return; }
     var g=gate; gate=null;
     g.classList.add('out'); document.body.classList.remove('gated');
     try{ sessionStorage.setItem('sxg','1'); }catch(e){}
-    setTimeout(function(){ g.remove(); },600);
+    setTimeout(function(){ g.remove(); },700);
   }
   var seen=null; try{ seen=sessionStorage.getItem('sxg'); }catch(e){}
   if(seen){ gate.remove(); gate=null; }
   else {
     document.body.classList.add('gated');
-    $('gOn').addEventListener('click',function(){ setMusic(true); closeGate(); toast('Music on 🎶'); });
+    $('gOn').addEventListener('click',function(){ setAudio('bg'); closeGate(); toast('Music on \ud83c\udfb6'); });
     $('gOff').addEventListener('click',closeGate);
     document.addEventListener('keydown',function(e){ if(e.key==='Escape'){ closeGate(); } });
   }
-
-  /* ================= LOADER ================= */
-  var ld=$('loader');
-  function hideLoader(){ if(ld){ ld.classList.add('done'); var x=ld; ld=null; setTimeout(function(){ x.remove(); },800); } }
-  window.addEventListener('load',function(){ setTimeout(hideLoader,300); });
-  setTimeout(hideLoader,2400);
 
   /* ================= LIGHTS ================= */
   var lights=$('lights');
@@ -886,6 +963,7 @@ footer .fsnow{position:absolute;left:clamp(8px,6vw,90px);bottom:calc(100% - 20px
 </html>
 """
 
+V = ASSET_VERSION
 PAGE = (
     HTML.replace("{{PORTAL}}", PORTAL_LINK)
         .replace("{{CHANNEL}}", CHANNEL_LINK)
@@ -893,23 +971,187 @@ PAGE = (
         .replace("{{OWNER_NAME}}", OWNER_NAME)
         .replace("{{VIDEO}}", VIDEO_URL)
         .replace("{{OVIDEO}}", OWNER_VIDEO_URL)
-        .replace("{{LOGO}}", LOGO_URL)
-        .replace("{{TREE}}", TREE_URL)
-        .replace("{{GIFTS}}", GIFTS_URL)
-        .replace("{{SNOWMAN}}", SNOWMAN_URL)
-        .replace("{{HAT}}", HAT_URL)
-        .replace("{{SNOWBG}}", SNOWBG_URL)
+        .replace("{{LOGO}}", "/a/logo.png?v=" + V)
+        .replace("{{TREE}}", "/a/tree.webp?v=" + V)
+        .replace("{{GIFTS}}", "/a/gifts.webp?v=" + V)
+        .replace("{{SNOWMAN}}", "/a/snowman.webp?v=" + V)
+        .replace("{{HAT}}", "/a/hat.webp?v=" + V)
+        .replace("{{SANTA}}", "/a/santa.webp?v=" + V)
+        .replace("{{SNOWBG}}", "/a/snowbg.jpg?v=" + V)
+        .replace("{{V}}", V)
 )
+
+# ---------------------------------------------------------------
+#  Image helper: resizes big pictures (faster site), removes a
+#  white / checkerboard background if one is baked in, and builds
+#  the WhatsApp / Telegram share picture. Results are cached.
+# ---------------------------------------------------------------
+ASSETS = {
+    "logo":    dict(url=LOGO_URL,    max=360,  fmt="PNG"),
+    "tree":    dict(url=TREE_URL,    max=900,  fmt="WEBP"),
+    "gifts":   dict(url=GIFTS_URL,   max=720,  fmt="WEBP"),
+    "snowman": dict(url=SNOWMAN_URL, max=560,  fmt="WEBP"),
+    "hat":     dict(url=HAT_URL,     max=320,  fmt="WEBP"),
+    "santa":   dict(url=SANTA_URL,   max=640,  fmt="WEBP"),
+    "snowbg":  dict(url=SNOWBG_URL,  max=1920, fmt="JPEG"),
+}
+CACHE_HDR = "public, max-age=86400, s-maxage=2592000, stale-while-revalidate=86400"
+_cache = {}
+
+
+def fetch(url, timeout=9):
+    req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 (SeongEraStudy asset loader)"})
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        return r.read()
+
+
+def remove_bg(im, limit=640):
+    """Make a light (white / checkerboard) outer background transparent.
+    Only touches pixels connected to the picture edge, so white fur, snow
+    and highlights inside the artwork stay. Already-transparent images are untouched."""
+    im = im.convert("RGBA")
+    w, h = im.size
+    corners = [(0, 0), (w - 1, 0), (0, h - 1), (w - 1, h - 1)]
+    alpha = im.getchannel("A")
+    if all(alpha.getpixel(c) < 16 for c in corners):
+        return im
+    sc = min(1.0, limit / float(max(w, h)))
+    if sc < 1.0:
+        im = im.resize((max(1, int(w * sc)), max(1, int(h * sc))), Image.LANCZOS)
+        w, h = im.size
+        corners = [(0, 0), (w - 1, 0), (0, h - 1), (w - 1, h - 1)]
+    rgb = Image.new("RGB", im.size, (255, 255, 255))
+    rgb.paste(im, mask=im.getchannel("A"))
+    lo, hi = rgb.crop((0, 0, min(28, w), min(28, h))).convert("L").getextrema()
+    thresh = 175 if (hi - lo) > 14 else 50          # checkerboard vs solid colour
+    marker = (255, 0, 255)
+    touched = False
+    for c in corners:
+        r, g, b = rgb.getpixel(c)
+        if (r + g + b) / 3.0 >= 170:                 # only remove LIGHT backgrounds
+            ImageDraw.floodfill(rgb, c, marker, thresh=thresh)
+            touched = True
+    if not touched:
+        return im
+    r, g, b = rgb.split()
+    is_bg = ImageChops.multiply(
+        ImageChops.multiply(r.point(lambda p: 255 if p == 255 else 0),
+                            g.point(lambda p: 255 if p == 0 else 0)),
+        b.point(lambda p: 255 if p == 255 else 0))
+    keep = ImageChops.invert(is_bg).filter(ImageFilter.MinFilter(3)).filter(ImageFilter.GaussianBlur(0.8))
+    im.putalpha(ImageChops.multiply(keep, im.getchannel("A")))
+    return im
+
+
+def build_asset(key):
+    cfg = ASSETS[key]
+    im = Image.open(io.BytesIO(fetch(cfg["url"])))
+    im.load()
+    buf = io.BytesIO()
+    if cfg["fmt"] == "JPEG":
+        im = im.convert("RGB")
+        sc = min(1.0, cfg["max"] / float(max(im.size)))
+        if sc < 1.0:
+            im = im.resize((int(im.width * sc), int(im.height * sc)), Image.LANCZOS)
+        im.save(buf, "JPEG", quality=78, optimize=True, progressive=True)
+        return buf.getvalue(), "image/jpeg"
+    im = remove_bg(im)
+    sc = min(1.0, cfg["max"] / float(max(im.size)))
+    if sc < 1.0:
+        im = im.resize((max(1, int(im.width * sc)), max(1, int(im.height * sc))), Image.LANCZOS)
+    if cfg["fmt"] == "WEBP":
+        im.save(buf, "WEBP", quality=86, method=4)
+        return buf.getvalue(), "image/webp"
+    im.save(buf, "PNG", optimize=True)
+    return buf.getvalue(), "image/png"
+
+
+def get_asset(key):
+    if key not in _cache:
+        _cache[key] = build_asset(key)
+    return _cache[key]
+
+
+def build_og():
+    """1200x630 share picture: logo on a winter-night card with snow dots."""
+    import random
+    W, H = 1200, 630
+    card = Image.new("RGB", (W, H), (5, 11, 28))
+    d = ImageDraw.Draw(card)
+    for y in range(H):
+        t = y / float(H)
+        d.line([(0, y), (W, y)], fill=(int(10 + 22 * t), int(22 + 10 * t), int(62 + 26 * (1 - t))))
+    rnd = random.Random(27)
+    for _ in range(110):
+        x, y, r = rnd.randint(0, W), rnd.randint(0, H), rnd.choice((1, 1, 2, 2, 3))
+        d.ellipse((x - r, y - r, x + r, y + r), fill=(232, 244, 255))
+    logo = Image.open(io.BytesIO(get_asset("logo")[0])).convert("RGBA")
+    lh = 330
+    lw = max(1, int(logo.width * lh / float(logo.height)))
+    if lw > 760:
+        lw, lh = 760, max(1, int(logo.height * 760 / float(logo.width)))
+    logo = logo.resize((lw, lh), Image.LANCZOS)
+    card.paste(logo, ((W - lw) // 2, 60), logo)
+    try:
+        f1 = ImageFont.load_default(size=70)
+        f2 = ImageFont.load_default(size=34)
+        d.text((W // 2, 438), "SeongEraStudy", font=f1, fill=(255, 255, 255), anchor="ma")
+        d.text((W // 2, 530), "Education is free for everyone", font=f2, fill=(255, 207, 107), anchor="ma")
+        d.text((W // 2, 580), "Merry Christmas & Happy New Year 2027", font=f2, fill=(191, 233, 255), anchor="ma")
+    except Exception:
+        pass
+    out = io.BytesIO()
+    card.save(out, "JPEG", quality=84, optimize=True, progressive=True)
+    return out.getvalue(), "image/jpeg"
+
+
+def image_response(getter, fallback_url):
+    try:
+        if Image is None:
+            raise RuntimeError("Pillow missing")
+        data, mime = getter()
+        resp = Response(data, mimetype=mime)
+        resp.headers["Cache-Control"] = CACHE_HDR
+        return resp
+    except Exception:
+        resp = redirect(fallback_url, code=302)
+        resp.headers["Cache-Control"] = "no-store"
+        return resp
+
+
+def base_url():
+    if SITE_URL:
+        return SITE_URL.rstrip("/")
+    proto = request.headers.get("X-Forwarded-Proto", request.scheme).split(",")[0].strip()
+    host = request.headers.get("X-Forwarded-Host", request.host).split(",")[0].strip()
+    return proto + "://" + host
+
+
+@app.route("/a/<name>")
+def asset(name):
+    key = name.rsplit(".", 1)[0]
+    if key not in ASSETS:
+        return Response("Not found", status=404)
+    return image_response(lambda: get_asset(key), ASSETS[key]["url"])
+
+
+@app.route("/og.jpg")
+def og():
+    def getter():
+        if "og" not in _cache:
+            _cache["og"] = build_og()
+        return _cache["og"]
+    return image_response(getter, LOGO_URL)
 
 
 @app.route("/")
 def home():
-    return Response(PAGE, mimetype="text/html; charset=utf-8")
+    return Response(PAGE.replace("{{BASE}}", base_url()), mimetype="text/html; charset=utf-8")
 
 
 @app.route("/<path:_>")
 def fallback(_):
-    return Response(PAGE, mimetype="text/html; charset=utf-8")
+    return Response(PAGE.replace("{{BASE}}", base_url()), mimetype="text/html; charset=utf-8")
 
 
 if __name__ == "__main__":
