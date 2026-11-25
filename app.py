@@ -1,10 +1,20 @@
 # =====================================================
-#  CONFIG  -  change links ONLY here, nowhere else
+#  CONFIG  -  change links / media ONLY here, nowhere else
 # =====================================================
-PORTAL_LINK  = "http://seongxcollege.duckdns.org"
-VIDEO_URL    = "https://huggingface.co/datasets/gopallikehack/Seong_Study/resolve/main/n-261124-kcctgu.mp4"
-CHANNEL_LINK = "https://t.me/SeongEraStudy"
-OWNER_LINK   = "https://t.me/SeongEra"
+PORTAL_LINK     = "http://seongxcollege.duckdns.org"
+CHANNEL_LINK    = "https://t.me/SeongEraStudy"
+OWNER_LINK      = "https://t.me/SeongEra"
+OWNER_NAME      = "夔🌑 𝑺𝒆𝒐𝒏𝒈-𝒋𝒆 ⋆ 𝑂𝑓𝑓𝑙𝑖𝑛𝑒"
+
+VIDEO_URL       = "https://huggingface.co/datasets/gopallikehack/Seong_Study/resolve/main/n-261124-kcctgu.mp4"
+OWNER_VIDEO_URL = "https://huggingface.co/datasets/gopallikehack/Seong_Study/resolve/main/nz-261124-k60suu.mp4"
+
+LOGO_URL        = "https://huggingface.co/datasets/gopallikehack/AiLearning/resolve/main/file_00000000649482079925d320aeb3e88b.png"
+TREE_URL        = "https://i.ibb.co/nsrmkCn9/file-0000000077c48207807f7e09f0f8d150.png"
+GIFTS_URL       = "https://i.ibb.co/Z0LjjGw/file-00000000cfe0820799c102c961ea1c5b.png"
+SNOWMAN_URL     = "https://i.ibb.co/20kfKnLj/file-00000000755882079d6cb681905d59cb.png"
+HAT_URL         = "https://i.ibb.co/gMfnHdn4/Note-GPT-Image-20261125084956.png"
+SNOWBG_URL      = "https://i.ibb.co/4gJQNThb/download.jpg"
 # =====================================================
 
 from flask import Flask, Response
@@ -21,6 +31,9 @@ HTML = r"""<!DOCTYPE html>
 <meta name="theme-color" content="#050b1c">
 <meta property="og:title" content="SeongEraStudy · Education is free for everyone">
 <meta property="og:description" content="Merry Christmas and Happy New Year 2027 from SeongEraStudy.">
+<meta property="og:image" content="{{LOGO}}">
+<link rel="icon" href="{{LOGO}}">
+<link rel="apple-touch-icon" href="{{LOGO}}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700;9..144,900&family=Mountains+of+Christmas:wght@700&family=Noto+Sans+KR:wght@800&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -46,7 +59,8 @@ HTML = r"""<!DOCTYPE html>
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth;scroll-padding-top:100px}
 body{background:var(--night);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
-body.open{overflow:hidden}
+body.open,body.gated{overflow:hidden}
+body{touch-action:manipulation}
 a{color:inherit;text-decoration:none}
 :focus-visible{outline:2px solid var(--gold);outline-offset:3px;border-radius:8px}
 ::selection{background:var(--red);color:#fff}
@@ -55,7 +69,8 @@ a{color:inherit;text-decoration:none}
 #loader{display:none}
 .js #loader{position:fixed;inset:0;z-index:300;display:grid;place-items:center;align-content:center;gap:20px;background:radial-gradient(80% 60% at 50% 40%,#10234d,var(--night));transition:opacity .7s ease,visibility .7s}
 #loader.done{opacity:0;visibility:hidden}
-#loader .flake{font-size:3.4rem;animation:rot 3s linear infinite;filter:drop-shadow(0 0 14px rgba(191,233,255,.8))}
+#loader img{width:104px;height:104px;object-fit:contain;border-radius:26px;filter:drop-shadow(0 0 22px rgba(191,233,255,.6));animation:lp 1.6s ease-in-out infinite}
+@keyframes lp{50%{transform:scale(1.07)}}
 #loader b{font-family:var(--head);font-weight:900;font-size:1.4rem}
 #loader small{color:var(--mut);font-size:.9rem;letter-spacing:.12em;text-transform:uppercase}
 @keyframes rot{to{transform:rotate(360deg)}}
@@ -94,7 +109,10 @@ a{color:inherit;text-decoration:none}
 .nav{position:fixed;top:42px;left:50%;transform:translateX(-50%);z-index:100;width:min(1000px,calc(100% - 28px));
   display:flex;align-items:center;justify-content:space-between;gap:14px;padding:10px 10px 10px 22px;border-radius:999px;
   background:rgba(7,16,38,.82);border:1px solid var(--edge)}
-.logo{font-family:var(--head);font-weight:900;font-size:1.1rem;letter-spacing:-.01em}
+.logo{display:flex;align-items:center;gap:10px;font-family:var(--head);font-weight:900;font-size:1.1rem;letter-spacing:-.01em}
+.lg{position:relative;flex:none;width:38px;height:38px}
+.lg img.mark{width:38px;height:38px;object-fit:contain;border-radius:11px;display:block}
+.lg img.mini{position:absolute;top:-11px;left:-9px;width:25px;height:auto;transform:rotate(-20deg);pointer-events:none;filter:drop-shadow(0 2px 3px rgba(0,0,0,.5))}
 .logo b{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
 .links{display:flex;gap:24px;font-size:.92rem;font-weight:500;color:var(--mut)}
 .links a{position:relative;padding:4px 0;transition:color .2s}
@@ -276,23 +294,95 @@ footer .sc{display:block;font-family:var(--script);font-size:1.8rem;color:var(--
 footer small{display:block;margin-top:6px;opacity:.62;font-size:.78rem}
 
 /* ---------- Floating controls ---------- */
-.sound{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:110;display:flex;align-items:center;gap:12px;padding:12px 22px 12px 16px;border-radius:999px;
-  background:rgba(7,16,38,.86);border:1px solid var(--edge);color:var(--ink);font:600 .88rem var(--body);cursor:pointer;transition:border-color .2s,transform .2s,background .2s}
-.sound:hover{border-color:rgba(255,255,255,.4);transform:translateX(-50%) translateY(-2px)}
-.sound[aria-pressed="true"]{border-color:var(--red);background:rgba(232,40,63,.3)}
+/* ---------- Music button (vinyl + pulse ring) ---------- */
 .eq{display:flex;align-items:flex-end;gap:3px;width:22px;height:18px}
-.eq i{flex:1;height:28%;border-radius:2px;background:var(--grad)}
-.sound[aria-pressed="true"] .eq i{animation:eq 1s ease-in-out infinite}
-.sound[aria-pressed="true"] .eq i:nth-child(2){animation-delay:.2s}
-.sound[aria-pressed="true"] .eq i:nth-child(3){animation-delay:.4s}
-.sound[aria-pressed="true"] .eq i:nth-child(4){animation-delay:.1s}
+.eq i{flex:1;height:28%;border-radius:2px;background:#fff}
+body.music-on .eq i{animation:eq 1s ease-in-out infinite}
+body.music-on .eq i:nth-child(2){animation-delay:.2s}
+body.music-on .eq i:nth-child(3){animation-delay:.4s}
+body.music-on .eq i:nth-child(4){animation-delay:.1s}
 @keyframes eq{0%,100%{height:25%}50%{height:100%}}
+.music{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:110;display:flex;align-items:center;gap:14px;padding:8px 22px 8px 8px;border-radius:999px;
+  background:linear-gradient(120deg,#e8283f,#ff6a57);border:1px solid rgba(255,255,255,.38);color:#fff;cursor:pointer;text-align:left;font-family:var(--body);
+  box-shadow:0 14px 40px -10px rgba(232,40,63,.95);transition:background .3s,box-shadow .3s}
+.music::before{content:"";position:absolute;inset:-2px;border-radius:inherit;border:2px solid rgba(255,130,140,.95);animation:ping 1.8s ease-out infinite;pointer-events:none}
+@keyframes ping{0%{transform:scale(1);opacity:.9}100%{transform:scale(1.28,1.75);opacity:0}}
+body:not(.music-on) .music{animation:nudge 5s ease-in-out infinite}
+@keyframes nudge{0%,84%,100%{transform:translateX(-50%)}88%{transform:translateX(-50%) translateY(-11px)}92%{transform:translateX(-50%)}95%{transform:translateX(-50%) translateY(-5px)}}
+.music:hover{transform:translateX(-50%) translateY(-3px)}
+.music .vinyl{position:relative;flex:none;width:48px;height:48px;border-radius:50%;
+  background:radial-gradient(circle,#ffcf6b 0 12%,transparent 13%),repeating-radial-gradient(circle,#14141c 0 2px,#272735 2px 3px);box-shadow:0 0 0 2px rgba(255,255,255,.35)}
+.music .vinyl::after{content:"";position:absolute;inset:0;border-radius:50%;background:conic-gradient(transparent 0 20%,rgba(255,255,255,.28) 25%,transparent 32% 70%,rgba(255,255,255,.2) 75%,transparent 82%)}
+body.music-on .vinyl{animation:rot 2.4s linear infinite}
+.music .mt b{display:block;font-weight:800;font-size:1rem;line-height:1.15}
+.music .mt small{display:block;font-size:.74rem;opacity:.9}
+.music .eq{display:none}
+body.music-on .music{background:linear-gradient(120deg,#0f9d63,#35d69a);box-shadow:0 14px 40px -10px rgba(53,214,154,.85)}
+body.music-on .music::before{display:none}
+body.music-on .music .eq{display:flex}
+.bubble{position:fixed;left:50%;bottom:94px;z-index:111;transform:translate(-50%,10px) scale(.95);opacity:0;pointer-events:none;background:#fff;color:#1a0a10;padding:10px 18px;border-radius:16px;font-weight:700;font-size:.9rem;white-space:nowrap;transition:opacity .3s,transform .3s;box-shadow:0 14px 34px -8px rgba(0,0,0,.65)}
+.bubble::after{content:"";position:absolute;left:50%;bottom:-6px;margin-left:-7px;width:14px;height:14px;background:#fff;transform:rotate(45deg)}
+.bubble.show{opacity:1;transform:translate(-50%,0) scale(1)}
 .celeb{position:fixed;right:18px;bottom:18px;z-index:110;width:54px;height:54px;border-radius:50%;border:1px solid var(--edge);background:rgba(7,16,38,.86);font-size:1.5rem;cursor:pointer;transition:transform .2s,background .2s}
 .celeb:hover{transform:scale(1.1) rotate(-8deg);background:rgba(232,40,63,.35)}
 .toast{position:fixed;top:112px;left:50%;z-index:130;transform:translate(-50%,-20px);opacity:0;pointer-events:none;padding:12px 24px;border-radius:999px;background:linear-gradient(120deg,var(--red),var(--red2));font-weight:700;box-shadow:0 14px 40px -10px rgba(232,40,63,.9);transition:opacity .35s,transform .35s;white-space:nowrap}
 .toast.show{opacity:1;transform:translate(-50%,0)}
 
+/* ---------- Entry gate ---------- */
+.gate{display:none}
+.js .gate{position:fixed;inset:0;z-index:280;display:grid;place-items:center;padding:22px;background:radial-gradient(70% 60% at 50% 40%,rgba(16,35,77,.8),rgba(5,11,28,.95));transition:opacity .5s,visibility .5s}
+.gate.out{opacity:0;visibility:hidden}
+.gcard{max-width:420px;width:100%;text-align:center;padding:34px 26px 24px;border-radius:32px;background:linear-gradient(160deg,rgba(14,32,70,.94),rgba(7,16,38,.97));border:1px solid var(--edge);box-shadow:0 30px 80px -20px rgba(0,0,0,.85);animation:pop .7s cubic-bezier(.2,.9,.3,1.2) both}
+@keyframes pop{from{opacity:0;transform:scale(.88) translateY(20px)}}
+.gcard img{width:92px;height:92px;object-fit:contain;border-radius:22px;margin-bottom:8px}
+.gcard h3{font-family:var(--script);font-size:2.5rem;color:var(--gold);line-height:1;font-weight:700}
+.gcard p{margin:10px 0 22px;color:var(--mut)}
+.gcard .pill{width:100%;justify-content:center}
+.gcard .skip{display:block;margin:14px auto 0;background:none;border:0;color:var(--mut);font:500 .9rem var(--body);cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.gcard .tip{margin-top:16px;font-size:.78rem;opacity:.65}
+
+/* ---------- Hero tree ---------- */
+.treewrap{display:none;position:absolute;right:-1vw;bottom:6vh;z-index:-1}
+.treewrap img{display:block;height:min(54vh,480px);width:auto;filter:drop-shadow(0 24px 40px rgba(0,0,0,.55));animation:bob 6s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-12px)}}
+@media(min-width:1200px){.treewrap{display:block}}
+
+/* ---------- Gift boxes in gift card ---------- */
+.gift .boxes{position:absolute;right:-2%;bottom:-8%;width:min(38%,360px);height:auto;pointer-events:none;filter:drop-shadow(0 18px 24px rgba(0,0,0,.45))}
+@media(max-width:760px){.gift .boxes{position:static;display:block;width:min(72%,300px);margin:26px auto -24px}}
+
+/* ---------- Snowy banner section ---------- */
+.banner{padding-block:clamp(110px,16vw,220px);background:
+  linear-gradient(180deg,var(--night) 0%,rgba(5,11,28,0) 22%,rgba(5,11,28,0) 78%,var(--night) 100%),
+  radial-gradient(55% 55% at 50% 50%,rgba(5,11,28,.74),rgba(5,11,28,.2)),
+  url("{{SNOWBG}}") center/cover no-repeat}
+
+/* ---------- Owner circle card ---------- */
+.ocol{text-align:center}
+.ocol .eyebrow{margin-bottom:34px}
+.circle{position:relative;width:min(300px,70vw);aspect-ratio:1;margin:0 auto;cursor:pointer;-webkit-tap-highlight-color:transparent;outline-offset:14px}
+.circle::before{content:"";position:absolute;inset:-8px;border-radius:50%;background:conic-gradient(#ff3b52,#ffcf6b,#35d69a,#6fd0ff,#ff3b52);animation:rot 7s linear infinite}
+.circle .disc{position:absolute;inset:0;border-radius:50%;overflow:hidden;background:#0a1228;border:4px solid var(--night);transition:transform .3s}
+.circle video{width:100%;height:100%;object-fit:cover;display:block}
+.circle .hat{position:absolute;z-index:3;top:-52px;left:-16px;width:46%;height:auto;transform:rotate(-14deg);pointer-events:none;filter:drop-shadow(0 6px 10px rgba(0,0,0,.55))}
+.circle .cbtn{position:absolute;z-index:3;left:50%;bottom:-20px;transform:translateX(-50%);display:flex;align-items:center;gap:10px;padding:11px 20px;border-radius:999px;background:linear-gradient(120deg,var(--red),var(--red2));color:#fff;font-weight:700;font-size:.86rem;white-space:nowrap;box-shadow:0 10px 26px -8px rgba(232,40,63,.95);transition:transform .2s,background .3s}
+.circle .cbtn::before{content:"▶";font-size:.8rem}
+.circle .cbtn .eq{display:none;width:18px;height:14px}
+.circle:hover .cbtn{transform:translateX(-50%) translateY(-3px)}
+body.music-on .circle .cbtn{background:linear-gradient(120deg,#0f9d63,#35d69a)}
+body.music-on .circle .cbtn::before{display:none}
+body.music-on .circle .cbtn .eq{display:flex}
+body.music-on .circle .disc{animation:beat 1.2s ease-in-out infinite}
+@keyframes beat{50%{transform:scale(1.03)}}
+.ocol h2{margin-top:50px}
+
+/* ---------- Footer snowman ---------- */
+footer .fsnow{position:absolute;left:clamp(8px,6vw,90px);bottom:calc(100% - 20px);height:clamp(120px,19vw,210px);width:auto;pointer-events:none;filter:drop-shadow(0 10px 18px rgba(0,0,0,.4))}
+
+@media(max-width:640px){.celeb{bottom:96px;right:12px;width:48px;height:48px}}
+
 @media(prefers-reduced-motion:reduce){
+  .music::before{display:none}
   *{animation:none!important;transition:none!important}
   .hero > *{opacity:1;transform:none}
   .js .rv{opacity:1;transform:none}
@@ -303,7 +393,7 @@ footer small{display:block;margin-top:6px;opacity:.62;font-size:.78rem}
 </head>
 <body>
 
-<div id="loader"><div class="flake">❄</div><b>SeongEraStudy</b><small>Loading Christmas magic…</small></div>
+<div id="loader"><img src="{{LOGO}}" alt="" width="104" height="104"><b>SeongEraStudy</b><small>Loading Christmas magic…</small></div>
 <div class="prog" id="prog"></div>
 <div class="lights" id="lights" aria-hidden="true"></div>
 
@@ -316,8 +406,19 @@ footer small{display:block;margin-top:6px;opacity:.62;font-size:.78rem}
 <div class="sleigh" aria-hidden="true">🦌🦌🛷🎅</div>
 <div class="toast" id="toast" role="status"></div>
 
+<div class="gate" id="gate" role="dialog" aria-modal="true" aria-label="Welcome">
+  <div class="gcard">
+    <img src="{{LOGO}}" alt="SeongEraStudy">
+    <h3>Merry Christmas!</h3>
+    <p>This page sounds best with the music on. One tap and the winter magic begins.</p>
+    <button class="pill big" id="gOn" type="button">🎶 Enter with music</button>
+    <button class="skip" id="gOff" type="button">Continue without sound</button>
+    <div class="tip">Tip: double-tap anywhere to turn the music on or off.</div>
+  </div>
+</div>
+
 <nav class="nav">
-  <a class="logo" href="#top">Seong<b>Era</b>Study</a>
+  <a class="logo" href="#top" aria-label="SeongEraStudy home"><span class="lg"><img class="mark" src="{{LOGO}}" alt="" width="38" height="38"><img class="mini" src="{{HAT}}" alt="" width="25" height="25" loading="lazy" decoding="async"></span><span>Seong<b>Era</b>Study</span></a>
   <div class="links" id="links">
     <a href="#learn">Learn</a>
     <a href="#how">How it works</a>
@@ -361,6 +462,7 @@ footer small{display:block;margin-top:6px;opacity:.62;font-size:.78rem}
       <div class="cd"><h4>New Year 2027 in</h4><div id="cdn"></div></div>
     </div>
     <div class="scroll" aria-hidden="true"></div>
+    <div class="treewrap" aria-hidden="true"><img src="{{TREE}}" alt="" width="480" height="480" decoding="async"></div>
   </div>
 
   <div class="ticker" aria-hidden="true">
@@ -402,6 +504,7 @@ footer small{display:block;margin-top:6px;opacity:.62;font-size:.78rem}
   <section id="gift">
     <div class="wrap">
       <div class="gift rv">
+        <img class="boxes" src="{{GIFTS}}" alt="" width="360" height="360" loading="lazy" decoding="async">
         <span class="bow" aria-hidden="true">🎀</span>
         <div class="eyebrow" style="color:#ffe9b0">Our Christmas gift</div>
         <h2>The best gift is knowledge. And it is free.</h2>
@@ -455,7 +558,7 @@ footer small{display:block;margin-top:6px;opacity:.62;font-size:.78rem}
     </div>
   </section>
 
-  <section class="quote">
+  <section class="quote banner">
     <div class="wrap">
       <blockquote class="rv">Knowledge should never have a <em>price tag.</em></blockquote>
     </div>
@@ -477,9 +580,14 @@ footer small{display:block;margin-top:6px;opacity:.62;font-size:.78rem}
   <section id="owner">
     <div class="wrap">
       <div class="owner rv">
-        <div>
+        <div class="ocol">
           <div class="eyebrow">Owner</div>
-          <h2>夔🌑 𝑺𝒆𝒐𝒏𝒈-𝒋𝒆 ⋆ 𝑂𝑓𝑓𝑙𝑖𝑛𝑒</h2>
+          <div class="circle" id="circle" role="button" tabindex="0" aria-label="Owner video. Tap to turn the music on or off">
+            <img class="hat" src="{{HAT}}" alt="" width="140" height="140" loading="lazy" decoding="async">
+            <div class="disc"><video id="ov" muted loop playsinline preload="metadata" src="{{OVIDEO}}"></video></div>
+            <span class="cbtn"><span class="eq" aria-hidden="true"><i></i><i></i><i></i><i></i></span><b id="cl">Tap for music</b></span>
+          </div>
+          <h2>{{OWNER_NAME}}</h2>
           <p class="role">Founder of SeongEraStudy. Made by Seong Gium Jee.</p>
         </div>
         <div class="links2">
@@ -493,15 +601,19 @@ footer small{display:block;margin-top:6px;opacity:.62;font-size:.78rem}
 </main>
 
 <footer>
+  <img class="fsnow" src="{{SNOWMAN}}" alt="" width="210" height="210" loading="lazy" decoding="async">
   <span class="sc">Merry Christmas &amp; Happy New Year 2027</span>
   <strong>SeongEraStudy</strong> · Made by Seong Gium Jee · © <span id="yr"></span>
   <small>Weak Hero fan-inspired. Not affiliated with the original creators. Background edit uses the song "Snowman" by Sia.</small>
+  <small>Tip: double-tap anywhere to turn the music on or off.</small>
 </footer>
 
 <button class="celeb" id="celebrate" type="button" aria-label="Celebrate with fireworks" title="Celebrate!">🎆</button>
-<button class="sound" id="snd" type="button" aria-pressed="false" aria-label="Turn music on">
+<div class="bubble" id="bubble" aria-hidden="true">Tap for Christmas music 🎶</div>
+<button class="music" id="snd" type="button" aria-pressed="false" aria-label="Turn music on">
+  <span class="vinyl" aria-hidden="true"></span>
+  <span class="mt"><b id="sndl">Tap for music</b><small id="sndsub">Snowman · Sia</small></span>
   <span class="eq" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
-  <span id="sndl">Music off</span>
 </button>
 
 <script>
@@ -596,8 +708,9 @@ footer small{display:block;margin-top:6px;opacity:.62;font-size:.78rem}
   },{passive:true});
 
   /* ================= PLAY / PAUSE ================= */
-  function play(){ safe(v.play()); startFill(); startSnow(); }
-  function stop(){ v.pause(); stopFill(); stopSnow(); }
+  var ov=$('ov'), ovVis=false;
+  function play(){ safe(v.play()); startFill(); startSnow(); if(ovVis){ safe(ov.play()); } }
+  function stop(){ v.pause(); stopFill(); stopSnow(); ov.pause(); }
   try{ v.currentTime=0; }catch(e){}
   play();
   v.addEventListener('loadeddata',paint);
@@ -605,15 +718,71 @@ footer small{display:block;margin-top:6px;opacity:.62;font-size:.78rem}
   window.addEventListener('pagehide',stop);
   window.addEventListener('pageshow',function(){ if(!document.hidden){ play(); } });
 
-  b.addEventListener('click',function(){
-    var on=v.muted;
-    v.muted=!on;
-    if(on){ v.volume=.8; }
-    play();
+  /* ================= MUSIC: button, circle card, entry gate, gestures ================= */
+  var sub=$('sndsub'), cl=$('cl'), bub=$('bubble'), mus=false, bubN=0, bubT=0;
+  function hideBubble(){ bub.classList.remove('show'); }
+  function showBubble(){
+    if(mus||bubN>=3||document.hidden||document.body.classList.contains('gated')){ return; }
+    bubN++; bub.classList.add('show'); clearTimeout(bubT); bubT=setTimeout(hideBubble,6500);
+  }
+  function setMusic(on){
+    v.muted=!on; if(on){ v.volume=.85; }
+    mus=on; play();
     b.setAttribute('aria-pressed',on);
     b.setAttribute('aria-label',on?'Turn music off':'Turn music on');
-    l.textContent=on?'Music on':'Music off';
+    l.textContent=on?'Music on':'Tap for music';
+    sub.textContent=on?'Tap to mute':'Snowman · Sia';
+    cl.textContent=on?'Music on · tap to mute':'Tap for music';
+    document.body.classList.toggle('music-on',on);
+    hideBubble();
+  }
+  function flip(){ setMusic(!mus); toast(mus?'Music on 🎶':'Music off'); }
+  b.addEventListener('click',flip);
+  var circle=$('circle');
+  circle.addEventListener('click',flip);
+  circle.addEventListener('keydown',function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); flip(); } });
+  setTimeout(showBubble,4500); setInterval(showBubble,35000);
+
+  /* gestures: double-tap / double-click anywhere, or press M */
+  function inter(t){ return t&&t.closest&&t.closest('a,button,input,label,summary,details,.circle,.gate'); }
+  var lastTap=0,lx=0,ly=0;
+  document.addEventListener('touchend',function(e){
+    if(inter(e.target)){ return; }
+    var t=e.changedTouches[0], n=Date.now();
+    if(n-lastTap<320&&Math.abs(t.clientX-lx)<40&&Math.abs(t.clientY-ly)<40){ lastTap=0; flip(); }
+    else{ lastTap=n; lx=t.clientX; ly=t.clientY; }
+  },{passive:true});
+  if(fine){ document.addEventListener('dblclick',function(e){ if(!inter(e.target)){ flip(); } }); }
+  document.addEventListener('keydown',function(e){
+    var tg=document.activeElement?document.activeElement.tagName:'';
+    if((e.key==='m'||e.key==='M')&&tg!=='INPUT'&&tg!=='TEXTAREA'){ flip(); }
   });
+
+  /* owner circle video only plays while visible */
+  if('IntersectionObserver' in window){
+    new IntersectionObserver(function(es){
+      ovVis=es[0].isIntersecting;
+      if(ovVis&&!document.hidden){ safe(ov.play()); } else { ov.pause(); }
+    },{threshold:.25}).observe(circle);
+  } else { ovVis=true; }
+
+  /* entry gate: a real tap is what lets browsers play sound */
+  var gate=$('gate');
+  function closeGate(){
+    if(!gate){ return; }
+    var g=gate; gate=null;
+    g.classList.add('out'); document.body.classList.remove('gated');
+    try{ sessionStorage.setItem('sxg','1'); }catch(e){}
+    setTimeout(function(){ g.remove(); },600);
+  }
+  var seen=null; try{ seen=sessionStorage.getItem('sxg'); }catch(e){}
+  if(seen){ gate.remove(); gate=null; }
+  else {
+    document.body.classList.add('gated');
+    $('gOn').addEventListener('click',function(){ setMusic(true); closeGate(); toast('Music on 🎶'); });
+    $('gOff').addEventListener('click',closeGate);
+    document.addEventListener('keydown',function(e){ if(e.key==='Escape'){ closeGate(); } });
+  }
 
   /* ================= LOADER ================= */
   var ld=$('loader');
@@ -719,9 +888,17 @@ footer small{display:block;margin-top:6px;opacity:.62;font-size:.78rem}
 
 PAGE = (
     HTML.replace("{{PORTAL}}", PORTAL_LINK)
-        .replace("{{VIDEO}}", VIDEO_URL)
         .replace("{{CHANNEL}}", CHANNEL_LINK)
         .replace("{{OWNER}}", OWNER_LINK)
+        .replace("{{OWNER_NAME}}", OWNER_NAME)
+        .replace("{{VIDEO}}", VIDEO_URL)
+        .replace("{{OVIDEO}}", OWNER_VIDEO_URL)
+        .replace("{{LOGO}}", LOGO_URL)
+        .replace("{{TREE}}", TREE_URL)
+        .replace("{{GIFTS}}", GIFTS_URL)
+        .replace("{{SNOWMAN}}", SNOWMAN_URL)
+        .replace("{{HAT}}", HAT_URL)
+        .replace("{{SNOWBG}}", SNOWBG_URL)
 )
 
 
@@ -737,3 +914,4 @@ def fallback(_):
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
+
