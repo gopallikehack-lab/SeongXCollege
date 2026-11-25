@@ -14,7 +14,7 @@ TREE_URL        = "https://i.ibb.co/nsrmkCn9/file-0000000077c48207807f7e09f0f8d1
 GIFTS_URL       = "https://i.ibb.co/Z0LjjGw/file-00000000cfe0820799c102c961ea1c5b.png"
 SNOWMAN_URL     = "https://i.ibb.co/20kfKnLj/file-00000000755882079d6cb681905d59cb.png"
 HAT_URL         = "https://i.ibb.co/gMfnHdn4/Note-GPT-Image-20261125084956.png"
-SANTA_URL       = "https://i.ibb.co/206Z4PZK/1795566285922.png"
+SANTA_URL       = "https://i.ibb.co/svYsBz3H/file-000000002bbc81fa8962f73f04e212a8.png"
 SNOWBG_URL      = "https://i.ibb.co/4gJQNThb/download.jpg"
 
 # Leave empty to auto-detect your domain. Change the number to force
