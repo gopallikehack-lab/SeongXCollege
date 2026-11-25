@@ -9,7 +9,7 @@ OWNER_NAME      = "夔🌑 𝑺𝒆𝒐𝒏𝒈-𝒋𝒆 ⋆ 𝑂𝑓𝑓𝑙�
 VIDEO_URL       = "https://huggingface.co/datasets/gopallikehack/Seong_Study/resolve/main/n-261124-kcctgu.mp4"
 OWNER_VIDEO_URL = "https://huggingface.co/datasets/gopallikehack/Seong_Study/resolve/main/nz-261124-k60suu.mp4"
 
-LOGO_URL        = "https://huggingface.co/datasets/gopallikehack/AiLearning/resolve/main/file_00000000649482079925d320aeb3e88b.png"
+LOGO_URL        = "https://i.ibb.co/0VhQSvCg/file-00000000649482079925d320aeb3e88b.png"
 TREE_URL        = "https://i.ibb.co/nsrmkCn9/file-0000000077c48207807f7e09f0f8d150.png"
 GIFTS_URL       = "https://i.ibb.co/Z0LjjGw/file-00000000cfe0820799c102c961ea1c5b.png"
 SNOWMAN_URL     = "https://i.ibb.co/20kfKnLj/file-00000000755882079d6cb681905d59cb.png"
