@@ -20,10 +20,13 @@ SNOWBG_URL      = "https://i.ibb.co/4gJQNThb/download.jpg"
 # Leave empty to auto-detect your domain. Change the number to force
 # WhatsApp / Telegram to refresh the link preview picture.
 SITE_URL        = ""
-ASSET_VERSION   = "1"
+ASSET_VERSION   = "2"
 # =====================================================
 
 import io
+import os
+import html
+import threading
 import urllib.request
 
 from flask import Flask, Response, redirect, request
@@ -437,9 +440,30 @@ footer .fsnow{position:absolute;left:clamp(8px,6vw,90px);bottom:calc(100% - 20px
   .sleigh{display:none}
   html{scroll-behavior:auto}
 }
+
+/* Winter edition 2: responsive editorial layout and accessible controls */
+:root{--glass:rgba(12,26,49,.88);--edge:rgba(199,225,255,.22);--santa-flip:-1}
+body{background:#050b1c} .bg{background:radial-gradient(ellipse at 75% 15%,#234c71,transparent 55%),#050b1c}
+.nav{max-width:1180px;width:calc(100% - 32px);box-shadow:0 12px 40px #0005;backdrop-filter:blur(16px)}
+.hero{isolation:isolate;overflow:hidden;padding-bottom:100px}.hero h1{max-width:13ch}.hero .lead{max-width:52ch}
+.hero::before{content:"";position:absolute;inset:0;z-index:-1;background:radial-gradient(ellipse at center,#050b1c77,transparent 75%);pointer-events:none}
+.treewrap{right:2vw;bottom:4vh;opacity:.8}.treewrap img{height:min(48vh,420px)}
+.cd{box-shadow:0 12px 32px #0003;min-width:0}.cd div span{min-width:48px}.cds{gap:12px}
+.card{background:linear-gradient(145deg,#172d49e8,#09162ce8);box-shadow:0 12px 30px #0002}.c1{background:radial-gradient(ellipse at top right,#235b56,transparent 65%),#10283d}.c2{background:linear-gradient(145deg,#34304b,#111d34)}.c3{background:linear-gradient(145deg,#48303e,#121e34)}
+.gift{padding-right: min(36%,390px)}.gift .boxes{bottom:0;right:0}.steps{gap:16px;border:0}.step{padding:24px;border:1px solid var(--edge);border-radius:24px;background:var(--glass)}
+.drawer{visibility:hidden}.open .drawer{visibility:visible}.toast{max-width:calc(100% - 24px);white-space:normal;text-align:center}.music{bottom:calc(16px + env(safe-area-inset-bottom));max-width:calc(100% - 90px)}
+.tools{position:fixed;right:16px;bottom:88px;z-index:112;display:grid;gap:8px}.tools button{width:44px;height:44px;border-radius:50%;background:#101f38;color:white;border:1px solid var(--edge);cursor:pointer;font-size:18px}.tools button[aria-pressed=true]{border-color:var(--gold)}
+body.gated .tools{display:none}.calm #snow,.calm .sleigh,.calm .lights,.calm .bg video,.calm .bg canvas{display:none}.calm *, .calm *::before,.calm *::after{animation:none!important;transition:none!important}.calm .hero>* , .calm .rv{opacity:1!important;transform:none!important}
+.goaltrack{height:8px;background:#ffffff19;border-radius:20px;overflow:hidden;margin:12px 0}.goaltrack i{display:block;height:100%;width:0;background:var(--grad);transition:width .3s}.goalcount{font-size:.85rem;color:var(--ice)}
+.skiplink{position:fixed;top:-100px;left:12px;z-index:300;background:#fff;color:#09162c;padding:12px}.skiplink:focus{top:12px}
+@media(max-width:760px){.hero{padding:140px 16px 75px}.hero h1{font-size:clamp(2.6rem,10vw,4rem)}.nav{padding:8px 9px 8px 12px;gap:5px}.logo{font-size:.95rem;gap:6px}.nr{gap:5px}.nr .pill{padding:10px 12px;font-size:.75rem}.lg,.lg img.mark{width:32px;height:32px}.cds{width:100%}.cd{width:min(100%,300px)}.gift{padding:30px 22px 30px 72px}.gift .boxes{width:100%}.tools{bottom:154px;right:12px}.card{padding:24px}.owner{padding:24px 18px}.lnk{padding:14px}.gate{overflow:auto!important}.intro-inner{margin:auto}.hero .row{gap:10px}.hero .row a{padding:14px 20px}.fsnow{max-height:125px}}
+@media(max-width:370px){.nav .nr .pill{display:none}.cd div{gap:5px}.cd div span{min-width:43px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}.bg video,.bg canvas{display:none}}
+
 </style>
 </head>
 <body>
+<a class="skiplink" href="#top">Skip to content</a>
 
 <div class="prog" id="prog"></div>
 <div class="lights" id="lights" aria-hidden="true"></div>
@@ -599,7 +623,7 @@ footer .fsnow{position:absolute;left:clamp(8px,6vw,90px);bottom:calc(100% - 20px
       </div>
       <div class="resbox rv">
         <h3>Your 2027 study goals</h3>
-        <p class="s">Tick them off. Finish all four for a surprise.</p>
+        <p class="s">Tick them off. Finish all four for a surprise.</p><div class="goalcount" id="goalcount" role="status"></div><div class="goaltrack" aria-hidden="true"><i id="goalbar"></i></div>
         <label class="res"><input type="checkbox"><span>Study a little, every single day</span></label>
         <label class="res"><input type="checkbox"><span>Finish one full subject</span></label>
         <label class="res"><input type="checkbox"><span>Help a friend learn something new</span></label>
@@ -660,6 +684,7 @@ footer .fsnow{position:absolute;left:clamp(8px,6vw,90px);bottom:calc(100% - 20px
   <small>Tip: double-tap anywhere to turn the music on or off.</small>
 </footer>
 
+<div class="tools"><button id="calm" type="button" aria-label="Reduce visual effects" aria-pressed="false" title="Reduce effects">❄</button><button id="share" type="button" aria-label="Share website" title="Share website">↗</button><button id="backtop" type="button" aria-label="Back to top" title="Back to top">↑</button></div>
 <button class="celeb" id="celebrate" type="button" aria-label="Celebrate with fireworks" title="Celebrate!">🎆</button>
 <div class="bubble" id="bubble" aria-hidden="true">Tap for Christmas music 🎶</div>
 <button class="music" id="snd" type="button" aria-pressed="false" aria-label="Turn music on">
@@ -678,7 +703,7 @@ footer .fsnow{position:absolute;left:clamp(8px,6vw,90px);bottom:calc(100% - 20px
   /* ================= VIDEO + FILL ================= */
   var v=$('bgf'), fl=$('fill'), fx=fl.getContext('2d'), b=$('snd'), l=$('sndl'), fillTimer=null;
   function paint(){ try{ fx.drawImage(v,0,0,fl.width,fl.height); }catch(e){} }
-  function startFill(){ if(!fillTimer){ fillTimer=setInterval(paint,110); } }
+  function startFill(){ if(!fillTimer && !document.body.classList.contains("calm")){ fillTimer=setInterval(paint,110); } }
   function stopFill(){ clearInterval(fillTimer); fillTimer=null; }
 
   /* ================= SNOW + FIREWORKS ================= */
@@ -719,7 +744,7 @@ footer .fsnow{position:absolute;left:clamp(8px,6vw,90px);bottom:calc(100% - 20px
     }
     sx.globalAlpha=1;
   }
-  function startSnow(){ if(!running && !reduce){ running=true; raf=requestAnimationFrame(frame); } }
+  function startSnow(){ if(!running && !reduce && !document.body.classList.contains("calm")){ running=true; raf=requestAnimationFrame(frame); } }
   function stopSnow(){ running=false; cancelAnimationFrame(raf); }
   size(); window.addEventListener('resize',size);
 
@@ -738,6 +763,7 @@ footer .fsnow{position:absolute;left:clamp(8px,6vw,90px);bottom:calc(100% - 20px
     clearTimeout(tt); tt=setTimeout(function(){ t.classList.remove('show'); },2800);
   }
   function celebrate(){
+    if(reduce||document.body.classList.contains("calm")){toast("Happy New Year 2027!");return;}
     startSnow();
     for(var k=0;k<7;k++){
       (function(k){ setTimeout(function(){ burst(W*(.12+Math.random()*.76),H*(.1+Math.random()*.42),70); },k*240); })(k);
@@ -751,7 +777,7 @@ footer .fsnow{position:absolute;left:clamp(8px,6vw,90px);bottom:calc(100% - 20px
   var lastT=0;
   window.addEventListener('pointermove',function(e){
     wind=((e.clientX/W)-.5)*1.4;
-    if(!fine||reduce){ return; }
+    if(!fine||reduce||document.body.classList.contains("calm")){ return; }
     var n=Date.now(); if(n-lastT<45){ return; } lastT=n;
     if(sparks.length>300){ return; }
     for(var i=0;i<2;i++){
@@ -829,6 +855,7 @@ footer .fsnow{position:absolute;left:clamp(8px,6vw,90px);bottom:calc(100% - 20px
     new IntersectionObserver(function(es){ if(es[0].isIntersecting){ ovReady(); } },{rootMargin:'500px 0px'}).observe(circle);
     new IntersectionObserver(function(es){
       ovVis=es[0].isIntersecting;
+      if(ovVis){ ovReady(); }
       if(!ov.getAttribute('src')){ return; }
       if((ovVis||who==='owner')&&!document.hidden){ safe(ov.play()); } else { ov.pause(); }
     },{threshold:.25}).observe(circle);
@@ -956,6 +983,23 @@ footer .fsnow{position:absolute;left:clamp(8px,6vw,90px);bottom:calc(100% - 20px
   }
   window.addEventListener('scroll',onScroll,{passive:true}); onScroll();
 
+  /* Additional controls and saved preferences */
+  var calm=$('calm'), quiet=reduce;
+  try { quiet=quiet||localStorage.getItem('sx-calm')==='1'; } catch(e){}
+  function applyCalm(){
+    document.body.classList.toggle('calm',quiet);
+    calm.setAttribute('aria-pressed',String(quiet));
+    if(quiet){ stopSnow(); stopFill(); } else if(!document.hidden){ startSnow(); startFill(); }
+    try{localStorage.setItem('sx-calm',quiet?'1':'0');}catch(e){}
+  }
+  calm.addEventListener('click',function(){quiet=!quiet;applyCalm();toast(quiet?'Reduced effects enabled':'Festive effects enabled');});
+  applyCalm();
+  $('backtop').addEventListener('click',function(){window.scrollTo({top:0,behavior:quiet?'auto':'smooth'});});
+  $('share').addEventListener('click',async function(){
+    try{if(navigator.share){await navigator.share({title:document.title,url:location.origin+'/'});}else if(navigator.clipboard){await navigator.clipboard.writeText(location.origin+'/');toast('Link copied');}else{window.prompt('Copy this link',location.origin+'/');}}catch(e){if(e.name!=='AbortError')toast('Sharing unavailable');}
+  });
+  function goalProgress(){var n=Array.from(rs).filter(function(x){return x.checked;}).length;$('goalcount').textContent=n+' of '+rs.length+' goals completed';$('goalbar').style.width=(n/rs.length*100)+'%';}
+  rs.forEach(function(x){x.addEventListener('change',goalProgress);});goalProgress();
   $('yr').textContent=new Date().getFullYear();
 })();
 </script>
@@ -997,12 +1041,16 @@ ASSETS = {
 }
 CACHE_HDR = "public, max-age=86400, s-maxage=2592000, stale-while-revalidate=86400"
 _cache = {}
+_locks = {key: threading.Lock() for key in ASSETS}
 
 
 def fetch(url, timeout=9):
     req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 (SeongEraStudy asset loader)"})
     with urllib.request.urlopen(req, timeout=timeout) as r:
-        return r.read()
+        data = r.read(16 * 1024 * 1024 + 1)
+        if len(data) > 16 * 1024 * 1024:
+            raise ValueError("Asset exceeds size limit")
+        return data
 
 
 def remove_bg(im, limit=640):
@@ -1013,7 +1061,7 @@ def remove_bg(im, limit=640):
     w, h = im.size
     corners = [(0, 0), (w - 1, 0), (0, h - 1), (w - 1, h - 1)]
     alpha = im.getchannel("A")
-    if all(alpha.getpixel(c) < 16 for c in corners):
+    if alpha.getextrema()[0] < 16:
         return im
     sc = min(1.0, limit / float(max(w, h)))
     if sc < 1.0:
@@ -1067,9 +1115,10 @@ def build_asset(key):
 
 
 def get_asset(key):
-    if key not in _cache:
-        _cache[key] = build_asset(key)
-    return _cache[key]
+    with _locks[key]:
+        if key not in _cache:
+            _cache[key] = build_asset(key)
+        return _cache[key]
 
 
 def build_og():
@@ -1119,11 +1168,24 @@ def image_response(getter, fallback_url):
         return resp
 
 
+@app.after_request
+def security_headers(response):
+    response.headers.setdefault("X-Content-Type-Options", "nosniff")
+    response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
+    response.headers.setdefault("X-Frame-Options", "DENY")
+    return response
+
+
+@app.get("/healthz")
+def health():
+    return {"status": "ok", "version": ASSET_VERSION}
+
+
 def base_url():
     if SITE_URL:
         return SITE_URL.rstrip("/")
-    proto = request.headers.get("X-Forwarded-Proto", request.scheme).split(",")[0].strip()
-    host = request.headers.get("X-Forwarded-Host", request.host).split(",")[0].strip()
+    proto = request.scheme
+    host = request.host
     return proto + "://" + host
 
 
@@ -1146,14 +1208,14 @@ def og():
 
 @app.route("/")
 def home():
-    return Response(PAGE.replace("{{BASE}}", base_url()), mimetype="text/html; charset=utf-8")
+    return Response(PAGE.replace("{{BASE}}", html.escape(base_url(), quote=True)), mimetype="text/html; charset=utf-8")
 
 
 @app.route("/<path:_>")
 def fallback(_):
-    return Response(PAGE.replace("{{BASE}}", base_url()), mimetype="text/html; charset=utf-8")
+    return Response("Page not found", status=404, mimetype="text/plain")
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", "5000")))
 
