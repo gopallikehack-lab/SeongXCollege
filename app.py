@@ -1,3 +1,4 @@
+
 # =====================================================
 #  CONFIG  -  change links / media ONLY here, nowhere else
 # =====================================================
@@ -122,7 +123,7 @@ body.gated #snow{z-index:106}
 @keyframes tw{0%,100%{opacity:.12}50%{opacity:.9}}
 
 /* ---------- Santa + reindeer flyby ---------- */
-.sleigh{position:fixed;top:11%;left:0;z-index:107;pointer-events:none;will-change:transform;transform:translate(-45vw,0);animation:fly 64s linear infinite;animation-delay:.5s}
+.sleigh{position:fixed;top:11%;left:0;z-index:-1;pointer-events:none;will-change:transform;transform:translate(-45vw,0);animation:fly 64s linear infinite;animation-delay:.5s}
 .sleigh img{display:block;height:clamp(92px,17vw,180px);width:auto;transform:scaleX(var(--santa-flip,1));filter:drop-shadow(0 12px 18px rgba(0,0,0,.55)) drop-shadow(0 0 20px rgba(255,207,107,.4));animation:sbob 1.5s ease-in-out infinite}
 @keyframes sbob{0%,100%{transform:translateY(0) scaleX(var(--santa-flip,1))}50%{transform:translateY(-9px) scaleX(var(--santa-flip,1))}}
 @keyframes fly{0%{transform:translate(-45vw,0)}9%{transform:translate(140vw,-26px)}100%{transform:translate(140vw,-26px)}}
@@ -171,6 +172,12 @@ body.open .drawer{transform:none}
 @keyframes shine{0%,55%{left:-60%}100%{left:130%}}
 .pill:hover{transform:translateY(-2px);box-shadow:0 16px 36px -10px rgba(232,40,63,1)}
 .pill.big{padding:18px 36px;font-size:1.02rem}
+.pill.hearth{
+  color:#261916;background:linear-gradient(120deg,#fff0c9,#ffd28e 49%,#f7a875);
+  border:1px solid #ffebc1;box-shadow:0 10px 30px -10px #f09b6aa6,inset 0 1px #fff7
+}
+.pill.hearth:hover{box-shadow:0 12px 36px -8px #ffb874b0,inset 0 1px #fff8}
+.pill.hearth::after{animation-duration:6.4s}
 .ghost{display:inline-flex;align-items:center;gap:10px;padding:17px 30px;border-radius:999px;border:1px solid var(--edge);background:var(--glass);font-weight:600;transition:background .2s,border-color .2s,transform .2s}
 .ghost:hover{background:rgba(190,230,255,.16);border-color:rgba(255,255,255,.4);transform:translateY(-2px)}
 .pill svg,.ghost svg{width:18px;height:18px}
@@ -183,7 +190,7 @@ body.open .drawer{transform:none}
 @keyframes spin{to{--ang:360deg}}
 .script{margin-top:22px;font-family:var(--script);font-weight:700;font-size:clamp(2.2rem,6.4vw,4.6rem);line-height:1;color:var(--gold);text-shadow:0 0 28px rgba(255,207,107,.55),0 4px 24px rgba(0,0,0,.6)}
 .hero h1{margin-top:8px;font-family:var(--head);font-weight:900;font-size:clamp(2.7rem,8.2vw,6.8rem);line-height:1;letter-spacing:-.035em;max-width:15ch;text-shadow:0 6px 40px rgba(0,0,0,.6)}
-.hero h1 em{font-style:normal;background:linear-gradient(120deg,#ff5468,var(--gold),var(--ice),#ff5468);background-size:260% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:flow 6s linear infinite;text-shadow:none}
+.hero h1 em{font-style:normal;background:linear-gradient(120deg,#f0fcff,#9ce5ff,#c5bdff,#f0fcff);background-size:260% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:flow 8s linear infinite;text-shadow:none}
 @keyframes flow{to{background-position:260% 0}}
 .hero p.lead{margin-top:22px;max-width:50ch;font-size:clamp(1rem,1.7vw,1.2rem);color:var(--mut);text-shadow:0 2px 20px rgba(0,0,0,.8)}
 .rot{display:inline-block;min-width:5.4em;font-weight:700;color:var(--ink);border-bottom:2px solid var(--red);transition:opacity .3s,transform .3s}
@@ -359,34 +366,77 @@ body.music-on .music .eq{display:flex}
 .toast{position:fixed;top:112px;left:50%;z-index:130;transform:translate(-50%,-20px);opacity:0;pointer-events:none;padding:12px 24px;border-radius:999px;background:linear-gradient(120deg,var(--red),var(--red2));font-weight:700;box-shadow:0 14px 40px -10px rgba(232,40,63,.9);transition:opacity .35s,transform .35s;white-space:nowrap}
 .toast.show{opacity:1;transform:translate(-50%,0)}
 
-/* ---------- Intro screen (instant, one tap to enter) ---------- */
+/* ---------- Winter landscape and welcome ---------- */
 .gate{display:none}
-.js .gate{position:fixed;inset:0;z-index:105;display:grid;place-items:center;padding:22px;overflow:hidden auto;overscroll-behavior:contain;
-  background:radial-gradient(75% 55% at 50% 28%,rgba(28,62,128,.9),rgba(5,11,28,.98) 72%),var(--night);
-  transition:opacity .6s ease,visibility .6s,transform .6s}
-.gate.out{opacity:0;visibility:hidden;transform:scale(1.05)}
-.gate::before{content:"";position:fixed;inset:-45% -25%;pointer-events:none;will-change:transform;
-  background:conic-gradient(from 0deg at 50% 50%,transparent 0 18%,rgba(255,207,107,.12) 22%,transparent 27% 52%,rgba(111,208,255,.12) 57%,transparent 62%);animation:rot 22s linear infinite}
-.intro-inner{position:relative;max-width:520px;width:100%;margin:auto;text-align:center}
-.logo-wrap{position:relative;width:138px;height:138px;margin:0 auto 20px;animation:pop .8s cubic-bezier(.2,.9,.3,1.2) both}
+.js .gate{
+  position:fixed;inset:0;z-index:105;display:grid;place-items:center;padding:clamp(14px,4vw,28px);
+  overflow:hidden auto;overscroll-behavior:contain;background:#060e21;
+  transition:opacity .65s ease,visibility .65s,transform .65s cubic-bezier(.25,.7,.25,1)
+}
+.gate.out{opacity:0;visibility:hidden;transform:scale(1.08);pointer-events:none}
+.winter-symbols{position:absolute;width:0;height:0;overflow:hidden;pointer-events:none}
+.winter-sky,.winter-land{position:fixed;left:0;width:100%;pointer-events:none}
+.winter-sky{top:0;height:100%}
+.winter-land{bottom:0;height:clamp(195px,48vh,500px)}
+.gate .sleigh{z-index:0}
+.gate.out .sleigh{visibility:hidden}
+.aurora{transform-box:fill-box;transform-origin:center;animation:aurora-drift 17s ease-in-out infinite alternate}
+.aurora.secondary{animation-duration:23s;animation-direction:alternate-reverse}
+@keyframes aurora-drift{
+  from{opacity:.58;transform:translate(-25px,4px) rotate(-4deg) scaleY(.88)}
+  to{opacity:.98;transform:translate(28px,-13px) rotate(4deg) scaleY(1.07)}
+}
+.winter-stars use{animation:starlight 4.8s ease-in-out infinite alternate}
+.winter-stars use:nth-child(3n+1){animation-delay:-1.6s}
+.winter-stars use:nth-child(3n+2){animation-delay:-3.2s}
+@keyframes starlight{from{opacity:.25}to{opacity:.9}}
+.lodge-light{animation:lodge-glow 5.5s ease-in-out infinite alternate}
+@keyframes lodge-glow{from{opacity:.68}to{opacity:1}}
+.chimney-smoke{transform-box:fill-box;transform-origin:center;animation:smoke-rise 6s linear infinite}
+@keyframes smoke-rise{
+  0%{opacity:0;transform:translate(0,5px) scale(.65)}
+  22%{opacity:.36}
+  100%{opacity:0;transform:translate(36px,-54px) scale(1.9)}
+}
+.intro-inner{
+  position:relative;z-index:1;width:100%;max-width:482px;margin:auto;text-align:center;
+  padding:clamp(22px,4.4vw,39px) clamp(18px,4.8vw,38px) clamp(18px,3.4vw,30px);
+  border:1px solid #bbecff4a;border-radius:30px;
+  background:radial-gradient(90% 65% at 50% 0%,#31678165,transparent 78%),linear-gradient(160deg,#152c46ee,#070f22f5 73%);
+  box-shadow:0 28px 85px #020710ad,inset 0 1px 0 #e6faff33,0 0 58px #62cde616;
+  transition:transform .6s cubic-bezier(.25,.7,.25,1),opacity .45s ease
+}
+.intro-inner::before{
+  content:"";position:absolute;inset:0 12% auto;height:1px;pointer-events:none;
+  background:linear-gradient(90deg,transparent,#d6f8ffbb,transparent)
+}
+.gate.out .intro-inner{transform:translateY(-10px) scale(.95);opacity:0}
+.logo-wrap{position:relative;width:104px;height:104px;margin:0 auto 22px;animation:pop .85s cubic-bezier(.2,.9,.3,1.2) both}
 @keyframes pop{from{opacity:0;transform:scale(.8) translateY(16px)}}
-.logo-wrap::before{content:"";position:absolute;inset:-5px;border-radius:36px;background:conic-gradient(#ff3b52,#ffcf6b,#35d69a,#6fd0ff,#ff3b52);animation:rot 6s linear infinite}
-.logo-wrap::after{content:"";position:absolute;inset:-22px;border-radius:50%;background:radial-gradient(circle,rgba(255,207,107,.28),transparent 66%);z-index:-1}
-.logo-wrap .lw{position:absolute;inset:0;border-radius:32px;background:#0a1630;display:grid;place-items:center;overflow:hidden}
-.logo-wrap img{width:84%;height:84%;object-fit:contain}
-.i-script{font-family:var(--script);font-weight:700;font-size:clamp(1.6rem,5vw,2.2rem);color:var(--gold);line-height:1.1;text-shadow:0 0 24px rgba(255,207,107,.5)}
-.i-title{margin-top:6px;font-family:var(--head);font-weight:900;font-size:clamp(2.4rem,9vw,3.6rem);line-height:1;letter-spacing:-.035em}
+.logo-wrap::before{content:"";position:absolute;inset:-23px;border-radius:50%;background:radial-gradient(circle,#70dafa52,transparent 70%)}
+.logo-wrap .lw{
+  position:absolute;inset:0;border:1px solid #a2e4f89c;border-radius:25%;
+  background:radial-gradient(circle at 50% 15%,#263c58,#0a152a 74%);display:grid;place-items:center;
+  box-shadow:inset 0 1px 5px #c7f3ff40,0 6px 25px #0008
+}
+.logo-wrap img{width:86%;height:86%;object-fit:contain}
+.frost-orbit{position:absolute;inset:-19%;width:138%;height:138%;overflow:visible;pointer-events:none}
+.frost-orbit .orbit-trace{animation:orbit-trace 9s linear infinite}
+.frost-orbit .orbit-stars{transform-origin:center;animation:rot 28s linear infinite}
+@keyframes orbit-trace{to{stroke-dashoffset:-56}}
+.i-script{font-family:var(--script);font-weight:700;font-size:clamp(1.35rem,4.4vw,1.95rem);color:#ffdda2;line-height:1.14;text-shadow:0 0 22px #ffb66452}
+.i-title{margin-top:8px;font-family:var(--head);font-weight:900;font-size:clamp(1.7rem,8vw,3.05rem);line-height:1.06;letter-spacing:-.045em}
 .i-title b{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
-.i-sub{margin-top:10px;color:var(--mut)}
-.i-load{margin:22px auto 4px;max-width:260px}
-.i-load .bar{height:5px;border-radius:5px;background:rgba(255,255,255,.12);overflow:hidden}
-.i-load .bar i{display:block;height:100%;width:6%;border-radius:5px;background:var(--grad);transition:width .35s ease}
-.i-load small{display:block;margin-top:8px;font-size:.7rem;letter-spacing:.18em;text-transform:uppercase;color:var(--mut)}
-.i-btns{margin-top:20px}
+.i-sub{margin-top:9px;color:var(--mut)}
+.i-load{margin:17px auto 4px;max-width:245px}
+.i-load .bar{height:3px;border-radius:5px;background:#dff6ff26;overflow:hidden}
+.i-load .bar i{display:block;height:100%;width:6%;border-radius:5px;background:linear-gradient(90deg,#8fbdff,#ace9f7,#ffe1a8);transition:width .35s ease}
+.i-load small{display:block;margin-top:7px;font-size:.65rem;letter-spacing:.13em;text-transform:uppercase;color:var(--mut)}
+.i-btns{margin-top:17px}
 .i-btns .pill{width:100%;max-width:340px;justify-content:center}
-.skip{display:block;margin:14px auto 0;background:none;border:0;color:var(--mut);font:500 .92rem var(--body);cursor:pointer;text-decoration:underline;text-underline-offset:3px;padding:6px 10px}
+.skip{display:block;margin:10px auto 0;background:none;border:0;color:var(--mut);font:500 .92rem var(--body);cursor:pointer;text-decoration:underline;text-underline-offset:3px;padding:6px 10px}
 .skip:hover{color:var(--ink)}
-.tip{margin-top:16px;font-size:.78rem;opacity:.65}
+.tip{margin-top:12px;font-size:.78rem;color:#bfd6e9}
 @keyframes iup{from{opacity:0;transform:translateY(14px)}}
 .intro-inner > *:not(.logo-wrap){animation:iup .6s cubic-bezier(.2,.7,.2,1) both}
 .intro-inner > :nth-child(2){animation-delay:.1s}
@@ -395,9 +445,10 @@ body.music-on .music .eq{display:flex}
 .intro-inner > :nth-child(5){animation-delay:.34s}
 .intro-inner > :nth-child(6){animation-delay:.42s}
 .intro-inner > :nth-child(7){animation-delay:.5s}
-@media(max-height:560px){
+@media(max-height:560px),(max-width:400px) and (max-height:620px){
   .js .gate{padding:16px}
-  .logo-wrap{width:76px;height:76px;margin-bottom:10px}
+  .intro-inner{padding-block:17px}
+  .logo-wrap{width:65px;height:65px;margin-bottom:14px}
   .i-script{font-size:clamp(1.25rem,4vw,1.6rem)}
   .i-title{font-size:clamp(1.9rem,7vw,2.6rem);line-height:1.1}
   .i-sub{margin-top:5px}
@@ -405,9 +456,22 @@ body.music-on .music .eq{display:flex}
   .i-btns .pill{padding-block:12px}
   .skip,.tip{margin-top:8px}
 }
+@media(max-height:415px) and (orientation:landscape){
+  .intro-inner{display:grid;grid-template-columns:90px minmax(0,1fr);column-gap:16px;max-width:538px}
+  .logo-wrap{grid-row:1 / span 5;place-self:center;margin:0}
+  .intro-inner > :not(.logo-wrap){grid-column:2}
+  .i-load{width:min(100%,245px)}
+}
 body.gated .nav,body.gated .music,body.gated .celeb,body.gated .bubble{opacity:0;pointer-events:none}
 body.gated .hero > *{animation-play-state:paused}
 .hint{margin-top:10px;font-size:.8rem;opacity:.65}
+
+/* Ice at the outer edges leaves the video and portal controls visible. */
+.hero > .hero-frost{position:absolute;inset:0;z-index:-1;overflow:hidden;pointer-events:none;opacity:1;transform:none;animation:none}
+.hero-frost svg{position:absolute;width:clamp(68px,16vw,245px);color:#b1ebfa;opacity:.23;animation:drift-crystal 13s ease-in-out infinite alternate}
+.hero-frost .frost-left{left:clamp(-58px,-2.8vw,-14px);top:19%}
+.hero-frost .frost-right{right:clamp(-48px,-2vw,-10px);top:27%;width:clamp(65px,12vw,180px);opacity:.16;animation-delay:-5s}
+@keyframes drift-crystal{from{transform:translateY(0) rotate(-12deg)}to{transform:translateY(28px) rotate(14deg)}}
 
 /* ---------- Hero tree ---------- */
 .treewrap{display:none;position:absolute;right:-1vw;bottom:6vh;z-index:-1}
@@ -492,6 +556,27 @@ body.gated .tools{display:none}.calm #snow,.calm .sleigh,.calm .lights,.calm .bg
 <body>
 <a class="skiplink" href="#top">Skip to content</a>
 
+<svg class="winter-symbols" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+  <defs>
+    <path id="winter-flake-axis" d="M24 3v42M17 9l7 7 7-7M17 39l7-7 7 7"/>
+    <symbol id="winter-flake" viewBox="0 0 48 48">
+      <g fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round">
+        <use href="#winter-flake-axis"/>
+        <use href="#winter-flake-axis" transform="rotate(60 24 24)"/>
+        <use href="#winter-flake-axis" transform="rotate(120 24 24)"/>
+        <path d="m24 19 4.3 2.5v5L24 29l-4.3-2.5v-5Z"/>
+      </g>
+    </symbol>
+    <symbol id="winter-star" viewBox="0 0 20 20">
+      <path fill="currentColor" d="M10 0Q11 9 20 10Q11 11 10 20Q9 11 0 10Q9 9 10 0Z"/>
+    </symbol>
+    <symbol id="winter-pine" viewBox="0 0 64 96">
+      <path fill="currentColor" d="M32 2 11 32h10L5 52h12L0 76h29v18h6V76h29L47 52h12L43 32h10Z"/>
+      <path fill="#a6cddd" opacity=".39" d="m32 2-17 24 9-3 8-14 10 16 7 2Zm-11 30L9 48l12-5 11 2 12-2 10 5-11-16-11 6ZM17 52 4 71l16-5 12 2 12-2 16 5-13-19-15 8Z"/>
+    </symbol>
+  </defs>
+</svg>
+
 <div class="prog" id="prog"></div>
 <div class="lights" id="lights" aria-hidden="true"></div>
 
@@ -505,14 +590,142 @@ body.gated .tools{display:none}.calm #snow,.calm .sleigh,.calm .lights,.calm .bg
 <div class="toast" id="toast" role="status"></div>
 
 <div class="gate" id="gate" role="dialog" aria-modal="true" aria-label="Welcome to SeongEraStudy">
+  <svg class="winter-sky" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">
+    <defs>
+      <linearGradient id="winter-night" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#060c20"/>
+        <stop offset=".56" stop-color="#152848"/>
+        <stop offset="1" stop-color="#2d5063"/>
+      </linearGradient>
+      <radialGradient id="winter-moon-halo">
+        <stop offset="0" stop-color="#c4f5ff" stop-opacity=".39"/>
+        <stop offset=".26" stop-color="#9bdcfd" stop-opacity=".23"/>
+        <stop offset="1" stop-color="#6883dc" stop-opacity="0"/>
+      </radialGradient>
+      <linearGradient id="winter-aurora-mint" x1=".12" x2=".8" y1="0" y2="1">
+        <stop offset="0" stop-color="#7887d8" stop-opacity="0"/>
+        <stop offset=".55" stop-color="#709ce9" stop-opacity=".17"/>
+        <stop offset=".83" stop-color="#9afde5" stop-opacity=".62"/>
+        <stop offset="1" stop-color="#5ce7eb" stop-opacity="0"/>
+      </linearGradient>
+      <linearGradient id="winter-aurora-violet" x1="0" y1="0" x2=".62" y2="1">
+        <stop offset="0" stop-color="#9893f8" stop-opacity="0"/>
+        <stop offset=".67" stop-color="#9e93ed" stop-opacity=".46"/>
+        <stop offset="1" stop-color="#52bbdf" stop-opacity="0"/>
+      </linearGradient>
+    </defs>
+    <rect width="1600" height="900" fill="url(#winter-night)"/>
+    <g class="aurora secondary">
+      <path d="M-96 242C164 168 335 100 591 177S965 372 1205 218s306-203 509-198L1674 125c-232 9-330 180-520 210-236 39-444-95-635-107-218-15-371 71-615 115Z" fill="url(#winter-aurora-violet)"/>
+    </g>
+    <g class="aurora">
+      <path d="M-86 148C177 260 306 267 501 209S810 78 1017 159s375 63 664-66l30 83c-274 178-501 193-714 103S718 184 511 281 98 359-109 289Z" fill="url(#winter-aurora-mint)"/>
+      <path d="M-50 275C188 352 343 340 524 257S797 152 991 238s429 123 671-53" fill="none" stroke="#88e4e8" stroke-opacity=".19" stroke-width="2"/>
+      <path d="M-21 283C206 341 333 341 501 272S765 167 958 235s319 138 683-21" fill="none" stroke="#a7dde9" stroke-opacity=".13"/>
+    </g>
+    <circle cx="1034" cy="136" r="169" fill="url(#winter-moon-halo)"/>
+    <path fill="#dff6ff" d="M1048 107a28 28 0 1 0 19 43 26 26 0 0 1-19-43Z"/>
+    <g class="winter-stars" color="#e3f9ff">
+      <use href="#winter-star" x="154" y="122" width="8" height="8"/>
+      <use href="#winter-star" x="305" y="86" width="15" height="15"/>
+      <use href="#winter-star" x="432" y="145" width="9" height="9"/>
+      <use href="#winter-star" x="532" y="61" width="6" height="6"/>
+      <use href="#winter-star" x="650" y="132" width="11" height="11"/>
+      <use href="#winter-star" x="741" y="79" width="8" height="8"/>
+      <use href="#winter-star" x="897" y="102" width="13" height="13"/>
+      <use href="#winter-star" x="978" y="62" width="7" height="7"/>
+      <use href="#winter-star" x="1138" y="118" width="9" height="9"/>
+      <use href="#winter-star" x="1221" y="85" width="5" height="5"/>
+      <use href="#winter-star" x="1317" y="157" width="16" height="16"/>
+      <use href="#winter-star" x="1497" y="74" width="8" height="8"/>
+    </g>
+  </svg>
+
+  <svg class="winter-land" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 520" preserveAspectRatio="xMinYMax slice" aria-hidden="true" focusable="false">
+    <defs>
+      <linearGradient id="winter-ridge" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#567192"/>
+        <stop offset="1" stop-color="#213853"/>
+      </linearGradient>
+      <linearGradient id="winter-snowbank" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#81a6c0"/>
+        <stop offset="1" stop-color="#2d4b64"/>
+      </linearGradient>
+      <radialGradient id="winter-hearth-glow">
+        <stop offset="0" stop-color="#ffd193" stop-opacity=".46"/>
+        <stop offset="1" stop-color="#ffb671" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
+    <path d="M0 356 157 245 237 273 422 124 568 250 676 182 779 308 926 208 1041 312 1188 139 1323 265 1438 204 1600 323v197H0Z" fill="url(#winter-ridge)"/>
+    <path d="m157 245-57 40 55-13 29 14 18-18Zm265-121L295 226l90-32 38 19 35-30 44 10Zm254 58-62 40 48-9 26 17 27-7Zm250 26-61 41 48-9 23 12 30-8Zm262-69-96 113 64-40 32 19 30-36 43 12Zm250 65-63 34 44-3 38 12 28-11Z" fill="#c1ddec" opacity=".61"/>
+    <path d="M0 382 108 340 211 369 366 273 487 329 591 306 797 378 959 292 1042 327 1194 285 1304 363 1470 313 1600 365v155H0Z" fill="#223c56"/>
+    <path d="M0 439c150-35 287-17 470-49s359 5 529 9 371-28 601-11v132H0Z" fill="#314e65"/>
+    <g color="#29475c" opacity=".84">
+      <use href="#winter-pine" x="75" y="350" width="49" height="74"/>
+      <use href="#winter-pine" x="134" y="336" width="57" height="86"/>
+      <use href="#winter-pine" x="184" y="356" width="44" height="66"/>
+      <use href="#winter-pine" x="470" y="340" width="51" height="77"/>
+      <use href="#winter-pine" x="535" y="320" width="61" height="92"/>
+      <use href="#winter-pine" x="1102" y="314" width="65" height="98"/>
+      <use href="#winter-pine" x="1160" y="345" width="48" height="72"/>
+      <use href="#winter-pine" x="1350" y="312" width="65" height="98"/>
+      <use href="#winter-pine" x="1423" y="308" width="74" height="111"/>
+      <use href="#winter-pine" x="1501" y="348" width="52" height="78"/>
+    </g>
+    <path d="M0 462c211-22 300-42 488-32 211 12 320 36 495 16 124-14 236-49 355-40 103 7 180 28 262 22v92H0Z" fill="url(#winter-snowbank)"/>
+    <g transform="translate(243 343)">
+      <ellipse class="lodge-light" cx="97" cy="141" rx="124" ry="46" fill="url(#winter-hearth-glow)"/>
+      <g fill="#cfdfed" opacity=".55">
+        <ellipse class="chimney-smoke" cx="139" cy="10" rx="11" ry="5"/>
+        <ellipse class="chimney-smoke" cx="139" cy="8" rx="9" ry="4" style="animation-delay:-2s"/>
+        <ellipse class="chimney-smoke" cx="141" cy="6" rx="8" ry="4" style="animation-delay:-4s"/>
+      </g>
+      <path d="M128 17h21v51h-21Z" fill="#304759"/>
+      <path d="M125 17h27" stroke="#cce3ee" stroke-width="6" stroke-linecap="round"/>
+      <path d="M26 79 97 37l72 42v66H26Z" fill="#27394a" stroke="#14273a" stroke-width="2"/>
+      <path d="M29 96h137M29 110h137M29 124h137M29 138h137" stroke="#758798" stroke-opacity=".24" stroke-width="2"/>
+      <path d="m18 84 79-48 80 48" fill="none" stroke="#142537" stroke-width="15" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="m18 76 79-48 80 48" fill="none" stroke="#e0f1f5" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M82 145v-38q0-4 4-4h22q4 0 4 4v38Z" fill="#162637"/>
+      <g class="lodge-light" fill="#ffd58f">
+        <rect x="42" y="94" width="28" height="25" rx="2"/>
+        <rect x="124" y="94" width="28" height="25" rx="2"/>
+        <circle cx="97" cy="71" r="9"/>
+        <path d="M96 122h3v3h-3Z"/>
+      </g>
+      <path d="M56 94v25m-14-13h28m68-12v25m-14-13h28M97 63v16m-8-8h16" fill="none" stroke="#926752" stroke-width="2"/>
+      <path d="M23 147q28-9 60-4t90 1" fill="none" stroke="#c8e1ed" stroke-width="5" stroke-linecap="round" opacity=".7"/>
+    </g>
+    <g color="#183446">
+      <use href="#winter-pine" x="-35" y="273" width="139" height="209"/>
+      <use href="#winter-pine" x="64" y="353" width="86" height="129"/>
+      <use href="#winter-pine" x="437" y="343" width="91" height="137"/>
+      <use href="#winter-pine" x="1495" y="271" width="147" height="220"/>
+    </g>
+    <path d="M0 508c204-34 313-1 529 0 197 1 354-25 520-28s340 24 551 5v35H0Z" fill="#53768d"/>
+  </svg>
+
+  <div class="sleigh" aria-hidden="true"><img src="{{SANTA}}" alt="" width="260" height="170" decoding="async"></div>
+
   <div class="intro-inner">
-    <div class="logo-wrap"><div class="lw"><img src="{{LOGO}}" alt="SeongEraStudy" width="116" height="116"></div></div>
+    <div class="logo-wrap">
+      <div class="lw"><img src="{{LOGO}}" alt="" width="90" height="90"></div>
+      <svg class="frost-orbit" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" aria-hidden="true" focusable="false">
+        <circle cx="80" cy="80" r="73" fill="none" stroke="#7fd6f5" stroke-opacity=".32"/>
+        <circle class="orbit-trace" cx="80" cy="80" r="73" fill="none" stroke="#c1f1ff" stroke-width="1.35" stroke-dasharray="8 48" stroke-linecap="round"/>
+        <g class="orbit-stars" color="#deeffd">
+          <use href="#winter-flake" x="18" y="11" width="24" height="24"/>
+          <use href="#winter-star" x="127" y="118" width="14" height="14"/>
+          <use href="#winter-star" x="134" y="35" width="7" height="7"/>
+        </g>
+      </svg>
+    </div>
     <div class="i-script">Merry Christmas &amp; Happy New Year 2027</div>
     <div class="i-title">Seong<b>Era</b>Study</div>
     <p class="i-sub">Education is free for everyone.</p>
     <div class="i-load"><div class="bar"><i id="ibar"></i></div><small id="istat">Preparing the magic…</small></div>
     <div class="i-btns">
-      <button class="pill big" id="gOn" type="button">🎶 Enter with music</button>
+      <button class="pill big hearth" id="gOn" type="button">🎶 Enter with music</button>
       <button class="skip" id="gOff" type="button">Enter without sound</button>
     </div>
     <div class="tip">Tip: double-tap anywhere to turn the music on or off.</div>
@@ -556,8 +769,8 @@ body.gated .tools{display:none}.calm #snow,.calm .sleigh,.calm .lights,.calm .bg
     <h1>Education is <em>free</em> for everyone.</h1>
     <p class="lead">Watch, read and practice <span class="rot" id="rot">anywhere</span>, all in one simple portal. Open it and start learning today.</p>
     <div class="row">
-      <a class="pill big" href="{{PORTAL}}" target="_blank" rel="noopener">
-        Start learning
+      <a class="pill big hearth" href="{{PORTAL}}" target="_blank" rel="noopener">
+        Open the portal
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
       </a>
       <a class="ghost" href="{{CHANNEL}}" target="_blank" rel="noopener">
@@ -571,6 +784,16 @@ body.gated .tools{display:none}.calm #snow,.calm .sleigh,.calm .lights,.calm .bg
     </div>
     <div class="scroll" aria-hidden="true"></div>
     <div class="treewrap" aria-hidden="true"><img src="{{TREE}}" alt="" width="480" height="480" decoding="async"></div>
+    <div class="hero-frost" aria-hidden="true">
+      <svg class="frost-left" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" focusable="false">
+        <use href="#winter-flake" x="4" y="4" width="92" height="92"/>
+        <use href="#winter-star" x="82" y="12" width="10" height="10"/>
+      </svg>
+      <svg class="frost-right" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" focusable="false">
+        <use href="#winter-flake" x="16" y="10" width="80" height="80"/>
+        <use href="#winter-star" x="9" y="72" width="12" height="12"/>
+      </svg>
+    </div>
   </div>
 
   <div class="ticker" aria-hidden="true">
@@ -729,7 +952,7 @@ body.gated .tools{display:none}.calm #snow,.calm .sleigh,.calm .lights,.calm .bg
 <script>
 (function(){
   var $=function(id){return document.getElementById(id)};
-  var reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var motion=window.matchMedia('(prefers-reduced-motion: reduce)'), reduce=motion.matches;
   var fine=window.matchMedia('(hover:hover) and (pointer:fine)').matches;
   function safe(p){ if(p&&p.catch)p.catch(function(){}); }
 
@@ -740,36 +963,61 @@ body.gated .tools{display:none}.calm #snow,.calm .sleigh,.calm .lights,.calm .bg
   function stopFill(){ clearInterval(fillTimer); fillTimer=null; }
 
   /* ================= SNOW + FIREWORKS ================= */
-  var sc=$('snow'), sx=sc.getContext('2d'), W=0,H=0, flakes=[], sparks=[], wind=0, tw=0, raf=0, running=false;
+  var sc=$('snow'), sx=sc.getContext('2d'), W=0,H=0, flakes=[], sparks=[];
+  var wind=0, windGoal=0, tw=0, raf=0, lastFrame=0, running=false;
+
+  // One soft sprite gives nearby flakes depth without blurring the whole canvas.
+  var softFlake=document.createElement('canvas');
+  softFlake.width=softFlake.height=40;
+  var sf=softFlake.getContext('2d'), snowFade=sf.createRadialGradient(20,20,0,20,20,20);
+  snowFade.addColorStop(0,'rgba(243,253,255,.94)');
+  snowFade.addColorStop(.32,'rgba(218,243,255,.73)');
+  snowFade.addColorStop(.66,'rgba(182,222,249,.24)');
+  snowFade.addColorStop(1,'rgba(182,222,249,0)');
+  sf.fillStyle=snowFade;
+  sf.fillRect(0,0,40,40);
+
   function mk(init){
-    var r=Math.random()*2.6+.8;
-    return {x:Math.random()*W,y:init?Math.random()*H:-8,r:r,vy:.35+r*.42,ph:Math.random()*6.283,a:.5+Math.random()*.5};
+    var depth=Math.random(), near=depth>.82;
+    return {
+      x:Math.random()*W,y:init?Math.random()*H:-12,depth:depth,near:near,
+      r:near?4+depth*4:.65+depth*2.2,vy:.26+depth*1.6,
+      ph:Math.random()*2*Math.PI,a:.38+depth*.44
+    };
   }
   function size(){
     var dpr=Math.min(window.devicePixelRatio||1,1.5);
     W=window.innerWidth; H=window.innerHeight;
     sc.width=W*dpr; sc.height=H*dpr; sx.setTransform(dpr,0,0,dpr,0,0);
-    var n=Math.round(Math.min(W*H/13000,fine?130:60));
+    var n=Math.round(Math.min(W*H/8200,fine?155:72));
     while(flakes.length<n){ flakes.push(mk(true)); }
     flakes.length=n;
   }
-  function frame(){
+  function frame(now){
     raf=requestAnimationFrame(frame);
+    var step=lastFrame?Math.min(2.5,(now-lastFrame)/(1000/60)):1;
+    lastFrame=now;
     sx.clearRect(0,0,W,H);
-    tw+=.01;
-    sx.fillStyle='#fff';
+    tw+=.017*step;
+    wind+=(windGoal-wind)*.04*step;
+    sx.fillStyle='#e1f4ff';
     for(var i=0;i<flakes.length;i++){
       var f=flakes[i];
-      f.y+=f.vy;
-      f.x+=Math.sin(tw*2+f.ph)*.45+wind*f.r*.3;
-      if(f.y>H+8){ f.y=-8; f.x=Math.random()*W; }
-      if(f.x>W+8){ f.x=-8; } else if(f.x<-8){ f.x=W+8; }
+      f.y+=f.vy*step;
+      f.x+=(Math.sin(tw+f.ph)*(.16+f.depth*.62)+wind*f.depth*.8+.14)*step;
+      if(f.y>H+12){ f.y=-12; f.x=Math.random()*W; }
+      if(f.x>W+12){ f.x=-12; } else if(f.x<-12){ f.x=W+12; }
       sx.globalAlpha=f.a;
-      sx.beginPath(); sx.arc(f.x,f.y,f.r,0,6.283); sx.fill();
+      if(f.near){
+        sx.drawImage(softFlake,f.x-f.r,f.y-f.r,2*f.r,2*f.r);
+      } else {
+        sx.beginPath(); sx.arc(f.x,f.y,f.r,0,2*Math.PI); sx.fill();
+      }
     }
+    var drag=Math.pow(.985,step);
     for(var j=sparks.length-1;j>=0;j--){
       var p=sparks[j];
-      p.vx*=.985; p.vy=p.vy*.985+p.g; p.x+=p.vx; p.y+=p.vy; p.life--;
+      p.vx*=drag; p.vy=p.vy*drag+p.g*step; p.x+=p.vx*step; p.y+=p.vy*step; p.life-=step;
       if(p.life<=0){ sparks[j]=sparks[sparks.length-1]; sparks.pop(); continue; }
       sx.globalAlpha=Math.min(1,p.life/p.max*1.4);
       sx.fillStyle=p.c;
@@ -778,13 +1026,19 @@ body.gated .tools{display:none}.calm #snow,.calm .sleigh,.calm .lights,.calm .bg
     sx.globalAlpha=1;
   }
   function startSnow(){ if(!running && !reduce && !document.body.classList.contains("calm")){ running=true; raf=requestAnimationFrame(frame); } }
-  function stopSnow(){ running=false; cancelAnimationFrame(raf); }
+  function stopSnow(){
+    running=false;
+    cancelAnimationFrame(raf);
+    lastFrame=0;
+    sparks.length=0;
+    sx.clearRect(0,0,W,H);
+  }
   size(); window.addEventListener('resize',size);
 
   var cols=['#ffcf6b','#ff5468','#bfe9ff','#ffffff','#5cf2b0'];
-  function burst(x,y,n){
-    if(sparks.length>520){ return; }
-    var c=cols[(Math.random()*cols.length)|0];
+  function burst(x,y,n,color){
+    if(!running||sparks.length>520){ return; }
+    var c=color||cols[(Math.random()*cols.length)|0];
     for(var i=0;i<n;i++){
       var a=Math.random()*6.283, s=Math.random()*4.4+1, life=70+((Math.random()*45)|0);
       sparks.push({x:x,y:y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:life,max:life,c:Math.random()<.2?'#fff':c,s:Math.random()*1.4+1,g:.045});
@@ -809,8 +1063,8 @@ body.gated .tools{display:none}.calm #snow,.calm .sleigh,.calm .lights,.calm .bg
   /* sparkle trail + wind (desktop) */
   var lastT=0;
   window.addEventListener('pointermove',function(e){
-    wind=((e.clientX/W)-.5)*1.4;
     if(!fine||reduce||document.body.classList.contains("calm")){ return; }
+    windGoal=((e.clientX/W)-.5)*1.4;
     var n=Date.now(); if(n-lastT<45){ return; } lastT=n;
     if(sparks.length>300){ return; }
     for(var i=0;i<2;i++){
@@ -904,7 +1158,7 @@ body.gated .tools{display:none}.calm #snow,.calm .sleigh,.calm .lights,.calm .bg
   step();
   var vdone=false; function vstep(){ if(!vdone){ vdone=true; step(); } }
   if(v.readyState>=2){ vstep(); } else { v.addEventListener('loadeddata',vstep); }
-  var glogo=document.querySelector('#gate img');
+  var glogo=document.querySelector('#gate .lw img');
   if(!glogo||glogo.complete){ step(); } else { glogo.addEventListener('load',step); glogo.addEventListener('error',step); }
   if(document.readyState==='complete'){ step(); } else { window.addEventListener('load',step); }
   setTimeout(function(){ if(ibar){ ibar.style.width='100%'; } if(istat){ istat.textContent='Ready'; } },2600);
@@ -913,6 +1167,10 @@ body.gated .tools{display:none}.calm #snow,.calm .sleigh,.calm .lights,.calm .bg
   function closeGate(){
     if(!gate){ return; }
     var g=gate; gate=null;
+    if(running){
+      var emblem=g.querySelector('.logo-wrap').getBoundingClientRect();
+      burst(emblem.left+emblem.width/2,emblem.top+emblem.height/2,36,'#b6eaff');
+    }
     g.classList.add('out'); document.body.classList.remove('gated');
     try{ sessionStorage.setItem('sxg','1'); }catch(e){}
     setTimeout(function(){ g.remove(); },700);
@@ -945,6 +1203,7 @@ body.gated .tools{display:none}.calm #snow,.calm .sleigh,.calm .lights,.calm .bg
   /* ================= ROTATING WORD ================= */
   var words=['anywhere','anytime','on any device','at your pace','for free'], wi=0, rot=$('rot');
   setInterval(function(){
+    if(reduce||document.body.classList.contains('calm')){ return; }
     rot.classList.add('out');
     setTimeout(function(){ wi=(wi+1)%words.length; rot.textContent=words[wi]; rot.classList.remove('out'); },320);
   },2400);
@@ -1016,17 +1275,26 @@ body.gated .tools{display:none}.calm #snow,.calm .sleigh,.calm .lights,.calm .bg
   window.addEventListener('scroll',onScroll,{passive:true}); onScroll();
 
   /* Additional controls and saved preferences */
-  var calm=$('calm'), quiet=reduce;
-  try { quiet=quiet||localStorage.getItem('sx-calm')==='1'; } catch(e){}
+  var calm=$('calm'), quiet=false;
+  try { quiet=localStorage.getItem('sx-calm')==='1'; } catch(e){}
   function applyCalm(){
-    document.body.classList.toggle('calm',quiet);
-    calm.setAttribute('aria-pressed',String(quiet));
-    if(quiet){ stopSnow(); stopFill(); } else if(!document.hidden){ startSnow(); startFill(); }
-    try{localStorage.setItem('sx-calm',quiet?'1':'0');}catch(e){}
+    var effectsOff=reduce||quiet;
+    document.body.classList.toggle('calm',effectsOff);
+    calm.setAttribute('aria-pressed',String(effectsOff));
+    if(effectsOff){ stopSnow(); stopFill(); } else if(!document.hidden){ startSnow(); startFill(); }
   }
-  calm.addEventListener('click',function(){quiet=!quiet;applyCalm();toast(quiet?'Reduced effects enabled':'Festive effects enabled');});
+  calm.addEventListener('click',function(){
+    if(reduce){ toast('Reduced motion is on in your device settings'); return; }
+    quiet=!quiet;
+    try{localStorage.setItem('sx-calm',quiet?'1':'0');}catch(e){}
+    applyCalm();
+    toast(quiet?'Reduced effects enabled':'Festive effects enabled');
+  });
+  if(motion.addEventListener){
+    motion.addEventListener('change',function(e){ reduce=e.matches; applyCalm(); });
+  }
   applyCalm();
-  $('backtop').addEventListener('click',function(){window.scrollTo({top:0,behavior:quiet?'auto':'smooth'});});
+  $('backtop').addEventListener('click',function(){window.scrollTo({top:0,behavior:(reduce||quiet)?'auto':'smooth'});});
   $('share').addEventListener('click',async function(){
     try{if(navigator.share){await navigator.share({title:document.title,url:location.origin+'/'});}else if(navigator.clipboard){await navigator.clipboard.writeText(location.origin+'/');toast('Link copied');}else{window.prompt('Copy this link',location.origin+'/');}}catch(e){if(e.name!=='AbortError')toast('Sharing unavailable');}
   });
