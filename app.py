@@ -7,7 +7,7 @@ WHATSAPP_CHANNEL_LINK = "https://whatsapp.com/channel/0029VbE8De8B4hdWhdsUoH0z"
 OWNER_LINK      = "https://t.me/SeongEra"
 OWNER_NAME      = "夔🌑 𝑺𝒆𝒐𝒏𝒈-𝒋𝒆 ⋆ 𝑂𝑓𝑓𝑙𝑖𝑛𝑒"
 
-VIDEO_URL       = "https://huggingface.co/datasets/gopallikehack/Seong_Study/resolve/main/n-261124-kcctgu.mp4"
+VIDEO_URL       = "https://huggingface.co/datasets/gopallikehack/Seong_Study/resolve/main/yzx-261128-l3dmrl.mp4"
 OWNER_VIDEO_URL = "https://huggingface.co/datasets/gopallikehack/Seong_Study/resolve/main/a-261025-y6jc8x.mp4"
 
 DEFAULT_LOGO_URL = "https://i.ibb.co/XxtXNBCW/file-00000000649482079925d320aeb3e88b.png"
